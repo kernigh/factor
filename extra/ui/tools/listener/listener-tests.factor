@@ -1,4 +1,4 @@
-USING: continuations documents ui.tools.interactor
+USING: continuations documents
 ui.tools.listener hashtables kernel namespaces parser sequences
 timers tools.test ui.commands ui.gadgets ui.gadgets.editors
 ui.gadgets.panes vocabs words tools.test.ui ;

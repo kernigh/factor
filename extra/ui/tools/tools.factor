@@ -50,7 +50,7 @@ IN: ui.tools
 
 M: workspace model-changed
     nip
-    dup workspace-listener listener-gadget-output scroll>bottom
+    dup workspace-listener listener-gadget-worksheet scroll>bottom
     dup resize-workspace
     request-focus ;
 

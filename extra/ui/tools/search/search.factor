@@ -1,13 +1,12 @@
 ! Copyright (C) 2006, 2007 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: assocs ui.tools.interactor ui.tools.listener
-ui.tools.workspace help help.topics io.files io.styles kernel
-models namespaces prettyprint quotations sequences sorting
-source-files strings tools.completion tools.crossref tuples
-ui.commands ui.gadgets ui.gadgets.editors
-ui.gadgets.lists ui.gadgets.scrollers ui.gadgets.tracks
-ui.gestures ui.operations vocabs words vocabs.loader
-tools.browser ;
+USING: assocs ui.tools.listener ui.tools.workspace help
+help.topics io.files io.styles kernel models namespaces
+prettyprint quotations sequences sorting source-files strings
+tools.completion tools.crossref tuples ui.commands ui.gadgets
+ui.gadgets.editors ui.gadgets.lists ui.gadgets.scrollers
+ui.gadgets.tracks ui.gestures ui.operations vocabs words
+vocabs.loader tools.browser ;
 IN: ui.tools.search
 
 TUPLE: live-search field list ;
@@ -70,7 +69,8 @@ M: live-search focusable-child* live-search-field ;
 M: live-search pref-dim* drop { 400 200 } ;
 
 : current-word ( workspace -- string )
-    workspace-listener listener-gadget-input selected-word ;
+    drop f ;
+!    workspace-listener listener-gadget-input selected-word ;
 
 : definition-candidates ( words -- candidates )
     [ dup synopsis >lower ] { } map>assoc sort-values ;
@@ -144,7 +144,8 @@ M: live-search pref-dim* drop { 400 200 } ;
     f [ input-string ] <live-search> ;
 
 : listener-history ( listener -- seq )
-    listener-gadget-input interactor-history <reversed> ;
+    drop f ;
+!    listener-gadget-input interactor-history <reversed> ;
 
 : com-history ( workspace -- )
     "" over workspace-listener listener-history <history-search>

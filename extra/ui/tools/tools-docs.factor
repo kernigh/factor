@@ -2,8 +2,8 @@ USING: editors help.markup help.syntax inspector io listener
 parser prettyprint tools.profiler tools.interpreter ui.commands
 ui.gadgets.editors ui.gadgets.panes ui.gadgets.presentations
 ui.gadgets.slots ui.operations ui.tools.browser
-ui.tools.interactor ui.tools.listener ui.tools.operations
-ui.tools.profiler ui.tools.walker ui.tools.workspace vocabs ;
+ui.tools.listener ui.tools.operations ui.tools.profiler
+ui.tools.walker ui.tools.workspace vocabs ;
 IN: ui.tools
 
 ARTICLE: "ui-presentations" "Presentations in the UI"
@@ -25,13 +25,14 @@ ARTICLE: "ui-listener" "UI listener"
     { "Clickable presentations (see " { $link "ui-presentations" } ")" }
 }
 { $command-map listener-gadget "toolbar" }
-{ $command-map interactor "interactor" }
+! { $command-map interactor "interactor" }
 { $command-map source-editor "word" }
-{ $command-map interactor "quotation" }
+! { $command-map interactor "quotation" }
 { $heading "Editing commands" }
 "The text editing commands are standard; see " { $link "gadgets-editors" } "."
 { $heading "Implementation" }
-"Listeners are instances of " { $link listener-gadget } ". The listener consists of an output area (instance of " { $link pane } "), and an input area (instance of " { $link interactor } "), and a stack display kept up to date using a " { $link listener-hook } "." ;
+! "Listeners are instances of " { $link listener-gadget } ". The listener consists of an output area (instance of " { $link pane } "), and an input area (instance of " { $link interactor } "), and a stack display kept up to date using a " { $link listener-hook } "." ;
+;
 
 ARTICLE: "ui-inspector" "UI inspector"
 "The graphical inspector builds on the terminal inspector (see " { $link "inspector" } ") and provides in-place editing of slot values."

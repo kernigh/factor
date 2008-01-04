@@ -5,7 +5,7 @@ ui.gadgets.tracks ui.gadgets.worlds ui.gadgets ui kernel ;
 IN: ui.gadgets.status-bar
 
 : <status-bar> ( model -- gadget )
-    100 <delay> [ "" like ] <filter> <label-control>
+    100 <delay> <label-control>
     dup reverse-video-theme
     t over set-gadget-root? ;
 

@@ -155,15 +155,18 @@ HOOK: x>offset font-renderer ( x open-font string -- n )
 
 HOOK: free-fonts font-renderer ( world -- )
 
+: single-line? ( obj -- ? )
+    dup string? swap not or ;
+
 : text-height ( open-font text -- n )
-    dup string? [
+    dup single-line? [
         string-height
     ] [
         [ string-height ] curry* map sum
     ] if ;
 
 : text-width ( open-font text -- n )
-    dup string? [
+    dup single-line? [
         string-width
     ] [
         0 -rot [ string-width max ] curry* each
@@ -173,7 +176,7 @@ HOOK: free-fonts font-renderer ( world -- )
     [ text-width ] 2keep text-height 2array ;
 
 : draw-text ( font text loc -- )
-    over string? [
+    over single-line? [
         draw-string
     ] [
         [

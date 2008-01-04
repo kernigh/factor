@@ -1,14 +1,13 @@
 ! Copyright (C) 2006, 2007 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: continuations definitions ui.tools.browser
-ui.tools.interactor ui.tools.listener ui.tools.profiler
-ui.tools.search ui.tools.traceback ui.tools.workspace generic
-help.topics inference inspector io.files io.styles kernel
-namespaces parser prettyprint quotations tools.annotations
-editors tools.profiler tools.test tools.time tools.interpreter
-ui.commands ui.gadgets.editors ui.gestures ui.operations
-ui.tools.deploy vocabs vocabs.loader words sequences
-tools.browser classes ;
+ui.tools.listener ui.tools.profiler ui.tools.search
+ui.tools.traceback ui.tools.workspace generic help.topics
+inference inspector io.files io.styles kernel namespaces parser
+prettyprint quotations tools.annotations editors tools.profiler
+tools.test tools.time tools.interpreter ui.commands
+ui.gadgets.editors ui.gestures ui.operations ui.tools.deploy
+vocabs vocabs.loader words sequences tools.browser classes ;
 IN: ui.tools.operations
 
 V{ } clone operations set-global
@@ -191,10 +190,10 @@ source-editor
 [ search ] 
 define-operation-map
 
-interactor
-"quotation"
-"These commands operate on the entire contents of the input area."
-[ ]
-[ quot-action ]
-[ [ parse-lines ] with-compilation-unit ]
-define-operation-map
+! interactor
+! "quotation"
+! "These commands operate on the entire contents of the input area."
+! [ ]
+! [ quot-action ]
+! [ [ parse-lines ] with-compilation-unit ]
+! define-operation-map

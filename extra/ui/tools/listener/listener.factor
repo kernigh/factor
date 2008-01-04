@@ -1,6 +1,6 @@
 ! Copyright (C) 2005, 2007 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: inspector ui.tools.interactor ui.tools.inspector
+USING: inspector ui.tools.worksheet ui.tools.inspector
 ui.tools.workspace help.markup io io.streams.duplex io.styles
 kernel models namespaces parser quotations sequences ui.commands
 ui.gadgets ui.gadgets.editors ui.gadgets.labelled
@@ -9,52 +9,46 @@ ui.gadgets.tracks ui.gestures ui.operations vocabs words
 prettyprint listener debugger threads ;
 IN: ui.tools.listener
 
-TUPLE: listener-gadget input output stack ;
+TUPLE: listener-gadget worksheet stack ;
 
-: listener-output, ( -- )
-    <scrolling-pane> g-> set-listener-gadget-output
+: listener-worksheet, ( -- )
+    <worksheet> g-> set-listener-gadget-worksheet
     <scroller> "Output" <labelled-gadget> 1 track, ;
 
 : listener-stream ( listener -- stream )
-    dup listener-gadget-input
-    swap listener-gadget-output <pane-stream>
-    <duplex-stream> ;
-
-: <listener-input> ( listener -- gadget )
-    listener-gadget-output <pane-stream> <interactor> ;
-
-: listener-input, ( -- )
-    g <listener-input> g-> set-listener-gadget-input
-    <scroller> "Input" <labelled-gadget> f track, ;
+    listener-gadget-worksheet <worksheet-stream> ;
 
 : welcome. ( -- )
-   "If this is your first time with the Factor UI," print
-   "please read " write
-   "ui-tools" ($link) " and " write
-   "ui-listener" ($link) "." print nl
-   "If you are completely new to Factor, start with the " print
-   "cookbook" ($link) "." print nl ;
+    "If you are completely new to Factor, start with the " print
+    "cookbook" ($link) "." print nl
+    "To get started with the Factor UI, read" print
+    "ui-tools" ($link) " and " write
+    "ui-listener" ($link) "." print nl ;
 
 M: listener-gadget focusable-child*
-    listener-gadget-input ;
+    listener-gadget-worksheet ;
 
 M: listener-gadget call-tool* ( input listener -- )
-    >r input-string r> listener-gadget-input set-editor-string ;
+    2drop ;
+!    >r input-string r> listener-gadget-input set-editor-string ;
 
 M: listener-gadget tool-scroller
-    listener-gadget-output find-scroller ;
+    listener-gadget-worksheet find-scroller ;
 
 : workspace-busy? ( workspace -- ? )
-    workspace-listener listener-gadget-input interactor-busy? ;
+    drop f ;
+!    workspace-listener listener-gadget-input interactor-busy? ;
 
 : get-listener ( -- listener )
     [ workspace-busy? not ] get-workspace* workspace-listener ;
 
 : listener-input ( string -- )
-    get-listener listener-gadget-input set-editor-string ;
+    drop ;
+!    get-listener listener-gadget-input set-editor-string ;
 
 : (call-listener) ( quot listener -- )
-    listener-gadget-input interactor-call ;
+    2drop ;
+!    listener-gadget-input interactor-call ;
 
 : call-listener ( quot -- )
     get-listener (call-listener) ;
@@ -66,9 +60,10 @@ M: listener-operation invoke-command ( target command -- )
     [ operation-hook call ] keep operation-quot call-listener ;
 
 : eval-listener ( string -- )
-    get-listener
-    listener-gadget-input [ set-editor-string ] keep
-    evaluate-input ;
+    drop ;
+!    get-listener
+!    listener-gadget-input [ set-editor-string ] keep
+!    evaluate-input ;
 
 : listener-run-files ( seq -- )
     dup empty? [
@@ -78,10 +73,11 @@ M: listener-operation invoke-command ( target command -- )
     ] if ;
 
 : com-EOF ( listener -- )
-    listener-gadget-input interactor-eof ;
+    drop ;
+!    listener-gadget-input interactor-eof ;
 
 : clear-output ( listener -- )
-    [ listener-gadget-output [ pane-clear ] curry ] keep
+    [ listener-gadget-worksheet [ pane-clear ] curry ] keep
     (call-listener) ;
 
 : clear-stack ( listener -- )
@@ -89,16 +85,18 @@ M: listener-operation invoke-command ( target command -- )
 
 : word-completion-string ( word listener -- string )
     >r dup word-name swap word-vocabulary dup vocab-words r>
-    listener-gadget-input interactor-use memq?
+!    listener-gadget-input interactor-use memq?
+    drop { } memq?
     [ drop ] [ [ "USE: " % % " " % % ] "" make ] if ;
 
 : insert-word ( word -- )
-    get-listener [ word-completion-string ] keep
-    listener-gadget-input user-input ;
+    drop ;
+!    get-listener [ word-completion-string ] keep
+!    listener-gadget-input user-input ;
 
 : quot-action ( interactor -- lines )
     dup control-value swap
-    2dup add-interactor-history
+    ! 2dup add-interactor-history
     select-all ;
 
 TUPLE: stack-display ;
@@ -143,7 +141,7 @@ M: stack-display tool-scroller
 : <listener-gadget> ( -- gadget )
     listener-gadget construct-empty
     dup init-listener
-    [ listener-output, listener-input, ] { 0 1 } build-track
+    [ listener-worksheet, ] { 0 1 } build-track
     dup restart-listener ;
 
 : listener-help "ui-listener" help-window ;

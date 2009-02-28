@@ -1,0 +1,4 @@
+include vm/Config.unix
+PLAF_DLL_OBJS += vm/os-genunix.o
+CFLAGS += -export-dynamic
+LIBS = 

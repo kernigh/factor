@@ -59,26 +59,6 @@ typedef signed long long s64;
 
 #define TYPE_COUNT 17
 
-INLINE bool immediate_p(CELL obj)
-{
-	return (obj == F || TAG(obj) == FIXNUM_TYPE);
-}
-
-INLINE F_FIXNUM untag_fixnum_fast(CELL tagged)
-{
-	return ((F_FIXNUM)tagged) >> TAG_BITS;
-}
-
-INLINE CELL tag_fixnum(F_FIXNUM untagged)
-{
-	return RETAG(untagged << TAG_BITS,FIXNUM_TYPE);
-}
-
-INLINE void *untag_object(CELL tagged)
-{
-	return (void *)UNTAG(tagged);
-}
-
 typedef void *XT;
 
 /* Assembly code makes assumptions about the layout of this struct */
@@ -238,3 +218,25 @@ typedef struct
 	/* tagged layout */
 	CELL layout;
 } F_TUPLE;
+
+#include "platform.h"
+
+INLINE bool immediate_p(CELL obj)
+{
+	return (obj == F || TAG(obj) == FIXNUM_TYPE);
+}
+
+INLINE F_FIXNUM untag_fixnum_fast(CELL tagged)
+{
+	return ((F_FIXNUM)tagged) >> TAG_BITS;
+}
+
+INLINE CELL tag_fixnum(F_FIXNUM untagged)
+{
+	return RETAG(untagged << TAG_BITS,FIXNUM_TYPE);
+}
+
+INLINE void *untag_object(CELL tagged)
+{
+	return (void *)UNTAG(tagged);
+}

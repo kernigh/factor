@@ -176,6 +176,7 @@ find_os() {
         *FreeBSD*) OS=freebsd;;
         *OpenBSD*) OS=openbsd;;
         *DragonFly*) OS=dragonflybsd;;
+        *Haiku*) OS=haiku;;
         SunOS) OS=solaris;;
     esac
 }
@@ -190,6 +191,7 @@ find_architecture() {
        i686) ARCH=x86;;
        i86pc) ARCH=x86;;
        amd64) ARCH=x86;;
+       BePC) ARCH=x86;;
        ppc64) ARCH=ppc;;
        *86) ARCH=x86;;
        *86_64) ARCH=x86;;

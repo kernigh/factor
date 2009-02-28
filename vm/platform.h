@@ -10,6 +10,20 @@
 	#error "Unsupported architecture"
 #endif
 
+#if defined(FACTOR_X86)
+	#include "cpu-x86.32.h"
+	#include "cpu-x86.h"
+#elif defined(FACTOR_AMD64)
+	#include "cpu-x86.64.h"
+	#include "cpu-x86.h"
+#elif defined(FACTOR_PPC)
+	#include "cpu-ppc.h"
+#elif defined(FACTOR_ARM)
+	#include "cpu-arm.h"
+#else
+	#error "Unsupported CPU"
+#endif
+
 #if defined(WINDOWS)
 	#if defined(WINCE)
 		#include "os-windows-ce.h"
@@ -101,22 +115,10 @@
 				#error "Unsupported Solaris flavor"
 			#endif
 
+		#elif defined(__HAIKU__)
+			#define FACTOR_OS_STRING "haiku"
 		#else
 			#error "Unsupported OS"
 		#endif
 	#endif
-#endif
-
-#if defined(FACTOR_X86)
-	#include "cpu-x86.32.h"
-	#include "cpu-x86.h"
-#elif defined(FACTOR_AMD64)
-	#include "cpu-x86.64.h"
-	#include "cpu-x86.h"
-#elif defined(FACTOR_PPC)
-	#include "cpu-ppc.h"
-#elif defined(FACTOR_ARM)
-	#include "cpu-arm.h"
-#else
-	#error "Unsupported CPU"
 #endif

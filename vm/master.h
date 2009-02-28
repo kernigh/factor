@@ -1,6 +1,9 @@
 #ifndef __FACTOR_MASTER_H__
 #define __FACTOR_MASTER_H__
 
+#include <stdbool.h>
+#include "layouts.h"
+
 #ifndef WINCE
 	#include <errno.h>
 #endif
@@ -8,7 +11,6 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <math.h>
-#include <stdbool.h>
 #include <setjmp.h>
 
 #include <stdio.h>
@@ -17,8 +19,6 @@
 #include <time.h>
 #include <sys/param.h>
 
-#include "layouts.h"
-#include "platform.h"
 #include "primitives.h"
 #include "run.h"
 #include "profiler.h"

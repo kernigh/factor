@@ -49,7 +49,7 @@ DLL_OBJS = $(PLAF_DLL_OBJS) \
 EXE_OBJS = $(PLAF_EXE_OBJS)
 
 default:
-	$(MAKE) `./build-support/factor.sh make-target`
+	$(MAKE) `bash ./build-support/factor.sh make-target`
 
 help:
 	@echo "Run '$(MAKE)' with one of the following parameters:"
@@ -72,6 +72,7 @@ help:
 	@echo "wince-arm"
 	@echo "winnt-x86-32"
 	@echo "winnt-x86-64"
+	@echo "haiku-x86-32"
 	@echo ""
 	@echo "Additional modifiers:"
 	@echo ""
@@ -139,6 +140,9 @@ winnt-x86-64:
 
 wince-arm:
 	$(MAKE) $(EXECUTABLE) CONFIG=vm/Config.windows.ce.arm
+
+haiku-x86-32:
+	$(MAKE) $(EXECUTABLE) CONFIG=vm/Config.haiku.x86.32
 
 macosx.app: factor
 	mkdir -p $(BUNDLE)/Contents/MacOS

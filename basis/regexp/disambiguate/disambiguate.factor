@@ -16,9 +16,9 @@ TUPLE: parts in out ;
     ] map rest ;
 
 : partition>class ( parts -- class )
-    [ out>> [ <not-class> ] map ]
-    [ in>> <and-class> ] bi
-    prefix <and-class> ;
+    [ out>> [ <not> ] map ]
+    [ in>> <intersection> ] bi
+    prefix <intersection> ;
 
 : singleton-partition ( integer non-integers -- {class,partition} )
     dupd

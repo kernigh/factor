@@ -1,7 +1,6 @@
 ! Copyright (C) 2008, 2009 Doug Coleman, Daniel Ehrenberg.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel arrays accessors fry sequences regexp.classes
-math.ranges math ;
+USING: kernel arrays accessors sequences math character-classes;
 IN: regexp.ast
 
 TUPLE: negation term ;
@@ -72,3 +71,8 @@ C: <lookahead> lookahead
 
 TUPLE: lookbehind term ;
 C: <lookbehind> lookbehind
+
+SINGLETONS: dot beginning-of-input ^ end-of-input $ end-of-file
+^unix $unix word-break ;
+
+INSTANCE: dot simple-class

@@ -2,8 +2,9 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: unicode.data sequences namespaces
 sbufs make unicode.normalize math hints
-unicode.categories combinators assocs combinators.short-circuit
-strings splitting kernel accessors unicode.breaks fry locals ;
+combinators assocs combinators.short-circuit
+strings splitting kernel accessors unicode.breaks fry locals
+character-classes character-classes.unicode ;
 QUALIFIED: ascii
 IN: unicode.case
 
@@ -62,6 +63,9 @@ SYMBOL: locale ! Just casing locale, or overall?
         dup peek CHAR: greek-small-letter-sigma =
         [ 1 head* CHAR: greek-small-letter-final-sigma suffix ] when
     ] if-empty ; inline
+
+CATEGORY: uncased
+    { Lu Ll Lt Lm Mn Me } <union> <not> ; 
 
 : sigma-map ( string -- string )
     { CHAR: greek-capital-letter-sigma } split [ [

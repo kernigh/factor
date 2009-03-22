@@ -1,7 +1,7 @@
 ! Copyright (C) 2008, 2009 Doug Coleman, Daniel Ehrenberg.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: peg.ebnf kernel math.parser sequences assocs arrays fry math
-combinators regexp.classes strings splitting peg locals accessors
+combinators character-classes strings splitting peg locals accessors
 regexp.ast unicode.case unicode.script.private unicode.categories
 memoize interval-maps sets unicode.data combinators.short-circuit ;
 IN: regexp.parser
@@ -54,18 +54,18 @@ MEMO: simple-category-table ( -- table )
 
 : name>class ( name -- class )
     >string simple {
-        { "lower" letter-class }
-        { "upper" LETTER-class }
-        { "alpha" Letter-class }
-        { "ascii" ascii-class }
-        { "digit" digit-class }
-        { "alnum" alpha-class }
-        { "punct" punctuation-class }
-        { "graph" java-printable-class }
-        { "blank" non-newline-blank-class }
-        { "cntrl" control-character-class }
-        { "xdigit" hex-digit-class }
-        { "space" java-blank-class }
+        { "lower" lowercase }
+        { "upper" uppercase }
+        { "alpha" alphabetic }
+        { "ascii" ascii }
+        { "digit" digit }
+        { "alnum" alphanumeric }
+        { "punct" punctuation }
+        { "print" printable }
+        { "blank" blank }
+        { "cntrl" control }
+        { "xdigit" hex-digit }
+        { "space" whitespace }
     } [ unicode-class ] at-error ;
 
 : lookup-escape ( char -- ast )
@@ -78,12 +78,12 @@ MEMO: simple-category-table ( -- table )
         { CHAR: e [ HEX: 1b ] }
         { CHAR: \\ [ CHAR: \\ ] }
 
-        { CHAR: w [ c-identifier-class <primitive-class> ] }
-        { CHAR: W [ c-identifier-class <primitive-class> <not-class> ] }
-        { CHAR: s [ java-blank-class <primitive-class> ] }
-        { CHAR: S [ java-blank-class <primitive-class> <not-class> ] }
-        { CHAR: d [ digit-class <primitive-class> ] }
-        { CHAR: D [ digit-class <primitive-class> <not-class> ] }
+        { CHAR: w [ word ] }
+        { CHAR: W [ word <not-class> ] }
+        { CHAR: s [ whitespace ] }
+        { CHAR: S [ whitespace <not-class> ] }
+        { CHAR: d [ digit ] }
+        { CHAR: D [ digit <not-class> ] }
 
         { CHAR: z [ end-of-input <tagged-epsilon> ] }
         { CHAR: Z [ end-of-file <tagged-epsilon> ] }
@@ -130,8 +130,8 @@ CharacterInBracket = !("}") Character
 
 QuotedCharacter = !("\\E") .
 
-Escape = "p{" CharacterInBracket*:s "}" => [[ s name>class <primitive-class> ]]
-       | "P{" CharacterInBracket*:s "}" => [[ s name>class <primitive-class> <negation> ]]
+Escape = "p{" CharacterInBracket*:s "}" => [[ s name>class ]]
+       | "P{" CharacterInBracket*:s "}" => [[ s name>class <not-class> ]]
        | "Q" QuotedCharacter*:s "\\E" => [[ s <concatenation> ]]
        | "u" Character:a Character:b Character:c Character:d
             => [[ { a b c d } hex> ensure-number ]]
@@ -163,13 +163,13 @@ Ranges = StartRange:s Range*:r => [[ r s prefix ]]
 BasicCharClass =  "^"?:n Ranges:e => [[ e n char-class ]]
 
 CharClass = BasicCharClass:b "&&" CharClass:c
-                => [[ b c 2array <and-class> ]]
+                => [[ b c <and> ]]
           | BasicCharClass:b "||" CharClass:c
-                => [[ b c 2array <or-class> ]]
+                => [[ b c <or> ]]
           | BasicCharClass:b "~~" CharClass:c
-                => [[ b c <sym-diff-class> ]]
+                => [[ b c <sym-diff> ]]
           | BasicCharClass:b "--" CharClass:c
-                => [[ b c <minus-class> ]]
+                => [[ b c <minus> ]]
           | BasicCharClass
 
 Options = [idmsux]*

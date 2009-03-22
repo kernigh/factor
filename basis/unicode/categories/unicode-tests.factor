@@ -4,6 +4,6 @@ USING: tools.test kernel character-classes.unicode words sequences ;
 IN: character-classes.unicode.tests
 
 [ { f f t t f t t f t } ] [ CHAR: A { 
-    blank? lowercase? uppercase? alphabetic? digit? 
+    blank? lowercased? uppercased? alphabetic? digit? 
     printable? alphanumeric? control? character? 
 } [ execute ] with map ] unit-test

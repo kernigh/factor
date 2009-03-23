@@ -1,6 +1,6 @@
 ! Copyright (C) 2005, 2009 Daniel Ehrenberg, Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: xml.tokenize xml.data xml.state kernel sequences ascii
+USING: xml.tokenize xml.data xml.state kernel sequences
 fry xml.errors combinators hashtables namespaces xml.entities
 strings xml.name ;
 IN: xml.dtd

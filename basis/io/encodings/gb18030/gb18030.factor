@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: xml xml.data kernel io io.encodings interval-maps splitting fry
 math.parser sequences combinators assocs locals accessors math arrays
-byte-arrays values io.encodings.ascii ascii io.files biassocs
+byte-arrays values io.encodings.ascii ascii.categories io.files biassocs
 math.order combinators.short-circuit io.binary io.encodings.iana ;
 IN: io.encodings.gb18030
 
@@ -129,7 +129,7 @@ M: gb18030 encode-char ( char stream encoding -- )
 M: gb18030 decode-char ( stream encoding -- char )
     drop dup stream-read1 {
         { [ dup not ] [ 2drop f ] }
-        { [ dup ascii? ] [ nip 1byte-array mapping value-at ] }
+        { [ dup ascii-char? ] [ nip 1byte-array mapping value-at ] }
         { [ dup quad-1/3? ] [ two-byte ] }
         [ 2drop replacement-char ]
     } cond ;

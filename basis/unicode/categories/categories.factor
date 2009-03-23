@@ -80,5 +80,5 @@ CATEGORY: math
 CATEGORY: punctuation
     { Pc Pd Ps Pe Pi Pf Po } <union> ;
 
-CATEGORY: word
+CATEGORY: word-char
     { alphabetic Mn Mc Me Nl Pc } <union> ;

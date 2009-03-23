@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel namespaces accessors xml.tokenize xml.data assocs
 xml.errors xml.char-classes combinators.short-circuit splitting
-fry xml.state sequences combinators ascii ;
+fry xml.state sequences combinators ascii.categories ;
 IN: xml.name
 
 ! XML namespace processing: ns = namespace

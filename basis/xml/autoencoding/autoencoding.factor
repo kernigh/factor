@@ -1,7 +1,7 @@
 ! Copyright (C) 2005, 2009 Daniel Ehrenberg
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel namespaces xml.name io.encodings.utf8 xml.elements
-io.encodings.utf16 xml.tokenize xml.state math ascii sequences
+io.encodings.utf16 xml.tokenize xml.state math ascii.categories sequences
 io.encodings.string io.encodings combinators accessors
 xml.data io.encodings.iana xml.errors ;
 IN: xml.autoencoding
@@ -24,7 +24,7 @@ IN: xml.autoencoding
     ! This is unfortunate, and exists for the corner case
     ! that the first letter of the document is < and second is
     ! not ASCII
-    ascii?
+    ascii-char?
     [ utf8 decode-stream next make-tag ] [
         next
         [ get-next 10xxxxxx? not ] take-until

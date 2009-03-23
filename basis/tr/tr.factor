@@ -1,6 +1,6 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: byte-arrays strings sequences sequences.private ascii
+USING: byte-arrays strings sequences sequences.private ascii.categories
 fry kernel words parser lexer assocs math math.order summary ;
 IN: tr
 
@@ -14,7 +14,7 @@ M: bad-tr summary
 : tr-nth ( n mapping -- ch ) nth-unsafe 127 bitand ; inline
 
 : check-tr ( from to -- )
-    [ [ ascii? ] all? ] both? [ bad-tr ] unless ;
+    [ [ ascii-char? ] all? ] both? [ bad-tr ] unless ;
 
 : compute-tr ( quot from to -- mapping )
     [ 128 ] 3dip zip
@@ -27,7 +27,7 @@ M: bad-tr summary
     create-in dup tr-hints ;
 
 : tr-quot ( mapping -- quot )
-    '[ [ dup ascii? [ _ tr-nth ] when ] map ] ;
+    '[ [ dup ascii-char? [ _ tr-nth ] when ] map ] ;
 
 : define-tr ( word mapping -- )
     tr-quot (( seq -- translated )) define-declared ;

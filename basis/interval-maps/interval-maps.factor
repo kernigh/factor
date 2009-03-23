@@ -50,7 +50,7 @@ PRIVATE>
     >intervals ensure-disjoint interval-map boa ;
 
 : <interval-set> ( specification -- map )
-    dup zip <interval-map> ;
+    [ t ] { } map>assoc <interval-map> ;
 
 :: coalesce ( alist -- specification )
     ! Only works with integer keys, because they're discrete

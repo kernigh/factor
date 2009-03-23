@@ -159,7 +159,7 @@ HINTS: next* { spot } ;
     pass-blank ">" expect ;
 
 : normalize-quote ( str -- str )
-    [ dup "\t\r\n" member? [ drop CHAR: \s ] when ] map ;
+    [ dup whitespace? [ drop CHAR: \s ] when ] map ;
 
 : (parse-quote) ( <-disallowed? ch -- string )
     swap '[

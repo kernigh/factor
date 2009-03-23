@@ -3,8 +3,24 @@
 USING: peg.ebnf kernel math.parser sequences assocs arrays fry math
 combinators character-classes strings splitting peg locals accessors
 regexp.ast unicode.case unicode.script.private unicode.categories
-memoize interval-maps sets unicode.data combinators.short-circuit ;
+memoize interval-maps sets unicode.data combinators.short-circuit
+vectors namespaces ;
+FROM: ascii.categories => ascii-char ;
 IN: regexp.parser
+
+SYMBOL: option-stack
+
+: set-each ( keys value hashtable -- )
+    '[ _ swap _ set-at ] each ;
+
+: push-options ( options -- )
+    option-stack [ ?push ] change ;
+
+: pop-options ( -- )
+    option-stack get pop* ;
+
+: option? ( obj -- ? )
+    option-stack get assoc-stack ;
 
 : allowed-char? ( ch -- ? )
     ".()|[*+?$^" member? not ;
@@ -13,9 +29,6 @@ ERROR: bad-number ;
 
 : ensure-number ( n -- n )
     [ bad-number ] unless* ;
-
-:: at-error ( key assoc quot: ( key -- replacement ) -- value )
-    key assoc at* [ drop key quot call ] unless ; inline
 
 ERROR: bad-class name ;
 
@@ -54,19 +67,20 @@ MEMO: simple-category-table ( -- table )
 
 : name>class ( name -- class )
     >string simple {
-        { "lower" lowercase }
-        { "upper" uppercase }
-        { "alpha" alphabetic }
-        { "ascii" ascii }
-        { "digit" digit }
-        { "alnum" alphanumeric }
-        { "punct" punctuation }
-        { "print" printable }
-        { "blank" blank }
-        { "cntrl" control }
-        { "xdigit" hex-digit }
-        { "space" whitespace }
-    } [ unicode-class ] at-error ;
+        { "lower" [ lowercase ] }
+        { "upper" [ uppercase ] }
+        { "alpha" [ alphabetic ] }
+        { "ascii" [ ascii-char ] }
+        { "digit" [ digit ] }
+        { "alnum" [ alphanumeric ] }
+        { "punct" [ punctuation ] }
+        { "print" [ printable ] }
+        { "blank" [ blank ] }
+        { "cntrl" [ control ] }
+        { "xdigit" [ hex-digit ] }
+        { "space" [ whitespace ] }
+        [ unicode-class ]
+    } case ;
 
 : lookup-escape ( char -- ast )
     {
@@ -78,18 +92,18 @@ MEMO: simple-category-table ( -- table )
         { CHAR: e [ HEX: 1b ] }
         { CHAR: \\ [ CHAR: \\ ] }
 
-        { CHAR: w [ word ] }
-        { CHAR: W [ word <not-class> ] }
+        { CHAR: w [ word-char ] }
+        { CHAR: W [ word-char <not> ] }
         { CHAR: s [ whitespace ] }
-        { CHAR: S [ whitespace <not-class> ] }
+        { CHAR: S [ whitespace <not> ] }
         { CHAR: d [ digit ] }
-        { CHAR: D [ digit <not-class> ] }
+        { CHAR: D [ digit <not> ] }
 
         { CHAR: z [ end-of-input <tagged-epsilon> ] }
         { CHAR: Z [ end-of-file <tagged-epsilon> ] }
         { CHAR: A [ beginning-of-input <tagged-epsilon> ] }
         { CHAR: b [ word-break <tagged-epsilon> ] }
-        { CHAR: B [ word-break <not-class> <tagged-epsilon> ] }
+        { CHAR: B [ word-break <not> <tagged-epsilon> ] }
         [ ]
     } case ;
 
@@ -105,34 +119,70 @@ MEMO: simple-category-table ( -- table )
 : ch>option ( ch -- singleton )
     options-assoc at ;
 
-: option>ch ( option -- string )
-    options-assoc value-at ;
-
 : parse-options ( on off -- options )
-    [ [ ch>option ] { } map-as ] bi@ <options> ;
+    [ [ ch>option ] { } map-as ] bi@ t f 
+    H{ } clone [
+         '[ _ set-each ] bi-curry@ bi*
+    ] keep ;
 
 : string>options ( string -- options )
     "-" split1 parse-options ;
- 
-: options>string ( options -- string )
-    [ on>> ] [ off>> ] bi
-    [ [ option>ch ] map ] bi@
-    [ "-" glue ] unless-empty
-    "" like ;
 
-! TODO: add syntax for various parenthized things,
-!       add greedy and nongreedy forms of matching
-! (once it's all implemented)
+: dot ( -- class )
+    dotall option? [ t ] [
+        unix-lines option?
+        CHAR: \n line-separator ? <not>
+    ] if ;
 
-EBNF: parse-regexp
+: cased-range? ( from to -- ? )
+    {
+        [ [ lowercase? ] bi@ and ]
+        [ [ uppercase? ] bi@ and ]
+    } 2|| ;
+
+: make-range ( start end -- range-class )
+    case-insensitive option? [
+        2dup cased-range? [
+            [ [ ch>lower ] bi@ <range-class> ]
+            [ [ ch>upper ] bi@ <range-class> ] 2bi 
+            <or>
+        ] [ <range-class> ] if
+    ] [ <range-class> ] if ;
+
+: line-option ( multiline unix-lines default -- option )
+    multiline option? [
+        drop [ unix-lines option? ] 2dip swap ?
+    ] [ 2nip ] if <tagged-epsilon> ;
+
+: dollar ( -- condition )
+    $ $unix end-of-input line-option ;
+
+: carat ( -- condition )
+    ^ ^unix beginning-of-input line-option ;
+
+GENERIC: modify ( integer -- class )
+M: integer modify
+    case-insensitive option? [
+        dup alphabetic? [
+            [ ch>lower ] [ ch>upper ] bi <or>
+        ] when
+    ] when ;
+M: object modify ;
+
+: make-concatenation ( seq -- concatenation )
+    sift [ modify ] map
+    reversed-regexp option? [ reverse ] when
+    <concatenation> ;
+
+EBNF: (parse-regexp)
 
 CharacterInBracket = !("}") Character
 
 QuotedCharacter = !("\\E") .
 
 Escape = "p{" CharacterInBracket*:s "}" => [[ s name>class ]]
-       | "P{" CharacterInBracket*:s "}" => [[ s name>class <not-class> ]]
-       | "Q" QuotedCharacter*:s "\\E" => [[ s <concatenation> ]]
+       | "P{" CharacterInBracket*:s "}" => [[ s name>class <not> ]]
+       | "Q" QuotedCharacter*:s "\\E" => [[ s make-concatenation ]]
        | "u" Character:a Character:b Character:c Character:d
             => [[ { a b c d } hex> ensure-number ]]
        | "x" Character:a Character:b
@@ -144,19 +194,19 @@ Escape = "p{" CharacterInBracket*:s "}" => [[ s name>class ]]
 EscapeSequence = "\\" Escape:e => [[ e ]]
 
 Character = EscapeSequence
-          | "$" => [[ $ <tagged-epsilon> ]]
-          | "^" => [[ ^ <tagged-epsilon> ]]
+          | "$" => [[ dollar ]]
+          | "^" => [[ carat ]]
           | . ?[ allowed-char? ]?
 
 AnyRangeCharacter = !("&&"|"||"|"--"|"~~") (EscapeSequence | .)
 
 RangeCharacter = !("]") AnyRangeCharacter
 
-Range = RangeCharacter:a "-" !("-") RangeCharacter:b => [[ a b <range-class> ]]
-      | RangeCharacter
+Range = RangeCharacter:a "-" !("-") RangeCharacter:b => [[ a b make-range ]]
+      | RangeCharacter => [[ modify ]]
 
-StartRange = AnyRangeCharacter:a "-" !("-") RangeCharacter:b => [[ a b <range-class> ]]
-           | AnyRangeCharacter
+StartRange = AnyRangeCharacter:a "-" !("-") RangeCharacter:b => [[ a b make-range ]]
+           | AnyRangeCharacter => [[ modify ]]
 
 Ranges = StartRange:s Range*:r => [[ r s prefix ]]
 
@@ -172,17 +222,18 @@ CharClass = BasicCharClass:b "&&" CharClass:c
                 => [[ b c <minus> ]]
           | BasicCharClass
 
-Options = [idmsux]*
+Options = [idmsx]*:on "-"? [idmsx]*:off
+    => [[ on off parse-options dup push-options ]]
 
 Parenthized = "?:" Alternation:a => [[ a ]]
-            | "?" Options:on "-"? Options:off ":" Alternation:a
-                => [[ a on off parse-options <with-options> ]]
+            | "?" Options ":" Alternation:a
+                => [[ a pop-options ]]
             | "?#" [^)]* => [[ f ]]
             | "?~" Alternation:a => [[ a <negation> ]]
             | "?=" Alternation:a => [[ a <lookahead> <tagged-epsilon> ]]
-            | "?!" Alternation:a => [[ a <lookahead> <not-class> <tagged-epsilon> ]]
+            | "?!" Alternation:a => [[ a <lookahead> <not> <tagged-epsilon> ]]
             | "?<=" Alternation:a => [[ a <lookbehind> <tagged-epsilon> ]]
-            | "?<!" Alternation:a => [[ a <lookbehind> <not-class> <tagged-epsilon> ]]
+            | "?<!" Alternation:a => [[ a <lookbehind> <not> <tagged-epsilon> ]]
             | Alternation
 
 Element = "(" Parenthized:p ")" => [[ p ]]
@@ -207,7 +258,7 @@ Repeated = Element:e "{" Times:t => [[ e t <times> ]]
          | Element:e "+" => [[ e <plus> ]]
          | Element
 
-Concatenation = Repeated*:r => [[ r sift <concatenation> ]]
+Concatenation = Repeated*:r => [[ r make-concatenation ]]
 
 Alternation = Concatenation:c ("|" Concatenation)*:a
                 => [[ a empty? [ c ] [ a values c prefix <alternation> ] if ]]
@@ -216,3 +267,12 @@ End = !(.)
 
 Main = Alternation End
 ;EBNF
+
+: parse-optioned-regexp ( string options -- ast )
+    [
+        string>options push-options
+        (parse-regexp)
+    ] with-scope ;
+
+: parse-regexp ( string -- ast )
+    "" parse-optioned-regexp ;

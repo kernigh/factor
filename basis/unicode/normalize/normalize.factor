@@ -1,8 +1,9 @@
 ! Copyright (C) 2008 Daniel Ehrenberg.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: ascii sequences namespaces make unicode.data kernel math arrays
-locals sorting.insertion accessors assocs math.order combinators
-strings sbufs hints combinators.short-circuit vectors ;
+USING: ascii.categories  sequences namespaces make unicode.data kernel
+math arrays locals sorting.insertion accessors assocs
+math.order combinators strings sbufs hints
+combinators.short-circuit vectors ;
 IN: unicode.normalize
 
 <PRIVATE
@@ -68,7 +69,7 @@ CONSTANT: final-count 28
 :: decompose ( string quot -- decomposed )
     string length <sbuf> :> out
     string [
-        >fixnum dup ascii? [ out push ] [
+        >fixnum dup ascii-char? [ out push ] [
             dup hangul? [ hangul>jamo out push-all ]
             [ dup quot call [ out push-all ] [ out push ] ?if ] if
         ] if

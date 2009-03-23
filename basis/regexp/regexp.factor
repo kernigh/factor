@@ -122,9 +122,6 @@ PRIVATE>
 
 <PRIVATE
 
-: get-ast ( regexp -- ast )
-    [ parse-tree>> ] [ options>> ] bi <with-options> ;
-
 GENERIC: compile-regexp ( regex -- regexp )
 
 : regexp-initial-word ( i string regexp -- i/f )
@@ -133,7 +130,7 @@ GENERIC: compile-regexp ( regex -- regexp )
 M: regexp compile-regexp ( regexp -- regexp )
     dup '[
         dup \ regexp-initial-word =
-        [ drop _ get-ast ast>dfa dfa>word ] when
+        [ drop _ parse-tree>> ast>dfa dfa>word ] when
     ] change-dfa ;
 
 M: reverse-regexp compile-regexp ( regexp -- regexp )
@@ -159,11 +156,11 @@ PRIVATE>
     [ \ regexp-initial-word \ next-initial-word ] dip boa ; inline
 
 : make-regexp ( string ast -- regexp )
-    f f <options> regexp new-regexp ;
+    "" regexp new-regexp ;
 
 : <optioned-regexp> ( string options -- regexp )
-    [ dup parse-regexp ] [ string>options ] bi*
-    dup on>> reversed-regexp swap member?
+    [ 2dup parse-optioned-regexp ] keep
+    "-" split1 drop CHAR: r swap member?
     [ reverse-regexp new-regexp ]
     [ regexp new-regexp ] if ;
 

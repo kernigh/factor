@@ -37,7 +37,7 @@ HELP: quotable?
 { $values { "ch" "a character" } { "?" "a boolean" } }
 { $description "Tests for characters which may appear in a Factor string literal without escaping." } ;
 
-HELP: ascii?
+HELP: ascii-char?
 { $values { "ch" "a character" } { "?" "a boolean" } }
 { $description "Tests for whether a number is an ASCII character." } ;
 
@@ -51,4 +51,4 @@ ARTICLE: "ascii.categories" "ASCII character classes"
 { $subsection printable? }
 { $subsection control? }
 { $subsection quotable? }
-{ $subsection ascii? } ;
+{ $subsection ascii-char? } ;

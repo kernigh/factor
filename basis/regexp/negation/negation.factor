@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Daniel Ehrenberg.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: regexp.nfa regexp.disambiguate kernel sequences
-assocs regexp.classes hashtables accessors fry vectors
+assocs character-classes hashtables accessors fry vectors
 regexp.ast regexp.transition-tables regexp.minimize
 regexp.dfa namespaces ;
 IN: regexp.negation
@@ -10,7 +10,7 @@ CONSTANT: fail-state -1
 
 : add-default-transition ( state's-transitions -- new-state's-transitions )
     clone dup
-    [ [ fail-state ] dip keys [ <not-class> ] map <and-class> ] keep set-at ;
+    [ [ fail-state ] dip keys [ <not> ] map <intersection> ] keep set-at ;
 
 : fail-state-recurses ( transitions -- new-transitions )
     clone dup

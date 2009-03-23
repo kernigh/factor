@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators fry kernel locals
 math math.order regexp.nfa regexp.transition-tables sequences
-sets sorting vectors regexp.ast regexp.classes ;
+sets sorting vectors regexp.ast character-classes ;
 IN: regexp.dfa
 
 : find-delta ( states transition nfa -- new-states )
@@ -10,7 +10,7 @@ IN: regexp.dfa
 
 :: epsilon-loop ( state table nfa question -- )
     state table at :> old-value
-    old-value question 2array <or-class> :> new-question
+    old-value question <or> :> new-question
     new-question old-value = [
         new-question state table set-at
         state nfa transitions>> at
@@ -18,7 +18,7 @@ IN: regexp.dfa
         [| trans to |
             to [
                 table nfa
-                trans tag>> new-question 2array <and-class>
+                trans tag>> new-question <and>
                 epsilon-loop
             ] each
         ] assoc-each

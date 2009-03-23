@@ -13,8 +13,8 @@ USING: ascii.categories tools.test sequences math kernel ;
 [ f ] [ CHAR: \s alphabetic? ] unit-test
 [ t ] [ CHAR: 0 digit? ] unit-test
 [ f ] [ CHAR: x digit? ] unit-test
-[ t ] [ 23 ascii? ] unit-test
-[ f ] [ 223 ascii? ] unit-test
+[ t ] [ 23 ascii-char? ] unit-test
+[ f ] [ 223 ascii-char? ] unit-test
 [ t ] [ CHAR: \s blank? ] unit-test
 [ f ] [ CHAR: \n blank? ] unit-test
 [ f ] [ CHAR: a blank? ] unit-test
@@ -39,4 +39,4 @@ USING: ascii.categories tools.test sequences math kernel ;
     [ uppercase? [ 1+ ] when ] each
 ] unit-test
 
-[ t f ] [ CHAR: \s ascii? 400 ascii? ] unit-test
+[ t f ] [ CHAR: \s ascii-char? 400 ascii-char? ] unit-test

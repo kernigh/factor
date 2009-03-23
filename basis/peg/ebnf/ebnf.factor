@@ -5,7 +5,7 @@ sequences quotations vectors namespaces make math assocs
 continuations peg peg.parsers unicode.categories multiline
 splitting accessors effects sequences.deep peg.search
 combinators.short-circuit lexer io.streams.string stack-checker
-io combinators parser ;
+io combinators parser character-classes ;
 IN: peg.ebnf
 
 : rule ( name word -- parser )
@@ -122,7 +122,7 @@ PEG: escaper ( string -- ast )
     [ CHAR: ' = not ] satisfy repeat1 "'" "'" surrounded-by ,
   ] choice* [ >string replace-escapes ] action ;
 
-CATEGORY non-terminal
+CATEGORY: non-terminal
     whitespace "\"'|{}=()[].!&*+?:~<>" <union> <or> <not> ;
   
 : 'non-terminal' ( -- parser )

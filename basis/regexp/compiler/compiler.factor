@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Daniel Ehrenberg.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: regexp.classes kernel sequences regexp.negation
-quotations assocs fry math locals combinators
+USING: character-classes kernel sequences regexp.negation
+quotations assocs fry math locals combinators regexp.ast
 accessors words compiler.units kernel.private strings
 sequences.private arrays namespaces unicode.breaks
 regexp.transition-tables combinators.short-circuit ;

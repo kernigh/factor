@@ -1,4 +1,5 @@
-USING: tools.test xml.tokenize xml.state io.streams.string kernel io strings ascii ;
+USING: tools.test xml.tokenize xml.state io.streams.string kernel io
+strings ascii.categories ;
 IN: xml.test.state
 
 : string-parse ( str quot -- )

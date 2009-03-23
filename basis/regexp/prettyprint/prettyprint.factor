@@ -8,6 +8,6 @@ M: regexp pprint*
     [
         [
             [ raw>> dup find-regexp-syntax swap % swap % % ]
-            [ options>> options>string % ] bi
+            [ options>> % ] bi
         ] "" make
     ] keep present-text ;

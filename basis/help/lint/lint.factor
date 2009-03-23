@@ -166,7 +166,7 @@ M: help-error error.
 : check-words ( words -- ) [ check-word ] each ;
 
 : check-article-title ( article -- )
-    article-title first LETTER?
+    article-title first uppercase?
     [ "Article title must begin with a capital letter" throw ] unless ;
 
 : check-article ( article -- )

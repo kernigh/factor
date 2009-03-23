@@ -1,9 +1,8 @@
 ! Copyright (C) 2009 Daniel Ehrenberg.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel math math.order words combinators locals
-ascii combinators.short-circuit sequences classes.predicate
-fry macros arrays assocs sets classes mirrors unicode.script
-classes.parser parser ;
+combinators.short-circuit sequences classes.predicate
+fry arrays assocs sets classes classes.parser parser ;
 IN: character-classes
 
 TUPLE: range-class from to ;
@@ -12,6 +11,8 @@ C: <range-class> range-class
 GENERIC: class-member? ( obj class -- ? )
 
 <PRIVATE
+
+M: object class-member? 2drop f ;
 
 M: t class-member? ( obj class -- ? ) 2drop t ;
 
@@ -79,7 +80,8 @@ TUPLE: class-partition integers not-integers simples not-simples and or other ;
     class-partition boa ;
 
 : class-partition>seq ( class-partition -- seq )
-    make-mirror values concat ;
+    { integers>> not-integers>> simples>> not-simples>> and>> or>> other>> }
+    [ execute( partition -- seq ) ] with map concat ;
 
 : repartition ( partition -- partition' )
     ! This could be made more efficient; only and and or are effected
@@ -273,5 +275,5 @@ PRIVATE>
     [ "character-class" set-word-prop ]
     [ '[ _ class-member? ] integer swap define-predicate-class ] 2bi ;
 
-: CATEGORY:
-    CREATE-CLASS parse-definition call( -- class ) define-category ; parsing
+SYNTAX: CATEGORY:
+    CREATE-CLASS parse-definition call( -- class ) define-category ;

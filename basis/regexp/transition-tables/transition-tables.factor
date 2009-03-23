@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs fry hashtables kernel sequences
-vectors locals regexp.classes ;
+vectors locals character-classes ;
 IN: regexp.transition-tables
 
 TUPLE: transition-table transitions start-state final-states ;

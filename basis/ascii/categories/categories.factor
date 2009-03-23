@@ -3,7 +3,7 @@
 USING: character-classes ;
 IN: ascii.categories
 
-CATEGORY: ascii
+CATEGORY: ascii-char
     0 127 <range-class> ;
 
 CATEGORY: blank
@@ -37,7 +37,7 @@ CATEGORY: quotable
     \ printable "\"\\" <union> <minus> ;
 
 CATEGORY: alphanumeric
-    \ alphabetic \ digit <or> ;
+    { alphabetic digit } <union> ;
 
 CATEGORY: punctuation
     "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" <union> ;

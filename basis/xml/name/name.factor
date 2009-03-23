@@ -88,7 +88,7 @@ SYMBOL: ns-stack
     } case ;
 
 : take-word ( -- string )
-    [ get-char blank? ] take-until ;
+    [ get-char whitespace? ] take-until ;
 
 : take-external-id ( -- external-id )
     take-word (take-external-id) ;

@@ -10,7 +10,7 @@ IN: xml.elements
     interpolating? get [
         drop get-char CHAR: > =
         [ next f ]
-        [ "->" take-string [ blank? ] trim ]
+        [ "->" take-string [ whitespace? ] trim ]
         if <interpolated>
     ] [ call ] if ; inline
 

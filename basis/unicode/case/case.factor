@@ -4,7 +4,7 @@ USING: unicode.data sequences namespaces
 sbufs make unicode.normalize math hints
 combinators assocs combinators.short-circuit
 strings splitting kernel accessors unicode.breaks fry locals
-character-classes character-classes.unicode ;
+character-classes unicode.categories ;
 QUALIFIED: ascii
 IN: unicode.case
 

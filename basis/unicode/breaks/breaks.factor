@@ -4,7 +4,7 @@ USING: combinators.short-circuit unicode.categories kernel math
 combinators splitting sequences math.parser io.files io assocs
 arrays namespaces make math.ranges unicode.normalize
 unicode.normalize.private values io.encodings.ascii
-unicode.data compiler.units fry unicode.categories.syntax
+unicode.data compiler.units fry character-classes
 alien.syntax sets accessors interval-maps memoize locals words
 simple-flat-file ;
 IN: unicode.breaks
@@ -22,7 +22,9 @@ C-ENUM: Any L V T LV LVT Extend Control CR LF
 : hangul-class ( ch -- class )
     hangul-base - HEX: 1C mod zero? LV LVT ? ;
 
-CATEGORY: grapheme-control Zl Zp Cc Cf ;
+CATEGORY: grapheme-control
+    { Zl Zp Cc Cf } <union> ;
+
 : control-class ( ch -- class )
     {
         { CHAR: \r [ CR ] }
@@ -33,8 +35,8 @@ CATEGORY: grapheme-control Zl Zp Cc Cf ;
     } case ;
 
 CATEGORY: extend
-    Me Mn |
-    "Other_Grapheme_Extend" property? ;
+    Me Mn <or>
+    "Other_Grapheme_Extend" <property-class> <or> ;
 
 : loe? ( ch -- ? )
     "Logical_Order_Exception" property? ;

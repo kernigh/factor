@@ -1,19 +1,18 @@
 ! Copyright (C) 2005, 2009 Daniel Ehrenberg
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel sequences unicode.categories.syntax math math.order
+USING: kernel sequences math math.order character-classes
 combinators hints combinators.short-circuit interval-maps multiline
 math.parser splitting unicode.categories arrays values ;
 IN: xml.char-classes
 
 CATEGORY: 1.0name-start
-    Ll Lu Lo Lt Nl | {
-        [ HEX: 2BB HEX: 2C1 between? ]
-        [ "\u000559\u0006E5\u0006E6_:" member? ]
-    } 1|| ;
+    { Ll Lu Lo Lt Nl } <union>
+    HEX: 2BB HEX: 2C1 <range-class> <or>
+    "\u000559\u0006E5\u0006E6_:" <union> <or> ;
 
 CATEGORY: 1.0name-char
-    Ll Lu Lo Lt Nl Mc Me Mn Lm Nd |
-    "_-.\u000387:" member? ;
+    { Ll Lu Lo Lt Nl Mc Me Mn Lm Nd } <union>
+    "_-.\u000387:" <union> <or> ;
 
 : read-num ( string -- character )
     dup length 1 = [ first ] [ 2 tail hex> ] if ;

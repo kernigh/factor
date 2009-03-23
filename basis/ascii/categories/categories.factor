@@ -7,7 +7,13 @@ CATEGORY: ascii
     0 127 <range-class> ;
 
 CATEGORY: blank
-    " \t\n\r" <union> ;
+    " \t" <union> ;
+
+CATEGORY: line-separator
+    "\n\r" <union> ;
+
+CATEGORY: whitespace
+    { blank line-separator } <union> ;
 
 CATEGORY: lowercase
     CHAR: a CHAR: z <range-class> ;
@@ -16,7 +22,7 @@ CATEGORY: uppercase
     CHAR: A CHAR: Z <range-class> ;
 
 CATEGORY: alphabetic
-    \ lowercase \ uppercase <or> ;
+    { lowercase uppercase } <union> ;
 
 CATEGORY: digit
     CHAR: 0 CHAR: 9 <range-class> ;
@@ -28,7 +34,7 @@ CATEGORY: control
     0 HEX: 1F <range-class> HEX: 7F <or> ;
 
 CATEGORY: quotable
-    \ printable "\"\\" <union> <not> <and> ;
+    \ printable "\"\\" <union> <minus> ;
 
 CATEGORY: alphanumeric
     \ alphabetic \ digit <or> ;

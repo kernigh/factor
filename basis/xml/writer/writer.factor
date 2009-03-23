@@ -31,12 +31,9 @@ SYMBOL: indentation
 : unindent ( -- )
     xml-pprint? get [ -1 indentation +@ ] when ;
 
-: trim-whitespace ( string -- no-whitespace )
-    [ blank? ] trim ;
-
 : ?filter-children ( children -- no-whitespace )
     xml-pprint? get [
-        [ dup string? [ trim-whitespace ] when ] map
+        [ dup string? [ [ whitespace? ] trim ] when ] map
         [ [ empty? ] [ string? ] bi and not ] filter
     ] when ;
 
@@ -67,7 +64,7 @@ GENERIC: write-xml ( xml -- )
 
 M: string write-xml
     escape-string xml-pprint? get [
-        dup [ blank? ] all?
+        dup [ whitespace? ] all?
         [ drop "" ]
         [ nl 80 indent-string wrap-indented-string ] if
     ] when write ;

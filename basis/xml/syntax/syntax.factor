@@ -161,7 +161,7 @@ MACRO: interpolate-xml ( xml -- quot )
     } cond ;
 
 : parse-def ( accum delimiter quot -- accum )
-    [ parse-multiline-string [ blank? ] trim ] dip call
+    [ parse-multiline-string [ whitespace? ] trim ] dip call
     [ extract-variables collect ] keep swap
     [ number<-> parsed ] dip
     [ \ interpolate-xml parsed ] when ; inline
@@ -177,7 +177,7 @@ SYNTAX: [XML
 <PRIVATE
 
 : remove-blanks ( seq -- newseq )
-    [ { [ string? not ] [ [ blank? ] all? not ] } 1|| ] filter ;
+    [ { [ string? not ] [ [ whitespace? ] all? not ] } 1|| ] filter ;
 
 GENERIC: >xml ( xml -- tag )
 M: xml >xml body>> ;

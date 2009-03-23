@@ -41,3 +41,6 @@ word wrap.">
 \ wrap-string must-infer
 
 [ "a b c d e f\ng h" ] [ "a b c d e f g h" 11 wrap-string ] unit-test
+
+[ "" ] [ "" 10 wrap-string ] unit-test
+[ "Hello" ] [ "\nHello\n" 10 wrap-string ] unit-test

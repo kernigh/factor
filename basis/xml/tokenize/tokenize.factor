@@ -1,7 +1,7 @@
 ! Copyright (C) 2005, 2009 Daniel Ehrenberg
 ! See http://factorcode.org/license.txt for BSD license.
 USING: namespaces xml.state kernel sequences accessors
-xml.char-classes xml.errors math io sbufs fry strings ascii
+xml.char-classes xml.errors math io sbufs fry strings ascii.categories
 circular xml.entities assocs splitting math.parser
 locals combinators arrays hints ;
 IN: xml.tokenize
@@ -83,7 +83,7 @@ HINTS: next* { spot } ;
 
 : pass-blank ( -- )
     #! Advance code past any whitespace, including newlines
-    spot get '[ _ char>> blank? not ] skip-until ;
+    spot get '[ _ char>> whitespace? not ] skip-until ;
 
 : string-matches? ( string circular spot -- ? )
     char>> over push-circular sequence= ;
@@ -149,7 +149,7 @@ HINTS: next* { spot } ;
     depth get zero? :> no-text [| char |
         char circ push-circular
         circ assure-no-]]>
-        no-text [ char blank? char CHAR: < = or [
+        no-text [ char whitespace? char CHAR: < = or [
             char 1string t pre/post-content
         ] unless ] when
         char CHAR: < =

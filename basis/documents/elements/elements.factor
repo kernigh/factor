@@ -56,10 +56,10 @@ M: one-char-elt next-elt 2drop ;
     ] dip =col ; inline
 
 : ((word-elt)) ( n seq -- n seq ? )
-    2dup ?nth blank? ;
+    2dup ?nth whitespace? ;
 
 : break-detector ( ? -- quot )
-    '[ blank? _ xor ] ; inline
+    '[ whitespace? _ xor ] ; inline
 
 : (prev-word) ( col str ? -- col )
     break-detector find-last-from drop ?1+ ;

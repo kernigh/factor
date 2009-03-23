@@ -121,50 +121,28 @@ PEG: escaper ( string -- ast )
     [ CHAR: " = not ] satisfy repeat1 "\"" "\"" surrounded-by ,
     [ CHAR: ' = not ] satisfy repeat1 "'" "'" surrounded-by ,
   ] choice* [ >string replace-escapes ] action ;
+
+CATEGORY non-terminal
+    whitespace "\"'|{}=()[].!&*+?:~<>" <union> <or> <not> ;
   
 : 'non-terminal' ( -- parser )
   #! A non-terminal is the name of another rule. It can
   #! be any non-blank character except for characters used
   #! in the EBNF syntax itself.
-  [
-    {
-      [ blank?    ]
-      [ CHAR: " = ]
-      [ CHAR: ' = ]
-      [ CHAR: | = ]
-      [ CHAR: { = ]
-      [ CHAR: } = ]
-      [ CHAR: = = ]
-      [ CHAR: ) = ]
-      [ CHAR: ( = ]
-      [ CHAR: ] = ]
-      [ CHAR: [ = ]
-      [ CHAR: . = ]
-      [ CHAR: ! = ]
-      [ CHAR: & = ]
-      [ CHAR: * = ]
-      [ CHAR: + = ]
-      [ CHAR: ? = ]
-      [ CHAR: : = ]
-      [ CHAR: ~ = ]
-      [ CHAR: < = ]
-      [ CHAR: > = ]
-    } 1|| not
-  ] satisfy repeat1 [ >string <ebnf-non-terminal> ] action ;
+  [ non-terminal? ] satisfy repeat1
+  [ >string <ebnf-non-terminal> ] action ;
 
 : 'terminal' ( -- parser )
   #! A terminal is an identifier enclosed in quotations
   #! and it represents the literal value of the identifier.
   'identifier' [ <ebnf-terminal> ] action ;
 
+CATEGORY: foreign-name
+    whitespace CHAR: > <or> <not> ;
+
 : 'foreign-name' ( -- parser )
   #! Parse a valid foreign parser name
-  [
-    {
-      [ blank?    ]
-      [ CHAR: > = ]
-    } 1|| not
-  ] satisfy repeat1 [ >string ] action ;
+  [ foreign-name? ] satisfy repeat1 [ >string ] action ;
 
 : 'foreign' ( -- parser )
   #! A foreign call is a call to a rule in another ebnf grammar
@@ -505,7 +483,7 @@ M: ebnf-non-terminal (transform) ( ast -- parser )
 
 : check-parse-result ( result -- result )
   dup [
-    dup remaining>> [ blank? ] trim empty? [
+    dup remaining>> [ whitespace? ] trim empty? [
       [ 
         "Unable to fully parse EBNF. Left to parse was: " %
         remaining>> % 

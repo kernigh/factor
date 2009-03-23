@@ -1,6 +1,6 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: assocs html.parser kernel math sequences strings ascii
+USING: assocs html.parser kernel math sequences strings unicode.categories
 arrays generalizations shuffle unicode.case namespaces make
 splitting http accessors io combinators http.client urls
 urls.encoding fry prettyprint ;
@@ -51,13 +51,13 @@ TUPLE: link attributes clickable ;
 : remove-blank-text ( vector -- vector' )
     [
         dup name>> text =
-        [ text>> [ blank? ] all? not ] [ drop t ] if
+        [ text>> [ whitespace? ] all? not ] [ drop t ] if
     ] filter ;
 
 : trim-text ( vector -- vector' )
     [
         dup name>> text =
-        [ [ [ blank? ] trim ] change-text ] when
+        [ [ [ whitespace? ] trim ] change-text ] when
     ] map ;
 
 : find-by-id ( vector id -- vector' elt/f )

@@ -1,14 +1,14 @@
 ! Copyright (C) 2006 Daniel Ehrenberg
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel math sequences strings io combinators ascii ;
+USING: kernel math sequences strings io combinators ascii.categories ;
 IN: rot13
 
 : rotate ( ch base -- ch ) tuck - 13 + 26 mod + ;
 
 : rot-letter ( ch -- ch )
     {
-        { [ dup letter? ] [ CHAR: a rotate ] }
-        { [ dup LETTER? ] [ CHAR: A rotate ] }
+        { [ dup lowercase? ] [ CHAR: a rotate ] }
+        { [ dup uppercase? ] [ CHAR: A rotate ] }
         [ ]
     } cond ;
 

@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel peg strings sequences math math.parser
 namespaces make words quotations arrays hashtables io
-io.streams.string assocs ascii peg.parsers accessors
+io.streams.string assocs unicode.categories peg.parsers accessors
 words.symbol ;
 IN: fjsc
 
@@ -27,16 +27,14 @@ TUPLE: ast-hashtable elements ;
   digit? not
   and and ;
 
+CATEGORY: identifier-middle
+    whitespace "}];\"" <union> <or> digit <or> <not> ;
+
+CATEGORY: identifier-ends
+    CHAR: ' alphabetic <or> <not> identifier-middle <and> ;
+
 : 'identifier-ends' ( -- parser )
-  [
-    [ blank? not ] keep
-    [ CHAR: " = not ] keep
-    [ CHAR: ; = not ] keep
-    [ LETTER? not ] keep
-    [ letter? not ] keep
-    identifier-middle? not
-    and and and and and
-  ] satisfy repeat0 ;
+  [ identifier-ends? ] satisfy repeat0 ;
 
 : 'identifier-middle' ( -- parser )
   [ identifier-middle? ] satisfy repeat1 ;
@@ -55,7 +53,7 @@ DEFER: 'expression'
 
 : 'effect-name' ( -- parser )
   [
-    [ blank? not ] keep
+    [ whitespace? not ] keep
     [ CHAR: ) = not ] keep
     CHAR: - = not
     and and

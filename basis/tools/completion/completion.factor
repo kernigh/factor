@@ -34,8 +34,8 @@ IN: tools.completion
     {
         { [ over zero? ] [ 2drop 10 ] }
         { [ 2dup length 1- number= ] [ 2drop 4 ] }
-        { [ 2dup [ 1- ] dip nth Letter? not ] [ 2drop 10 ] }
-        { [ 2dup [ 1+ ] dip nth Letter? not ] [ 2drop 4 ] }
+        { [ 2dup [ 1- ] dip nth alphabetic? not ] [ 2drop 10 ] }
+        { [ 2dup [ 1+ ] dip nth alphabetic? not ] [ 2drop 4 ] }
         [ 2drop 1 ]
     } cond ;
 

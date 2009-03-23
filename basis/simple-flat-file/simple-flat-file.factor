@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Daniel Ehrenberg
 ! See http://factorcode.org/license.txt for BSD license.
 USING: sequences splitting kernel math.parser io.files io.encodings.utf8
-biassocs ascii namespaces arrays make assocs interval-maps sets ;
+biassocs ascii.categories namespaces arrays make assocs interval-maps sets ;
 IN: simple-flat-file
 
 : drop-comments ( seq -- newseq )

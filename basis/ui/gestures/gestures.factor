@@ -315,7 +315,7 @@ M: object keysym>string ;
 M: key-down gesture>string
     [ mods>> ] [ sym>> ] bi
     {
-        { [ dup { [ length 1 = ] [ first LETTER? ] } 1&& ] [ [ S+ prefix ] dip ] }
+        { [ dup { [ length 1 = ] [ first uppercase? ] } 1&& ] [ [ S+ prefix ] dip ] }
         { [ dup " " = ] [ drop "SPACE" ] }
         [ keysym>string ]
     } cond

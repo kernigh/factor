@@ -44,13 +44,13 @@ SYMBOL: tagstack
         swap >>text ;
 
 : read-whitespace ( -- string )
-    [ get-char blank? not ] take-until ;
+    [ get-char whitespace? not ] take-until ;
 
 : read-whitespace* ( -- ) read-whitespace drop ;
 
 : read-token ( -- string )
     read-whitespace*
-    [ get-char blank? ] take-until ;
+    [ get-char whitespace? ] take-until ;
 
 : read-single-quote ( -- string )
     [ get-char CHAR: ' = ] take-until ;
@@ -64,7 +64,7 @@ SYMBOL: tagstack
 
 : read-key ( -- string )
     read-whitespace*
-    [ get-char [ CHAR: = = ] [ blank? ] bi or ] take-until ;
+    [ get-char [ CHAR: = = ] [ whitespace? ] bi or ] take-until ;
 
 : read-= ( -- )
     read-whitespace*

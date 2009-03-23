@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: multiline kernel sequences io splitting fry namespaces
-http.parsers hashtables assocs combinators ascii io.files.unique
+http.parsers hashtables assocs combinators ascii.categories io.files.unique
 accessors io.encodings.binary io.files byte-arrays math
 io.streams.string combinators.short-circuit strings math.order
 quoting ;
@@ -105,7 +105,7 @@ ERROR: end-of-stream multipart ;
 
 : parse-content-disposition-form-data ( string -- hashtable )
     ";" split
-    [ "=" split1 [ [ blank? ] trim ] bi@ ] H{ } map>assoc ;
+    [ "=" split1 [ [ whitespace? ] trim ] bi@ ] H{ } map>assoc ;
 
 : lookup-disposition ( multipart string -- multipart value/f )
     over content-disposition>> at ;

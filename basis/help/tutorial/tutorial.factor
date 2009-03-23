@@ -105,17 +105,17 @@ $nl
 $nl
 "Start by pushing a character on the stack; notice that characters are really just integers:"
 { $code "CHAR: a" }
-"Now, use the " { $link Letter? } " word to test if it is an alphabetical character, upper or lower case:"
-{ $unchecked-example "Letter? ." "t" }
+"Now, use the " { $link alphabetic? } " word to test if it is an alphabetical character, upper or lower case:"
+{ $unchecked-example "alphabetic? ." "t" }
 "This gives the expected result."
 $nl
 "Now try with a non-alphabetical character:"
 { $code "CHAR: #" }
-{ $unchecked-example "Letter? ." "f" }
-"What we want to do is given a string, remove all characters which do not match the " { $link Letter? } " predicate. Let's push a string on the stack:"
+{ $unchecked-example "alphabetic? ." "f" }
+"What we want to do is given a string, remove all characters which do not match the " { $link alphabetic? } " predicate. Let's push a string on the stack:"
 { $code "\"A man, a plan, a canal: Panama.\"" }
-"Now, place a quotation containing " { $link Letter? } " on the stack; quoting code places it on the stack instead of executing it immediately:"
-{ $code "[ Letter? ]" }
+"Now, place a quotation containing " { $link alphabetic? } " on the stack; quoting code places it on the stack instead of executing it immediately:"
+{ $code "[ alphabetic? ]" }
 "Finally, pass the string and the quotation to the " { $link filter } " word:"
 { $code "filter" }
 "Now the stack should contain the following string:"
@@ -125,10 +125,10 @@ $nl
 "Finally, let's print the top of the stack and discard it:"
 { $code "." }
 "This will output " { $snippet "amanaplanacanalpanama" } ". This string is in the form that we want, and we evaluated the following code to get it into this form:"
-{ $code "[ Letter? ] filter >lower" }
+{ $code "[ alphabetic? ] filter >lower" }
 "This code starts with a string on the stack, removes non-alphabetical characters, and converts the result to lower case, leaving a new string on the stack. We put this code in a new word, and add the new word to " { $snippet "palindrome.factor" } ":"
-{ $code ": normalize ( str -- newstr ) [ Letter? ] filter >lower ;" }
-"You will need to add " { $vocab-link "unicode.case" } " and " { $vocab-link "unicode.categories" } " to the vocabulary search path, so that " { $link Letter? } " can be used in the source file."
+{ $code ": normalize ( str -- newstr ) [ alphabetic? ] filter >lower ;" }
+"You will need to add " { $vocab-link "unicode.case" } " and " { $vocab-link "unicode.categories" } " to the vocabulary search path, so that " { $link alphabetic } " can be used in the source file."
 $nl
 "We modify " { $snippet "palindrome?" } " to first apply " { $snippet "normalize" } " to its input:"
 { $code ": palindrome? ( str -- ? ) normalize dup reverse = ;" }

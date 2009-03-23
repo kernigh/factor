@@ -5,7 +5,7 @@ io.files.windows io.files.windows.nt kernel windows.kernel32
 windows.time windows accessors alien.c-types combinators
 generalizations system alien.strings io.encodings.utf16n
 sequences splitting windows.errors fry continuations destructors
-calendar ascii combinators.short-circuit ;
+calendar ascii.categories combinators.short-circuit ;
 IN: io.files.info.windows
 
 TUPLE: windows-file-info < file-info attributes ;
@@ -113,7 +113,7 @@ ERROR: not-absolute-path ;
     dup {
         [ length 2 >= ]
         [ second CHAR: : = ]
-        [ first Letter? ]
+        [ first alphabetic? ]
     } 1&& [ 2 head "\\" append ] [ not-absolute-path ] if ;
 
 M: winnt file-system-info ( path -- file-system-info )

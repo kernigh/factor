@@ -1,9 +1,9 @@
 ! Copyright (C) 2008 Bruno Deferrari, Doug Coleman, Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: concurrency.mailboxes kernel io.sockets io.encodings.8-bit calendar
-       accessors destructors namespaces io assocs arrays fry
-       continuations threads strings classes combinators splitting hashtables
-       ascii irc.messages ;
+accessors destructors namespaces io assocs arrays fry
+continuations threads strings classes combinators splitting hashtables
+ascii.categories irc.messages ;
 RENAME: join sequences => sjoin
 EXCLUDE: sequences => join ;
 IN: irc.client
@@ -241,7 +241,7 @@ M: mode process-message ( mode -- )
     dup first "+@" member? [ unclip ] [ 0 ] if participant-mode ;
 
 : names-reply>participants ( names-reply -- participants )
-    trailing>> [ blank? ] trim " " split
+    trailing>> [ whitespace? ] trim " " split
     [ >nick/mode 2array ] map >hashtable ;
 
 : maybe-clean-participants ( channel-chat -- )

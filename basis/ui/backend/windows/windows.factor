@@ -193,7 +193,7 @@ CONSTANT: exclude-keys-wm-char
 : key-sym ( wParam -- string/f action? )
     {
         {
-            [ dup LETTER? ]
+            [ dup uppercase? ]
             [ shift? caps-lock? xor [ CHAR: a + CHAR: A - ] unless 1string f ]
         }
         { [ dup digit? ] [ 1string f ] }

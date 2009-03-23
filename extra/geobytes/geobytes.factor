@@ -57,7 +57,7 @@ MEMO: load-regions ( -- seq )
                 [ string>number ]
                 [ ]
                 [ ]
-                [ [ blank? ] trim ]
+                [ [ whitespace? ] trim ]
             } spread region boa
         ] input<sequence 
     ] map ;

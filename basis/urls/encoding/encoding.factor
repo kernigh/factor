@@ -1,18 +1,13 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel ascii combinators combinators.short-circuit
+USING: kernel ascii.categories combinators combinators.short-circuit
 sequences splitting fry namespaces make assocs arrays strings
 io.encodings.string io.encodings.utf8 math math.parser accessors
-hashtables present ;
+hashtables present character-classes ;
 IN: urls.encoding
 
-: url-quotable? ( ch -- ? )
-    {
-        [ letter? ]
-        [ LETTER? ]
-        [ digit? ]
-        [ "/_-.:" member? ]
-    } 1|| ; foldable
+CATEGORY: url-quotable
+    alphabetic digit <or> "/_-.:" <union> <or> ;
 
 <PRIVATE
 

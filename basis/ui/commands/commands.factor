@@ -57,7 +57,7 @@ TR: convert-command-name "-" " " ;
 M: word command-name ( word -- str )
     name>> 
     "com-" ?head drop "." ?tail drop
-    dup first Letter? [ rest ] unless
+    dup first alphabetic? [ rest ] unless
     (command-name) ;
 
 M: word command-description ( word -- str )

@@ -1,4 +1,4 @@
-USING: tools.test html.parser.state ascii kernel ;
+USING: tools.test html.parser.state ascii.categories kernel ;
 IN: html.parser.state.tests
 
 : take-rest ( -- string )

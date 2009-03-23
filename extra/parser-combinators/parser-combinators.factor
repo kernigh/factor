@@ -179,7 +179,7 @@ M: or-parser parse ( input parser1 -- list )
     #! Return a new string without any leading whitespace
     #! from the original string.
     dup empty? [
-        dup first blank? [ rest-slice trim-head-slice ] when
+        dup first whitespace? [ rest-slice trim-head-slice ] when
     ] unless ;
 
 TUPLE: sp-parser p1 ;

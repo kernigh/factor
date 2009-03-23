@@ -3,7 +3,7 @@ IN: ascii.categories
 
 HELP: blank?
 { $values { "ch" "a character" } { "?" "a boolean" } }
-{ $description "Tests for an ASCII whitespace character." } ;
+{ $description "Tests for an ASCII linear whitespace character." } ;
 
 HELP: lowercase?
 { $values { "ch" "a character" } { "?" "a boolean" } }

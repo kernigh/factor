@@ -1,11 +1,11 @@
 ! (c) 2009 Joe Groff, see BSD license
 USING: accessors alien alien.c-types alien.complex alien.parser
-alien.strings alien.structs alien.syntax arrays ascii assocs
+alien.strings alien.structs alien.syntax arrays ascii.categories assocs
 byte-arrays combinators combinators.short-circuit fry generalizations
 kernel lexer macros math math.parser namespaces parser sequences
 splitting stack-checker vectors vocabs.parser words locals
 io.encodings.ascii io.encodings.string shuffle effects math.ranges
-math.order sorting strings system ;
+math.order sorting strings system ascii.case ;
 IN: alien.fortran
 
 SINGLETONS: f2c-abi gfortran-abi intel-unix-abi intel-windows-abi ;
@@ -163,7 +163,8 @@ M: character-type (fortran-type>c-type)
 
 : parse-dims ( string -- string' dim )
     "(" split1 dup
-    [ ")" ?tail drop "," split [ [ blank? ] trim dimension>number ] map ] when ;
+    [ ")" ?tail drop "," split [ [ whitespace? ] trim dimension>number ] map ]
+    when ;
 
 : parse-size ( string -- string' size )
     "*" split1 dup [ string>number ] when ;

@@ -87,7 +87,7 @@ TUPLE: id3v1-info title artist album year comment genre ;
     [ printable? ] filter ; inline
 
 : valid-frame-id? ( id -- ? )
-    [ { [ digit? ] [ LETTER? ] } 1|| ] all? ; inline
+    [ { [ digit? ] [ uppercase? ] } 1|| ] all? ; inline
 
 : read-frame-data ( frame mmap -- frame data )
     [ 10 over size>> 10 + ] dip <slice> filter-text-data ; inline

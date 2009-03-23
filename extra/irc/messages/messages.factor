@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Bruno Deferrari
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel fry splitting ascii calendar accessors combinators
-       arrays classes.tuple math.order ;
+USING: kernel fry splitting ascii.categories calendar accessors combinators
+arrays classes.tuple math.order ;
 RENAME: join sequences => sjoin
 EXCLUDE: sequences => join ;
 IN: irc.messages
@@ -152,7 +152,7 @@ M: sender-in-prefix irc-message-sender ( sender-in-prefix -- sender )
 
 : string>irc-message ( string -- object )
     dup split-prefix split-trailing
-    [ [ blank? ] trim " " split unclip swap ] dip
+    [ [ whitespace? ] trim " " split unclip swap ] dip
     now irc-message boa ;
 
 : irc-message>command ( irc-message -- command )

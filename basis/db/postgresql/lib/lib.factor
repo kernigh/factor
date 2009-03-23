@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: arrays continuations db io kernel math namespaces
 quotations sequences db.postgresql.ffi alien alien.c-types
-db.types tools.walker ascii splitting math.parser combinators
+db.types tools.walker ascii.categories splitting math.parser combinators
 libc calendar.format byte-arrays destructors prettyprint
 accessors strings serialize io.encodings.binary io.encodings.utf8
 alien.strings io.streams.byte-array summary present urls
@@ -13,7 +13,7 @@ IN: db.postgresql.lib
     dup zero? [
         drop f
     ] [
-        PQresultErrorMessage [ blank? ] trim
+        PQresultErrorMessage [ whitespace? ] trim
     ] if ;
 
 : postgres-result-error ( res -- )
@@ -21,7 +21,7 @@ IN: db.postgresql.lib
 
 : (postgresql-error-message) ( handle -- str )
     PQerrorMessage
-    "\n" split [ [ blank? ] trim ] map "\n" join ;
+    "\n" split [ [ whitespace? ] trim ] map "\n" join ;
 
 : postgresql-error-message ( -- str )
     db-connection get handle>> (postgresql-error-message) ;

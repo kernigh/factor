@@ -67,7 +67,7 @@ M: closer process
 : assert-blanks ( seq pre? -- )
     swap [ string? ] filter
     [
-        dup [ blank? ] all?
+        dup [ whitespace? ] all?
         [ drop ] [ swap pre/post-content ] if
     ] each drop ;
 

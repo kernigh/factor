@@ -7,7 +7,7 @@ namespaces opengl sequences strings x11.xlib x11.events x11.xim
 x11.glx x11.clipboard x11.constants x11.windows io.encodings.string
 io.encodings.ascii io.encodings.utf8 combinators command-line
 math.vectors classes.tuple opengl.gl threads math.rectangles
-environment ascii ;
+environment ascii.categories combinators.short-circuit ;
 IN: ui.backend.x11
 
 SINGLETON: x11-ui-backend
@@ -73,9 +73,9 @@ CONSTANT: key-codes
 : valid-input? ( string gesture -- ? )
     over empty? [ 2drop f ] [
         mods>> { f { S+ } } member? [
-            [ [ 127 = not ] [ CHAR: \s >= ] bi and ] all?
+            [ { [ 127 = not ] [ CHAR: \s >= ] } 1&& ] all?
         ] [
-            [ [ 127 = not ] [ CHAR: \s >= ] [ alpha? not ] tri and and ] all?
+            [ { [ 127 = not ] [ CHAR: \s >= ] [ alphanumeric? not ] } 1&& ] all?
         ] if
     ] if ;
 

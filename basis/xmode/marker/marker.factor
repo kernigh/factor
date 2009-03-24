@@ -3,7 +3,7 @@
 USING: kernel namespaces make xmode.rules xmode.tokens
 xmode.marker.state xmode.marker.context xmode.utilities
 xmode.catalog sequences math assocs combinators strings
-regexp splitting unicode.case unicode.categories
+regexp splitting ascii.case unicode.categories
 combinators.short-circuit accessors ;
 IN: xmode.marker
 
@@ -269,7 +269,7 @@ M: mark-previous-rule handle-rule-start
         current-rule-set rule-set-empty? [
             drop
         ] [
-            dup alpha? [
+            dup alphanumeric? [
                 drop
             ] [
                 current-rule-set rule-set-no-word-sep* member? [

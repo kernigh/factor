@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Daniel Ehrenberg
 ! See http://factorcode.org/license.txt for BSD license.
 USING: regexp sequences kernel regexp.negation regexp.ast
-accessors fry regexp.classes ;
+accessors fry character-classes ;
 IN: regexp.combinators
 
 <PRIVATE

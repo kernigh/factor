@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: arrays io io.streams.string kernel math math.parser
-namespaces sequences splitting grouping strings ascii
+namespaces sequences splitting grouping strings ascii.categories
 byte-arrays byte-vectors ;
 IN: tools.hexdump
 

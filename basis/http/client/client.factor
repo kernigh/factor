@@ -4,9 +4,9 @@ USING: accessors assocs kernel math math.parser namespaces make
 sequences strings splitting calendar continuations accessors vectors
 math.order hashtables byte-arrays destructors
 io io.sockets io.streams.string io.files io.timeouts
-io.pathnames io.encodings io.encodings.string io.encodings.ascii.categories
+io.pathnames io.encodings io.encodings.string io.encodings.ascii
 io.encodings.utf8 io.encodings.8-bit io.encodings.binary io.crlf
-io.streams.duplex fry ascii urls urls.encoding present
+io.streams.duplex fry ascii.categories urls urls.encoding present
 http http.parsers http.client.post-data ;
 IN: http.client
 

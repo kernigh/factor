@@ -5,7 +5,8 @@ io.encodings.utf8 hashtables kernel namespaces sequences
 vocabs.loader io combinators calendar accessors math.parser
 io.streams.string ui.tools.operations quotations strings arrays
 prettyprint words vocabs sorting sets classes math alien urls
-splitting ascii combinators.short-circuit alarms words.symbol ;
+splitting ascii.categories combinators.short-circuit alarms
+character-classes words.symbol ;
 IN: tools.scaffold
 
 SYMBOL: developer-name
@@ -103,8 +104,11 @@ ERROR: no-vocab vocab ;
         drop
     ] if ;
 
+CATEGORY: digit-or-quote
+    CHAR: ' digit <or> ;
+
 : lookup-type ( string -- object/string ? )
-    "new" ?head drop [ { [ CHAR: ' = ] [ digit? ] } 1|| ] trim-tail
+    "new" ?head drop [ digit-or-quote? ] trim-tail
     H{
         { "object" object } { "obj" object }
         { "quot" quotation }

@@ -3,7 +3,7 @@
 USING: accessors kernel peg strings sequences math math.parser
 namespaces make words quotations arrays hashtables io
 io.streams.string assocs unicode.categories peg.parsers accessors
-words.symbol ;
+words.symbol character-classes ;
 IN: fjsc
 
 TUPLE: ast-number value ;
@@ -21,17 +21,16 @@ TUPLE: ast-using names ;
 TUPLE: ast-in name ;
 TUPLE: ast-hashtable elements ;
 
-: identifier-middle? ( ch -- bool )
-  [ blank? not ] keep
-  [ "}];\"" member? not ] keep
-  digit? not
-  and and ;
-
 CATEGORY: identifier-middle
-    whitespace "}];\"" <union> <or> digit <or> <not> ;
+    whitespace <not>
+    "}];\"" <union> <not> <and>
+    digit <not> <and> ;
 
 CATEGORY: identifier-ends
-    CHAR: ' alphabetic <or> <not> identifier-middle <and> ;
+    whitespace <not>
+    "\";" <union> <not> <and>
+    alphabetic <not> <and>
+    \ identifier-middle <not> <and> ;
 
 : 'identifier-ends' ( -- parser )
   [ identifier-ends? ] satisfy repeat0 ;
@@ -51,13 +50,11 @@ CATEGORY: identifier-ends
 
 DEFER: 'expression'
 
+CATEGORY: effect-name
+    { whitespace CHAR: ) CHAR: - } <union> <not> ;
+
 : 'effect-name' ( -- parser )
-  [
-    [ whitespace? not ] keep
-    [ CHAR: ) = not ] keep
-    CHAR: - = not
-    and and
-  ] satisfy repeat1 [ >string ] action ;
+  [ effect-name? ] satisfy repeat1 [ >string ] action ;
 
 : 'stack-effect' ( -- parser )
   [

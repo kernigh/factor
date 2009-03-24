@@ -1,4 +1,5 @@
-USING: accessors alien alien.c-types arrays ascii byte-arrays combinators
+USING: accessors alien alien.c-types arrays ascii.case
+byte-arrays combinators
 combinators.short-circuit fry kernel math math.blas.ffi
 math.complex math.functions math.order sequences sequences.private
 functors words locals parser prettyprint.backend prettyprint.custom

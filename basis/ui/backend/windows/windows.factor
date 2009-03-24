@@ -8,7 +8,7 @@ kernel math math.vectors namespaces make sequences strings
 vectors words windows.kernel32 windows.gdi32 windows.user32
 windows.opengl32 windows.messages windows.types windows.nt
 windows threads libc combinators fry combinators.short-circuit
-continuations command-line shuffle opengl ui.render ascii
+continuations command-line shuffle opengl ui.render ascii.categories
 math.bitwise locals accessors math.rectangles math.order ascii
 calendar io.encodings.utf16n ;
 IN: ui.backend.windows
@@ -234,7 +234,7 @@ CONSTANT: exclude-keys-wm-char
         { [ over SC_MINIMIZE = ] [ f set-window-active ] }
         { [ over SC_RESTORE = ] [ t set-window-active ] }
         { [ over SC_MAXIMIZE = ] [ t set-window-active ] }
-        { [ dup alpha? ] [ 4drop 0 ] }
+        { [ dup alphanumeric? ] [ 4drop 0 ] }
         { [ t ] [ DefWindowProc ] }
     } cond ;
 

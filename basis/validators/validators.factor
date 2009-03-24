@@ -77,7 +77,7 @@ IN: validators
 
 : v-one-word ( str -- str )
     v-required
-    dup [ alpha? ] all?
+    dup [ word-char? ] all?
     [ "must be a single word" throw ] unless ;
 
 : v-username ( str -- str )

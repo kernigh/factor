@@ -1,6 +1,6 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: sequences grouping assocs kernel ascii ascii tr ;
+USING: sequences grouping assocs kernel ascii.categories ascii.case tr ;
 IN: soundex
 
 TR: soundex-tr
@@ -16,7 +16,7 @@ TR: soundex-tr
 : first>upper ( seq -- seq' ) 1 head >upper ;
 : trim-first ( seq -- seq' ) dup first [ = ] curry trim-head ;
 : remove-zeroes ( seq -- seq' ) CHAR: 0 swap remove ;
-: remove-non-alpha ( seq -- seq' ) [ alpha? ] filter ;
+: remove-non-alpha ( seq -- seq' ) [ alphabetic? ] filter ;
 : pad-4 ( first seq -- seq' ) "000" 3append 4 head ;
 
 : soundex ( string -- soundex )

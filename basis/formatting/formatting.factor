@@ -1,11 +1,10 @@
 ! Copyright (C) 2008 John Benediktsson
 ! See http://factorcode.org/license.txt for BSD license
-
-USING: accessors arrays ascii assocs calendar combinators fry kernel 
-generalizations io io.encodings.ascii io.files io.streams.string
+USING: accessors arrays unicode.categories assocs calendar
+combinators fry kernel generalizations io io.encodings.ascii
+io.files io.streams.string
 macros math math.functions math.parser peg.ebnf quotations
 sequences splitting strings unicode.case vectors ;
-
 IN: formatting
 
 <PRIVATE

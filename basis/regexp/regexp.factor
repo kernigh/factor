@@ -8,8 +8,8 @@ IN: regexp
 
 TUPLE: regexp
     { raw read-only }
-    { parse-tree read-only }
     { options read-only }
+    { parse-tree read-only }
     dfa next-match ;
 
 TUPLE: reverse-regexp < regexp ;
@@ -152,11 +152,11 @@ DEFER: compile-next-match
 
 PRIVATE>
 
-: new-regexp ( string ast options class -- regexp )
+: new-regexp ( string options ast class -- regexp )
     [ \ regexp-initial-word \ next-initial-word ] dip boa ; inline
 
 : make-regexp ( string ast -- regexp )
-    "" regexp new-regexp ;
+    "" swap regexp new-regexp ;
 
 : <optioned-regexp> ( string options -- regexp )
     [ 2dup parse-optioned-regexp ] keep

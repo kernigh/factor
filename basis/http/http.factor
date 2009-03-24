@@ -5,7 +5,7 @@ sequences splitting sorting sets strings vectors hashtables
 quotations arrays byte-arrays math.parser calendar
 calendar.format present urls fry
 io io.encodings io.encodings.iana io.encodings.binary
-io.encodings.8-bit io.crlf ascii
+io.encodings.8-bit io.crlf ascii.case
 http.parsers
 base64 ;
 IN: http

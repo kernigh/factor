@@ -7,7 +7,7 @@ specialized-arrays.direct.float specialized-arrays.direct.double
 specialized-arrays.float specialized-arrays.double
 specialized-arrays.direct.complex-float specialized-arrays.direct.complex-double
 specialized-arrays.complex-float specialized-arrays.complex-double
-parser prettyprint.backend prettyprint.custom ascii ;
+parser prettyprint.backend prettyprint.custom ascii.case ;
 IN: math.blas.matrices
 
 TUPLE: blas-matrix-base underlying ld rows cols transpose ;

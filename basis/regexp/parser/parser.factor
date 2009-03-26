@@ -65,10 +65,13 @@ MEMO: simple-category-table ( -- table )
 : unicode-class ( name -- class )
     dup parse-unicode-class [ ] [ bad-class ] ?if ;
 
+: ?insensitive ( class -- class' )
+    [ case-insensitive option? alphabetic ] dip ? ;
+
 : name>class ( name -- class )
     >string simple {
-        { "lower" [ lowercase ] }
-        { "upper" [ uppercase ] }
+        { "lower" [ lowercase ?insensitive ] }
+        { "upper" [ uppercase ?insensitive ] }
         { "alpha" [ alphabetic ] }
         { "ascii" [ ascii-char ] }
         { "digit" [ digit ] }
@@ -160,19 +163,23 @@ MEMO: simple-category-table ( -- table )
 : carat ( -- condition )
     ^ ^unix beginning-of-input line-option ;
 
-GENERIC: modify ( integer -- class )
-M: integer modify
+: modify ( elt -- elt' )
     case-insensitive option? [
         dup alphabetic? [
             [ ch>lower ] [ ch>upper ] bi <or>
         ] when
     ] when ;
-M: object modify ;
+
+: insensitive-map ( seq -- seq' )
+    [ modify ] map ;
 
 : make-concatenation ( seq -- concatenation )
-    sift [ modify ] map
+    sift
     reversed-regexp option? [ reverse ] when
     <concatenation> ;
+
+: push-reverse ( -- )
+    H{ { reversed-regexp t } } push-options ;
 
 EBNF: (parse-regexp)
 
@@ -182,7 +189,8 @@ QuotedCharacter = !("\\E") .
 
 Escape = "p{" CharacterInBracket*:s "}" => [[ s name>class ]]
        | "P{" CharacterInBracket*:s "}" => [[ s name>class <not> ]]
-       | "Q" QuotedCharacter*:s "\\E" => [[ s make-concatenation ]]
+       | "Q" QuotedCharacter*:s "\\E"
+            => [[ s insensitive-map make-concatenation ]]
        | "u" Character:a Character:b Character:c Character:d
             => [[ { a b c d } hex> ensure-number ]]
        | "x" Character:a Character:b
@@ -222,24 +230,30 @@ CharClass = BasicCharClass:b "&&" CharClass:c
                 => [[ b c <minus> ]]
           | BasicCharClass
 
-Options = [idmsx]*:on "-"? [idmsx]*:off
-    => [[ on off parse-options dup push-options ]]
+Options = [idmsx-]*:opts ":"
+    => [[ opts string>options dup push-options ]]
+
+Lookbehind = "?<=" => [[ push-reverse ]]
+
+NotLookbehind = "?<!" => [[ push-reverse ]]
 
 Parenthized = "?:" Alternation:a => [[ a ]]
-            | "?" Options ":" Alternation:a
+            | "?" Options Alternation:a
                 => [[ a pop-options ]]
             | "?#" [^)]* => [[ f ]]
             | "?~" Alternation:a => [[ a <negation> ]]
             | "?=" Alternation:a => [[ a <lookahead> <tagged-epsilon> ]]
             | "?!" Alternation:a => [[ a <lookahead> <not> <tagged-epsilon> ]]
-            | "?<=" Alternation:a => [[ a <lookbehind> <tagged-epsilon> ]]
-            | "?<!" Alternation:a => [[ a <lookbehind> <not> <tagged-epsilon> ]]
+            | Lookbehind Alternation:a
+                => [[ a <lookbehind> <tagged-epsilon> pop-options ]]
+            | NotLookbehind Alternation:a
+                => [[ a <lookbehind> <not> <tagged-epsilon> pop-options ]]
             | Alternation
 
 Element = "(" Parenthized:p ")" => [[ p ]]
         | "[" CharClass:r "]" => [[ r ]]
         | ".":d => [[ dot ]]
-        | Character
+        | Character => [[ modify ]]
 
 Number = (!(","|"}").)* => [[ string>number ensure-number ]]
 

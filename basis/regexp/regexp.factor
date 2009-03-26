@@ -19,11 +19,8 @@ TUPLE: reverse-regexp < regexp ;
 M: lookahead question>quot ! Returns ( index string -- ? )
     term>> ast>dfa dfa>shortest-word '[ f _ execute ] ;
 
-: <reversed-option> ( ast -- reversed )
-    "r" string>options <with-options> ;
-
 M: lookbehind question>quot ! Returns ( index string -- ? )
-    term>> <reversed-option>
+    term>>
     ast>dfa dfa>reverse-shortest-word
     '[ [ 1- ] dip f _ execute ] ;
 

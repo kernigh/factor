@@ -30,12 +30,6 @@ TUPLE: alternation first second ;
 TUPLE: star term ;
 C: <star> star
 
-TUPLE: with-options tree options ;
-C: <with-options> with-options
-
-TUPLE: options on off ;
-C: <options> options
-
 SINGLETONS: unix-lines dotall multiline case-insensitive reversed-regexp ;
 
 : <maybe> ( term -- term' )

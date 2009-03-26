@@ -1,3 +1,5 @@
+! Copyright (C) 2008 Daniel Ehrenberg.
+! See http://factorcode.org/license.txt for BSD license.
 USING: kernel namespaces interval-maps tools.test ;
 IN: interval-maps.test
 

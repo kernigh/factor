@@ -49,9 +49,6 @@ PRIVATE>
     all-intervals [ [ first second ] compare ] sort
     >intervals ensure-disjoint interval-map boa ;
 
-: <interval-set> ( specification -- map )
-    [ t ] { } map>assoc <interval-map> ;
-
 :: coalesce ( alist -- specification )
     ! Only works with integer keys, because they're discrete
     ! Makes 2array keys

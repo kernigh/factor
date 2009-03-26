@@ -3,7 +3,7 @@
 USING: combinators.short-circuit assocs math kernel sequences
 io.files hashtables quotations splitting grouping arrays io
 math.parser hash2 math.order byte-arrays words namespaces words
-compiler.units parser io.encodings.ascii values interval-maps
+compiler.units parser io.encodings.ascii values interval-sets
 ascii.categories ascii.case sets combinators locals math.ranges sorting make
 strings.parser io.encodings.utf8 memoize simple-flat-file ;
 IN: unicode.data
@@ -32,7 +32,7 @@ VALUE: name-map
 : non-starter? ( char -- ? ) combining-class { 0 f } member? not ; inline
 : name>char ( name -- char ) name-map at ; inline
 : char>name ( char -- name ) name-map value-at ; inline
-: property? ( char property -- ? ) properties at interval-key? ; inline
+: property? ( char property -- ? ) properties at in? ; inline
 : ch>lower ( ch -- lower ) simple-lower at-default ; inline
 : ch>upper ( ch -- upper ) simple-upper at-default ; inline
 : ch>title ( ch -- title ) simple-title at-default ; inline

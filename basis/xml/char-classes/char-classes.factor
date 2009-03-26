@@ -1,7 +1,7 @@
 ! Copyright (C) 2005, 2009 Daniel Ehrenberg
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel sequences math math.order character-classes
-combinators hints combinators.short-circuit interval-maps multiline
+combinators hints combinators.short-circuit interval-sets multiline
 math.parser splitting unicode.categories arrays values ;
 IN: xml.char-classes
 
@@ -32,14 +32,14 @@ VALUE: 1.1name-start-map
 parse-interval-set to: 1.1name-start-map
 
 : 1.1name-start? ( ch -- ? )
-    1.1name-start-map interval-key? ;
+    1.1name-start-map in? ;
 
 VALUE: 1.1name-char-map
 <" "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040] ">
 parse-interval-set to: 1.1name-char-map
 
 : 1.1name-char? ( ch -- ? )
-    { [ 1.1name-start? ] [ 1.1name-char-map interval-key? ] } 1|| ;
+    { [ 1.1name-start? ] [ 1.1name-char-map in? ] } 1|| ;
 
 : name-start? ( 1.0? char -- ? )
     swap [ 1.0name-start? ] [ 1.1name-start? ] if ;
@@ -56,6 +56,6 @@ VALUE: 1.1text-map
 parse-interval-set to: 1.1text-map
 
 : text? ( 1.0? char -- ? )
-    swap 1.0text-map 1.1text-map ? interval-key? ;
+    swap 1.0text-map 1.1text-map ? in? ;
 
 HINTS: text? { object fixnum } ;

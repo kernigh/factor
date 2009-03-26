@@ -110,13 +110,10 @@ TUPLE: class-partition integers not-integers simples not-simples and or other ;
     [ drop f ]
     [ filter-not-integers class-partition>seq prune t intersection seq>instance ] if ;
 
-: read-words ( seq -- seq' )
-    [ dup word? [ dup "character-class" word-prop swap or ] when ] map ;
-
 PRIVATE>
 
 : <intersection> ( seq -- class )
-    { } like read-words
+    { } like
     dup intersection flatten partition-classes
     dup integers>> length {
         { 0 [ nip make-intersection ] }
@@ -155,7 +152,7 @@ PRIVATE>
 PRIVATE>
 
 : <union> ( seq -- class )
-    { } like read-words
+    { } like
     dup union flatten partition-classes
     dup not-integers>> length {
         { 0 [ nip make-union ] }

@@ -34,3 +34,8 @@ IN: unicode.categories.tests
 [ f ] [ CHAR: a digit? ] unit-test
 [ t ] [ CHAR: 9 digit? ] unit-test
 [ f ] [ CHAR: g digit? ] unit-test
+
+[ t ] [ HEX: 00AD default-ignorable? ] unit-test
+[ f ] [ HEX: 00AE default-ignorable? ] unit-test
+[ t ] [ HEX: E0000 default-ignorable? ] unit-test
+[ f ] [ HEX: FFFF default-ignorable? ] unit-test

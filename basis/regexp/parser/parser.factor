@@ -83,6 +83,10 @@ MEMO: property-table ( -- table )
         { "cntrl" [ control ] }
         { "xdigit" [ hex-digit ] }
         { "space" [ whitespace ] }
+        { "defaultignorablecodepoint" [ default-ignorable ] }
+        { "noncharactercodepoint"
+            [ "Noncharacter_Code_Point" <property-class> ] }
+        { "any" [ 0 HEX: 10FFFF <range-class> ] }
         [ unicode-class ]
     } case ;
 

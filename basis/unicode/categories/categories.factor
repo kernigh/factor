@@ -48,8 +48,7 @@ CATEGORY: lowercase
 CATEGORY: uppercase
     \ Lu "Other_Uppercase" <property-class> <or> ;
 CATEGORY: alphabetic
-    { Lu Ll Lt Lm Lo } <union>
-    "Other_Alphabetic" <property-class> <or> ;
+    \ L "Other_Alphabetic" <property-class> <or> ;
 
 CATEGORY: digit \ Nd ;
 CATEGORY: hex-digit
@@ -67,8 +66,17 @@ CATEGORY: character
 
 CATEGORY: math
     \ Sm "Other_Math" <property-class> <or> ;
-CATEGORY: punctuation
-    { Pc Pd Ps Pe Pi Pf Po } <union> ;
+CATEGORY: punctuation \ P ;
 
 CATEGORY: word-char
     { alphabetic Mn Mc Me Nl Pc } <union> ;
+
+CATEGORY: default-ignorable
+    "Other_Default_Ignorable_Code_Point" <property-class>
+    "Variation_Selector" <property-class> <or>
+    \ Cf <or>
+
+    \ whitespace
+    HEX: FFF9 HEX: FFFB <range-class> <or>
+    HEX: 0600 HEX: 0603 <range-class> <or>
+    HEX: 060D <or> HEX: 070F <or> <minus> ;

@@ -5,5 +5,5 @@ IN: io.encodings.euc-cn
 
 EUC: euc-cn "vocab:io/encodings/euc-cn/CP936.TXT"
 
-euc-cn "EUC-CN" register-encoding
+euc-cn "GB_2312-80" register-encoding
 

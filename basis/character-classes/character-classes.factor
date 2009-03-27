@@ -2,43 +2,37 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel math math.order words combinators locals
 combinators.short-circuit sequences classes.predicate
-fry arrays assocs sets classes classes.parser parser ;
+fry arrays assocs classes classes.parser parser
+hints interval-sets generalizations ;
+QUALIFIED: sets
 IN: character-classes
 
-TUPLE: range-class from to ;
-C: <range-class> range-class
+: <range-class> ( from to -- range )
+    2array 1array <interval-set> ;
 
 GENERIC: class-member? ( obj class -- ? )
 
-<PRIVATE
+HINTS: class-member? { fixnum object } ;
 
 M: object class-member? 2drop f ;
 
 M: t class-member? ( obj class -- ? ) 2drop t ;
 
-M: word class-member? "character-class" word-prop class-member? ;
+M: f class-member? 2drop f ;
 
 M: integer class-member? ( obj class -- ? ) = ;
 
-M: range-class class-member? ( obj class -- ? )
-    [ from>> ] [ to>> ] bi between? ;
+M: interval-set class-member? in? ;
 
-M: f class-member? 2drop f ;
+M: word class-member? "character-class" word-prop class-member? ;
 
-PRIVATE>
+TUPLE: quot-class values quot ;
+C: <quot-class> quot-class
+
+M: quot-class class-member?
+    [ quot>> call( char -- value ) ] [ values>> ] bi member? ;
 
 TUPLE: not-class class ;
-
-MIXIN: simple-class
-INSTANCE: range-class simple-class
-
-<PRIVATE
-
-PREDICATE: not-integer < not-class class>> integer? ;
-
-PREDICATE: not-simple < not-class class>> simple-class? ;
-
-PRIVATE>
 
 M: not-class class-member?
     class>> class-member? not ;
@@ -48,117 +42,84 @@ TUPLE: union seq ;
 M: union class-member?
     seq>> [ class-member? ] with any? ;
 
-TUPLE: intersection seq ;
-
-M: intersection class-member?
-    seq>> [ class-member? ] with all? ;
-
 <PRIVATE
+
+PREDICATE: not-integer < not-class class>> integer? ;
+
+PREDICATE: not-quot-class < not-class class>> quot-class? ;
+
+PREDICATE: not-or < not-class class>> union? ;
 
 DEFER: substitute
 
-: flatten ( seq class -- newseq )
-    '[ dup _ instance? [ seq>> ] [ 1array ] if ] map concat ; inline
+: flatten ( seq -- newseq )
+    [ dup union? [ seq>> ] [ 1array ] if ] { } map-as concat ; inline
 
-:: seq>instance ( seq empty class -- instance )
-    seq length {
-        { 0 [ empty ] }
-        { 1 [ seq first ] }
-        [ drop class new seq { } like >>seq ]
-    } case ; inline
-
-TUPLE: class-partition integers not-integers simples not-simples and or other ;
-
-: partition-classes ( seq -- class-partition )
-    prune
-    [ integer? ] partition
-    [ not-integer? ] partition
-    [ simple-class? ] partition
-    [ not-simple? ] partition
-    [ intersection? ] partition
-    [ union? ] partition
-    class-partition boa ;
-
-: class-partition>seq ( class-partition -- seq )
-    { integers>> not-integers>> simples>> not-simples>> and>> or>> other>> }
-    [ execute( partition -- seq ) ] with map concat ;
-
-: repartition ( partition -- partition' )
-    ! This could be made more efficient; only and and or are effected
-    class-partition>seq partition-classes ;
-
-: filter-not-integers ( partition -- partition' )
-    dup
-    [ simples>> ] [ not-simples>> ] [ or>> ] tri
-    3append intersection boa
-    '[ [ class>> _ class-member? ] filter ] change-not-integers ;
-
-: answer-ors ( partition -- partition' )
-    dup [ not-integers>> ] [ not-simples>> ] [ simples>> ] tri 3append
-    '[ [ _ [ t substitute ] each ] map ] change-or ;
-
-: contradiction? ( partition -- ? )
-    {
-        [ [ simples>> ] [ not-simples>> ] bi intersects? ]
-        [ other>> f swap member? ]
-    } 1|| ;
-
-: make-intersection ( partition -- intersection )
-    answer-ors repartition
-    [ t swap remove ] change-other
-    dup contradiction?
-    [ drop f ]
-    [ filter-not-integers class-partition>seq prune t intersection seq>instance ] if ;
-
-PRIVATE>
-
-: <intersection> ( seq -- class )
-    { } like
-    dup intersection flatten partition-classes
-    dup integers>> length {
-        { 0 [ nip make-intersection ] }
-        { 1 [ integers>> first [ '[ _ swap class-member? ] all? ] keep and ] }
-        [ 3drop f ]
+: seq>union ( seq -- instance )
+    dup length {
+        { 0 [ drop f ] }
+        { 1 [ first ] }
+        [ drop { } like union boa ]
     } case ;
 
-: <and> ( a b -- class )
-    2array <intersection> ;
-
-<PRIVATE
-
 : filter-integers ( partition -- partition' )
-    dup
-    [ simples>> ] [ not-simples>> ] [ and>> ] tri
-    3append union boa
-    '[ [ _ class-member? not ] filter ] change-integers ;
+    [ integer? ] partition
+    [ union boa '[ _ class-member? not ] filter ] keep append ;
 
-: answer-ands ( partition -- partition' )
-    dup [ integers>> ] [ not-simples>> ] [ simples>> ] tri 3append
-    '[ [ _ [ f substitute ] each ] map ] change-and ;
+: answer-not-ors ( partition -- partition' )
+    [ not-or? ] partition
+    [ '[ _ [ f substitute ] each ] map ] keep append ;
 
-: tautology? ( partition -- ? )
+: tautology? ( seq -- ? )
     {
-        [ [ simples>> ] [ not-simples>> ] bi intersects? ]
-        [ other>> t swap member? ]
+        [ t swap member? ]
+        [ [ not-class? ] partition [ [ class>> ] map ] dip sets:intersects? ]
     } 1|| ;
 
+: unify-intervals ( intervals -- interval )
+    [ { } ] [
+        unclip [ <interval-or> ] reduce 1array
+    ] if-empty ;
+
+: partition-quots ( quot-classes -- quot-class-sets )
+    H{ } clone [
+        '[ dup quot>> _ push-at ] each
+    ] keep ;
+
+: combine-quots ( quot quot-class-set connector -- quot-class )
+    [ [ values>> ] map unclip ] dip reduce swap <quot-class> ; inline
+
+: unify-quots ( quot-classes -- quot-classes' )
+    partition-quots [ [ sets:union ] combine-quots ] { } assoc>map ;
+
+: unify-not-quots ( quot-classes -- quot-classes' )
+    partition-quots
+    [ [ sets:intersect ] combine-quots ] { } assoc>map
+    [ values>> empty? not ] filter ;
+
+: consolidate ( seq -- seq' )
+    [ interval-set? ] partition [ unify-intervals ] dip
+    [ quot-class? ] partition [ unify-quots ] dip
+    [ not-quot-class? ] partition [ unify-not-quots ] dip
+    4 nappend ;
+
 : make-union ( partition -- intersection )
-    answer-ands repartition
-    [ f swap remove ] change-other
+    answer-not-ors
+    f swap remove
     dup tautology?
-    [ drop t ]
-    [ filter-integers class-partition>seq prune f union seq>instance ] if ;
+    [ drop t ] [
+        filter-integers sets:prune
+        consolidate seq>union
+    ] if ;
 
 PRIVATE>
 
 : <union> ( seq -- class )
-    { } like
-    dup union flatten partition-classes
-    dup not-integers>> length {
-        { 0 [ nip make-union ] }
+    flatten sets:prune { } like
+    [ not-integer? ] partition swap dup length {
+        { 0 [ drop make-union ] }
         { 1 [
-            not-integers>> first
-            [ class>> '[ _ swap class-member? ] any? ] keep or
+            first [ class>> '[ _ swap class-member? ] any? ] keep or
         ] }
         [ 3drop t ]
     } case ;
@@ -167,21 +128,17 @@ PRIVATE>
     2array <union> ;
 
 GENERIC: <not> ( class -- inverse )
-
-M: object <not>
-    not-class boa ;
-
-M: not-class <not>
-    class>> ;
-
-M: intersection <not>
-    seq>> [ <not> ] map <union> ;
-
-M: union <not>
-    seq>> [ <not> ] map <intersection> ;
-
+M: object <not> not-class boa ;
+M: not-class <not> class>> ;
 M: t <not> drop f ;
 M: f <not> drop t ;
+M: interval-set <not> HEX: 10FFFF <interval-not> ;
+
+: <intersection> ( seq -- class )
+    [ <not> ] map <union> <not> ;
+
+: <and> ( a b -- class )
+    2array <intersection> ;
 
 : <minus> ( a b -- a-b )
     <not> <and> ;
@@ -201,9 +158,6 @@ M:: object answer ( class from to -- new-class )
 
 : replace-compound ( class from to -- seq )
     [ seq>> ] 2dip '[ _ _ answer ] map ;
-
-M: intersection answer
-    replace-compound <intersection> ;
 
 M: union answer
     replace-compound <union> ;
@@ -238,14 +192,12 @@ DEFER: make-condition
     [ keys ] [ unclip (make-condition) ] if-empty ;
 
 GENERIC: class>questions ( class -- questions )
-: compound-questions ( class -- questions ) seq>> [ class>questions ] gather ;
-M: union class>questions compound-questions ;
-M: intersection class>questions compound-questions ;
+M: union class>questions seq>> [ class>questions ] sets:gather ;
 M: not-class class>questions class>> class>questions ;
 M: object class>questions 1array ;
 
 : table>questions ( table -- questions )
-    values [ class>questions ] gather >array t swap remove ;
+    values [ class>questions ] sets:gather >array { t f } sets:diff ;
 
 PRIVATE>
 
@@ -261,14 +213,23 @@ PRIVATE>
 
 : condition-states ( condition -- states )
     dup condition? [
-        [ yes>> ] [ no>> ] bi
-        [ condition-states ] bi@ append prune
+        [ yes>> ] [ no>> ] bi 2array
+        [ condition-states ] sets:gather
     ] [ 1array ] if ;
 
 : condition-at ( condition assoc -- new-condition )
     '[ _ at ] condition-map ;
 
+PREDICATE: category-word < word "character-class" word-prop ;
+
+GENERIC: fully-evaluate ( class -- class' )
+M: object fully-evaluate ;
+M: category-word fully-evaluate "character-class" word-prop ;
+M: not-class fully-evaluate class>> fully-evaluate <not> ;
+M: union fully-evaluate seq>> [ fully-evaluate ] map <union> ;
+
 : define-category ( word definition -- )
+    fully-evaluate
     [ "character-class" set-word-prop ]
     [ '[ _ class-member? ] integer swap define-predicate-class ] 2bi ;
 

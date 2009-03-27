@@ -1,14 +1,16 @@
 ! Copyright (C) 2008 Daniel Ehrenberg.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel character-classes sequences unicode.data classes.parser
-unicode.script accessors ;
+unicode.script accessors arrays sets unicode.data.private assocs
+strings ;
 IN: unicode.categories
 
 <<
 
-TUPLE: category-class category ;
-C: <category-class> category-class
-INSTANCE: category-class simple-class
+: <category-class> ( string -- class )
+    categories index
+    [ 1array [ category# ] <quot-class> ]
+    [ "Bad category class" throw ] if* ;
 
 categories [
     [ create-class-in ]
@@ -16,35 +18,23 @@ categories [
     define-category
 ] each
 
-TUPLE: script-class script ;
-C: <script-class> script-class
-INSTANCE: script-class simple-class
-
-TUPLE: property-class property ;
-C: <property-class> property-class
-INSTANCE: property-class simple-class
-
-<PRIVATE
-
-: same? ( obj1 obj2 quot1: ( obj1 -- val1 ) quot2: ( obj2 -- val2 ) -- ? )
-    bi* = ; inline
-
-PRIVATE>
-
-M: script-class class-member?
-    [ script-of ] [ script>> ] same? ;
-
-M: category-class class-member?
-    [ category ] [ category>> ] same? ;
-
-M: property-class class-member?
-    property>> property? ;
-
->>
+: <script-class> ( script -- class )
+    1array [ script-of ] <quot-class> ;
 
 : <category-range-class> ( letter -- categories )
     categories [ first = ] with filter
     [ <category-class> ] map <union> ;
+
+categories [ first ] map prune [
+    [ 1string create-class-in ]
+    [ <category-range-class> ] bi
+    define-category
+] each
+
+: <property-class> ( string -- class )
+    properties at ;
+
+>>
 
 CATEGORY: whitespace
     "White_Space" <property-class> ;

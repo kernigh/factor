@@ -4,7 +4,7 @@ USING: peg.ebnf kernel math.parser sequences assocs arrays fry math
 combinators character-classes strings splitting peg locals accessors
 regexp.ast unicode.case unicode.script.private unicode.categories
 memoize interval-maps sets unicode.data combinators.short-circuit
-vectors namespaces ;
+vectors namespaces unicode.data.private ;
 FROM: ascii.categories => ascii-char ;
 IN: regexp.parser
 
@@ -45,7 +45,10 @@ MEMO: simple-script-table ( -- table )
 MEMO: simple-category-table ( -- table )
     categories simple-table ;
 
-: parse-unicode-class ( name -- class )
+MEMO: property-table ( -- table )
+    properties keys simple-table ;
+
+: unicode-class ( name -- class )
     {
         { [ dup { [ length 1 = ] [ first "clmnpsz" member? ] } 1&& ] [
             >upper first
@@ -59,11 +62,9 @@ MEMO: simple-category-table ( -- table )
             [ <script-class> ]
             [ "script=" prepend bad-class ] ?if
         ] }
+        { [ property-table ?at ] [ <property-class> <delay-class> ] }
         [ bad-class ]
     } cond ;
-
-: unicode-class ( name -- class )
-    dup parse-unicode-class [ ] [ bad-class ] ?if ;
 
 : ?insensitive ( class -- class' )
     [ case-insensitive option? alphabetic ] dip ? ;
@@ -251,7 +252,7 @@ Parenthized = "?:" Alternation:a => [[ a ]]
             | Alternation
 
 Element = "(" Parenthized:p ")" => [[ p ]]
-        | "[" CharClass:r "]" => [[ r ]]
+        | "[" CharClass:r "]" => [[ r <delay-class> ]]
         | ".":d => [[ dot ]]
         | Character => [[ modify ]]
 

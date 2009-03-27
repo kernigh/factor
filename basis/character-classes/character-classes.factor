@@ -24,7 +24,19 @@ M: integer class-member? ( obj class -- ? ) = ;
 
 M: interval-set class-member? in? ;
 
-M: word class-member? "character-class" word-prop class-member? ;
+: word-category ( word -- category )
+    "character-class" word-prop ;
+
+PREDICATE: category-word < word word-category ;
+
+M: category-word class-member?
+    word-category class-member? ;
+
+TUPLE: delay-class class ;
+C: <delay-class> delay-class
+
+M: delay-class class-member?
+    class>> class-member? ;
 
 TUPLE: quot-class values quot ;
 C: <quot-class> quot-class
@@ -36,6 +48,13 @@ TUPLE: not-class class ;
 
 M: not-class class-member?
     class>> class-member? not ;
+
+GENERIC: <not> ( class -- inverse )
+M: object <not> not-class boa ;
+M: not-class <not> class>> ;
+M: t <not> drop f ;
+M: f <not> drop t ;
+M: interval-set <not> HEX: 10FFFF <interval-not> ;
 
 TUPLE: union seq ;
 
@@ -76,10 +95,11 @@ DEFER: substitute
         [ [ not-class? ] partition [ [ class>> ] map ] dip sets:intersects? ]
     } 1|| ;
 
-: unify-intervals ( intervals -- interval )
-    [ { } ] [
-        unclip [ <interval-or> ] reduce 1array
-    ] if-empty ;
+: unify-intervals ( intervals sequence -- intervals sequence )
+    swap [ { } ] [
+        [ [ integer? not ] partition ] dip swap
+        <interval-set> [ <interval-or> ] reduce 1array
+    ] if-empty swap ;
 
 : partition-quots ( quot-classes -- quot-class-sets )
     H{ } clone [
@@ -93,12 +113,13 @@ DEFER: substitute
     partition-quots [ [ sets:union ] combine-quots ] { } assoc>map ;
 
 : unify-not-quots ( quot-classes -- quot-classes' )
-    partition-quots
+    [ class>> ] map partition-quots
     [ [ sets:intersect ] combine-quots ] { } assoc>map
-    [ values>> empty? not ] filter ;
+    [ values>> empty? not ] filter
+    [ <not> ] map ;
 
 : consolidate ( seq -- seq' )
-    [ interval-set? ] partition [ unify-intervals ] dip
+    [ interval-set? ] partition unify-intervals
     [ quot-class? ] partition [ unify-quots ] dip
     [ not-quot-class? ] partition [ unify-not-quots ] dip
     4 nappend ;
@@ -126,13 +147,6 @@ PRIVATE>
 
 : <or> ( a b -- or-class )
     2array <union> ;
-
-GENERIC: <not> ( class -- inverse )
-M: object <not> not-class boa ;
-M: not-class <not> class>> ;
-M: t <not> drop f ;
-M: f <not> drop t ;
-M: interval-set <not> HEX: 10FFFF <interval-not> ;
 
 : <intersection> ( seq -- class )
     [ <not> ] map <union> <not> ;
@@ -220,13 +234,14 @@ PRIVATE>
 : condition-at ( condition assoc -- new-condition )
     '[ _ at ] condition-map ;
 
-PREDICATE: category-word < word "character-class" word-prop ;
-
+<PRIVATE
 GENERIC: fully-evaluate ( class -- class' )
 M: object fully-evaluate ;
-M: category-word fully-evaluate "character-class" word-prop ;
+M: category-word fully-evaluate word-category ;
+M: delay-class fully-evaluate class>> fully-evaluate ;
 M: not-class fully-evaluate class>> fully-evaluate <not> ;
 M: union fully-evaluate seq>> [ fully-evaluate ] map <union> ;
+PRIVATE>
 
 : define-category ( word definition -- )
     fully-evaluate

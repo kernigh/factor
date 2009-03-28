@@ -81,6 +81,7 @@ MEMO: property-table ( -- table )
         { "print" [ printable ] }
         { "blank" [ blank ] }
         { "cntrl" [ control ] }
+        { "math" [ math ] }
         { "xdigit" [ hex-digit ] }
         { "space" [ whitespace ] }
         { "defaultignorablecodepoint" [ default-ignorable ] }

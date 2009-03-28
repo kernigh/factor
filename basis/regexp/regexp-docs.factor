@@ -72,10 +72,12 @@ ARTICLE: { "regexp" "syntax" } "Regular expression syntax"
     { { $snippet "\\p{blank}" } "Non-newline whitespace" }
     { { $snippet "\\p{cntrl}" } "Control character" }
     { { $snippet "\\p{space}" } "Whitespace" }
+    { { $snippet "\\p{math}" } "Mathematical characters" }
     { { $snippet "\\p{xdigit}" } "Hexadecimal digit" }
     { { $snippet "\\p{Nd}" } "Character in Unicode category Nd" } 
     { { $snippet "\\p{Z}" } "Character in Unicode category beginning with Z" } 
     { { $snippet "\\p{script=Cham}" } "Character in the Cham writing system" } }
+    { { $snippet "\\p{diacritic}" } "Character which is a diacritic (in PropList.txt in the UCD" }
 { $heading "Character class operations" }
 "Character classes can be composed using four binary operations: " { $snippet "|| && ~~ --" } ". These do the operations union, intersection, symmetric difference and difference, respectively. For example, characters which are lower-case but not Latin script could be matched as " { $snippet "[\\p{lower}--\\p{script=latin}]" } ". These operations are right-associative, and " { $snippet "^" } " binds tighter than them. There is no syntax for grouping."
 { $heading "Boundaries" }

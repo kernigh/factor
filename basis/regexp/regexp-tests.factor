@@ -543,4 +543,9 @@ IN: regexp-tests
 [ t ] [ "\u00fdd0" R/ \p{noncharacter code point}/ matches? ] unit-test
 [ t ] [ " " R/ \p{white spacE}/ matches? ] unit-test
 [ f ] [ "a" R/ \p{white spacE}/ matches? ] unit-test
-[ t ] [ "a" R/ \u{Latin Capital Letter A}/ matches? ] unit-test
+[ t ] [ "A" R/ \u{Latin Capital Letter A}/ matches? ] unit-test
+[ t ] [ "0" R/ \p{hex digit}/ matches? ] unit-test
+[ t ] [ "F" R/ \p{hex digit}/ matches? ] unit-test
+[ f ] [ " " R/ \p{hex digit}/ matches? ] unit-test
+[ t ] [ "+" R/ \p{math}/ matches? ] unit-test
+[ f ] [ "a" R/ \p{math}/ matches? ] unit-test

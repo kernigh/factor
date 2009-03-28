@@ -152,10 +152,15 @@ PRIVATE>
         cat categories-map at char table ?set-nth
     ] assoc-each table fill-ranges ;
 
+PRIVATE>
+
+: mangle-unicode-name ( name -- name' )
+    >lower { { CHAR: \s CHAR: - } } substitute ;
+
+<PRIVATE
+
 : process-names ( data -- names-hash )
-    1 swap (process-data) [
-        >lower { { CHAR: \s CHAR: - } } substitute swap
-    ] H{ } assoc-map-as ;
+    1 swap (process-data) [ mangle-unicode-name swap ] H{ } assoc-map-as ;
 
 : multihex ( hexstring -- string )
     " " split [ hex> ] map sift ;

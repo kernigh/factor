@@ -534,3 +534,13 @@ IN: regexp-tests
 [ f ] [ "π" R/ [\p{script=latin}--\p{lower}]/ matches? ] unit-test
 [ t ] [ "A" R/ [\p{script=latin}--\p{lower}]/ matches? ] unit-test
 [ f ] [ "3" R/ [\p{script=latin}--\p{lower}]/ matches? ] unit-test
+
+[ t ] [ " " R/ \p{Any}/ matches? ] unit-test
+[ t ] [ "\n" R/ \p{Any}/ matches? ] unit-test
+[ f ] [ "a" R/ \p{default ignorable code point}/ matches? ] unit-test
+[ t ] [ "\u00034F" R/ \p{default ignorable code point}/ matches? ] unit-test
+[ f ] [ "a" R/ \p{noncharacter code point}/ matches? ] unit-test
+[ t ] [ "\u00fdd0" R/ \p{noncharacter code point}/ matches? ] unit-test
+[ t ] [ " " R/ \p{white spacE}/ matches? ] unit-test
+[ f ] [ "a" R/ \p{white spacE}/ matches? ] unit-test
+[ t ] [ "a" R/ \u{Latin Capital Letter A}/ matches? ] unit-test

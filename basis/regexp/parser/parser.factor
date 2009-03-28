@@ -86,7 +86,7 @@ MEMO: property-table ( -- table )
         { "defaultignorablecodepoint" [ default-ignorable ] }
         { "noncharactercodepoint"
             [ "Noncharacter_Code_Point" <property-class> ] }
-        { "any" [ 0 HEX: 10FFFF <range-class> ] }
+        { "any" [ t ] }
         [ unicode-class ]
     } case ;
 
@@ -196,12 +196,14 @@ Escape = "p{" CharacterInBracket*:s "}" => [[ s name>class ]]
        | "P{" CharacterInBracket*:s "}" => [[ s name>class <not> ]]
        | "Q" QuotedCharacter*:s "\\E"
             => [[ s insensitive-map make-concatenation ]]
-       | "u" Character:a Character:b Character:c Character:d
-            => [[ { a b c d } hex> ensure-number ]]
        | "x" Character:a Character:b
             => [[ { a b } hex> ensure-number ]]
        | "0" Character:a Character:b Character:c
             => [[ { a b c } oct> ensure-number ]]
+       | "u{" CharacterInBracket*:s "}"
+            => [[ s >string mangle-unicode-name name>char [ "Bad character escape in regexp" throw ] unless* ]]
+       | "u" Character:a Character:b Character:c Character:d
+            => [[ { a b c d } hex> ensure-number ]]
        | . => [[ lookup-escape ]]
 
 EscapeSequence = "\\" Escape:e => [[ e ]]

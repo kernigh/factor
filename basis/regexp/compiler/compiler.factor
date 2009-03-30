@@ -4,7 +4,8 @@ USING: character-classes kernel sequences regexp.negation
 quotations assocs fry math locals combinators regexp.ast
 accessors words compiler.units kernel.private strings
 sequences.private arrays namespaces unicode.breaks
-regexp.transition-tables combinators.short-circuit ;
+regexp.transition-tables combinators.short-circuit
+character-classes.conditions ;
 IN: regexp.compiler
 
 GENERIC: question>quot ( question -- quot )

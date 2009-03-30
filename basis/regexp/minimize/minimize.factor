@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel sequences regexp.transition-tables fry assocs
 accessors locals math sorting arrays sets hashtables regexp.dfa
-combinators.short-circuit character-classes ;
+combinators.short-circuit character-classes character-classes.conditions ;
 IN: regexp.minimize
 
 : table>state-numbers ( table -- assoc )

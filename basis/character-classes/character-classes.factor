@@ -3,14 +3,14 @@
 USING: accessors kernel math math.order words combinators locals
 combinators.short-circuit sequences classes.predicate
 fry arrays assocs classes classes.parser parser
-hints interval-sets generalizations ;
+hints interval-sets generalizations quotations ;
 QUALIFIED: sets
 IN: character-classes
 
 : <range-class> ( from to -- range )
     2array 1array <interval-set> ;
 
-GENERIC: class-member? ( obj class -- ? )
+GENERIC: class-member? ( char class -- ? )
 
 HINTS: class-member? { fixnum object } ;
 
@@ -32,19 +32,19 @@ PREDICATE: category-word < word word-category ;
 M: category-word class-member?
     word-category class-member? ;
 
-TUPLE: delay-class class ;
+TUPLE: delay-class { class read-only } ;
 C: <delay-class> delay-class
 
 M: delay-class class-member?
     class>> class-member? ;
 
-TUPLE: quot-class values quot ;
+TUPLE: quot-class { values sequence read-only } { quot quotation read-only } ;
 C: <quot-class> quot-class
 
 M: quot-class class-member?
     [ quot>> call( char -- value ) ] [ values>> ] bi member? ;
 
-TUPLE: not-class class ;
+TUPLE: not-class { class read-only } ;
 
 M: not-class class-member?
     class>> class-member? not ;
@@ -56,7 +56,7 @@ M: t <not> drop f ;
 M: f <not> drop t ;
 M: interval-set <not> HEX: 10FFFF <interval-not> ;
 
-TUPLE: union seq ;
+TUPLE: union { seq read-only } ;
 
 M: union class-member?
     seq>> [ class-member? ] with any? ;
@@ -145,7 +145,7 @@ PRIVATE>
         [ 3drop t ]
     } case ;
 
-: <or> ( a b -- or-class )
+: <or> ( class1 class2 -- class )
     2array <union> ;
 
 : <intersection> ( seq -- class )
@@ -160,12 +160,9 @@ PRIVATE>
 : <sym-diff> ( a b -- a~b )
     [ <or> ] [ <and> ] 2bi <minus> ;
 
-TUPLE: condition question yes no ;
-C: <condition> condition
+<PRIVATE
 
 GENERIC# answer 2 ( class from to -- new-class )
-
-<PRIVATE
 
 M:: object answer ( class from to -- new-class )
     class from = to class ? ;
@@ -179,68 +176,21 @@ M: union answer
 M: not-class answer
     [ class>> ] 2dip answer <not> ;
 
+PRIVATE>
+
 GENERIC# substitute 1 ( class from to -- new-class )
 M: object substitute answer ;
 M: not-class substitute [ <not> ] bi@ answer ;
 
-PRIVATE>
-
-: assoc-answer ( table question answer -- new-table )
-    '[ _ _ substitute ] assoc-map
-    [ nip ] assoc-filter ;
-
-: assoc-answers ( table questions answer -- new-table )
-    '[ _ assoc-answer ] each ;
-
 <PRIVATE
 
-DEFER: make-condition
-
-: (make-condition) ( table questions question -- condition )
-    [ 2nip ]
-    [ swap [ t assoc-answer ] dip make-condition ]
-    [ swap [ f assoc-answer ] dip make-condition ] 3tri
-    2dup = [ 2nip ] [ <condition> ] if ;
-
-: make-condition ( table questions -- condition )
-    [ keys ] [ unclip (make-condition) ] if-empty ;
-
-GENERIC: class>questions ( class -- questions )
-M: union class>questions seq>> [ class>questions ] sets:gather ;
-M: not-class class>questions class>> class>questions ;
-M: object class>questions 1array ;
-
-: table>questions ( table -- questions )
-    values [ class>questions ] sets:gather >array { t f } sets:diff ;
-
-PRIVATE>
-
-: table>condition ( table -- condition )
-    ! input table is state => class
-    >alist dup table>questions make-condition ;
-
-: condition-map ( condition quot: ( obj -- obj' ) -- new-condition ) 
-    over condition? [
-        [ [ question>> ] [ yes>> ] [ no>> ] tri ] dip
-        '[ _ condition-map ] bi@ <condition>
-    ] [ call ] if ; inline recursive
-
-: condition-states ( condition -- states )
-    dup condition? [
-        [ yes>> ] [ no>> ] bi 2array
-        [ condition-states ] sets:gather
-    ] [ 1array ] if ;
-
-: condition-at ( condition assoc -- new-condition )
-    '[ _ at ] condition-map ;
-
-<PRIVATE
 GENERIC: fully-evaluate ( class -- class' )
 M: object fully-evaluate ;
 M: category-word fully-evaluate word-category ;
 M: delay-class fully-evaluate class>> fully-evaluate ;
 M: not-class fully-evaluate class>> fully-evaluate <not> ;
 M: union fully-evaluate seq>> [ fully-evaluate ] map <union> ;
+
 PRIVATE>
 
 : define-category ( word definition -- )

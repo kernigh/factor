@@ -2,7 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators fry kernel locals
 math math.order regexp.nfa regexp.transition-tables sequences
-sets sorting vectors regexp.ast character-classes ;
+sets sorting vectors regexp.ast character-classes
+character-classes.conditions ;
 IN: regexp.dfa
 
 : find-delta ( states transition nfa -- new-states )

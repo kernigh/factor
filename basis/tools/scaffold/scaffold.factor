@@ -138,7 +138,7 @@ CATEGORY: digit-or-quote
     vocabulary>> using get [ conjoin ] [ drop ] if* ;
 
 : ($values.) ( array -- )
-    [
+    [ bl ] [
         "{ " write
         dup array? [ first ] when
         dup lookup-type [
@@ -149,7 +149,7 @@ CATEGORY: digit-or-quote
             null add-using
         ] if
         " }" write
-    ] each ;
+    ] interleave ;
 
 : 4bl ( -- )
     "    " write ; inline

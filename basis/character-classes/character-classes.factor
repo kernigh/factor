@@ -61,6 +61,8 @@ TUPLE: union { seq read-only } ;
 M: union class-member?
     seq>> [ class-member? ] with any? ;
 
+DEFER: substitute
+
 <PRIVATE
 
 PREDICATE: not-integer < not-class class>> integer? ;
@@ -68,8 +70,6 @@ PREDICATE: not-integer < not-class class>> integer? ;
 PREDICATE: not-quot-class < not-class class>> quot-class? ;
 
 PREDICATE: not-or < not-class class>> union? ;
-
-DEFER: substitute
 
 : flatten ( seq -- newseq )
     [ dup union? [ seq>> ] [ 1array ] if ] { } map-as concat ; inline

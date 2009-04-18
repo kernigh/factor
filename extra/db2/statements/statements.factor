@@ -1,15 +1,15 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations destructors fry kernel
-sequences db2.result-sets db2.connections db2.errors ;
+USING: accessors continuations db2.connections db2.errors
+db2.result-sets db2.utils destructors fry kernel sequences ;
 IN: db2.statements
 
 TUPLE: statement handle sql in out type ;
 
 : new-statement ( sql in out class -- statement )
     new
-        swap >>out
-        swap >>in
+        swap ??1array >>out
+        swap ??1array >>in
         swap >>sql ;
 
 HOOK: <statement> db-connection ( sql in out -- statement )

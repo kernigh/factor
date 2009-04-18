@@ -26,8 +26,13 @@ IN: db2.statements.tests
         "insert into computer (name, os) values('rocky', 'mac');"
         sql-command
     ] unit-test
+
+    [ ] [
+        "insert into computer (name, os) values('vio', 'opp');"
+        f f <statement> sql-bind-command
+    ] unit-test
     
-    [ { { "rocky" "mac" } } ]
+    [ { { "rocky" "mac" } { "vio" "opp" } } ]
     [
         "select name, os from computer;"
         f f <statement> sql-query
@@ -36,7 +41,7 @@ IN: db2.statements.tests
     [ "insert into" sql-command ]
     [ sql-syntax-error? ] must-fail-with
 
-    [ "selectt" sql-query ]
+    [ "selectt" sql-query drop ]
     [ sql-syntax-error? ] must-fail-with
 
     [ ] [

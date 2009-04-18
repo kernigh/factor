@@ -36,29 +36,25 @@ M: statement sql-query ( statement -- sequence )
 
 M: statement sql-bind-command ( statement -- )
     [
-        guard-in
         prepare-statement
         [ bind-sequence ] [ statement>result-set drop ] bi
     ] with-disposal ;
 
 M: statement sql-bind-query ( statement -- sequence )
     [
-        guard-in
         prepare-statement
         [ bind-sequence ] [ statement>result-sequence ] bi
     ] with-disposal ;
 
 M: statement sql-bind-typed-command ( statement -- )
     [
-        guard-in
         prepare-statement
         [ bind-typed-sequence ] [ statement>result-set drop ] bi
     ] with-disposal ;
 
 M: statement sql-bind-typed-query ( statement -- sequence )
     [
-        guard-in
-        guard-out
+        ! guard-out
         prepare-statement
         [ bind-typed-sequence ] [ statement>typed-result-sequence ] bi
     ] with-disposal ;

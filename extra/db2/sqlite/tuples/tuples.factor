@@ -1,13 +1,24 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db2 db2.sqlite db2.statements db2.tuples
-kernel sequences db2.persistent ;
+USING: accessors db2 db2.persistent db2.sqlite db2.statements
+db2.tuples db2.types kernel make sequences ;
 IN: db2.sqlite.tuples
 
 M: sqlite-db-connection create-table-statement ( class -- statement )
-    lookup-persistent B
+    [ <statement> ] dip
+    lookup-persistent
     ! drop f f f <statement>
-    ;
+    [
+        "create table " %
+        [ name>> sanitize-sql-name % " " % ]
+        [
+            columns>> [ ", " % ] [
+                [ name>> % " " % ]
+                [ type>> sql-type>string % " " % ]
+                [ modifiers>> sql-modifiers>string % " " % ] tri
+            ] interleave
+        ] bi
+    ] "" make >>sql ;
 
 M: sqlite-db-connection drop-table-statement ( class -- statement )
     name>> sanitize-sql-name "drop table " prepend ;

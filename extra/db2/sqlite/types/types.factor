@@ -102,3 +102,5 @@ ERROR: no-fql-type type ;
         { "varchar" [ VARCHAR ] }
         [ no-fql-type ]
     } case ;
+
+

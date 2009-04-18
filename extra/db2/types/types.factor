@@ -1,8 +1,11 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: assocs classes.parser classes.singleton kernel lexer
-namespaces parser sequences ;
+USING: assocs classes.parser classes.singleton db2.connections
+kernel lexer namespaces parser sequences ;
 IN: db2.types
+
+HOOK: sql-type>string db-connection ( type -- string )
+HOOK: sql-modifiers>string db-connection ( modifiers -- string )
 
 <<
 

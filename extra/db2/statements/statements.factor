@@ -1,16 +1,25 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2.connections db2.errors
-db2.result-sets db2.utils destructors fry kernel sequences ;
+db2.result-sets db2.utils destructors fry kernel sequences
+strings vectors ;
 IN: db2.statements
 
 TUPLE: statement handle sql in out type ;
 
+<PRIVATE
+
+: obj>vector ( obj -- vector )
+    V{ } clone or
+    dup string? [ 1vector ] [ >vector ] if ;
+
 : new-statement ( sql in out class -- statement )
     new
-        swap ??1array >>out
-        swap ??1array >>in
+        swap obj>vector >>out
+        swap obj>vector >>in
         swap >>sql ;
+
+PRIVATE>
 
 HOOK: <statement> db-connection ( sql in out -- statement )
 GENERIC: statement>result-set* ( statement -- result-set )
@@ -51,3 +60,9 @@ M: object execute-statement* ( statement type -- )
 : statement>typed-result-sequence ( statement -- sequence )
     statement>result-set
     [ [ sql-row-typed ] result-set-map ] with-disposal ;
+
+: add-in ( statement parameter -- statement )
+    over in>> push ;
+
+: add-out ( statement parameter -- statement )
+    over out>> push ;

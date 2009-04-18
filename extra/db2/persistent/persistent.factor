@@ -67,3 +67,11 @@ SYNTAX: PERSISTENT:
     scan-object parse-table-name
     scan-object [ parse-column ] map
     make-persistent ;
+
+ERROR: not-persistent class ;
+
+: lookup-persistent ( class -- persistent )
+    persistent-table get ?at [ not-persistent ] unless ;
+
+: tuple>persistent ( tuple -- persistent )
+    class lookup-persistent ;

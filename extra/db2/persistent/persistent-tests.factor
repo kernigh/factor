@@ -20,7 +20,7 @@ PERSISTENT: car {
 [
 T{ persistent
     { class car }
-    { table-name "car" }
+    { name "car" }
     { columns
         {
             T{ db-column

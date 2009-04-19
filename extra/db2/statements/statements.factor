@@ -13,20 +13,22 @@ TUPLE: statement handle sql in out type ;
     V{ } clone or
     dup string? [ 1vector ] [ >vector ] if ;
 
-: new-statement ( sql in out class -- statement )
-    new
+: <statement> ( sql in out -- statement )
+    statement new
         swap obj>vector >>out
         swap obj>vector >>in
         swap >>sql ;
 
 PRIVATE>
 
-HOOK: <statement> db-connection ( sql in out -- statement )
 GENERIC: statement>result-set* ( statement -- result-set )
 GENERIC: execute-statement* ( statement type -- )
-GENERIC: prepare-statement* ( statement -- statement' )
+HOOK: prepare-statement* db-connection ( statement -- statement' )
+HOOK: dispose-statement db-connection ( statement -- )
 GENERIC: bind-sequence ( statement -- )
 GENERIC: bind-typed-sequence ( statement -- )
+
+M: statement dispose dispose-statement ;
 
 : statement>result-set ( statement -- result-set )
     [ statement>result-set* ]

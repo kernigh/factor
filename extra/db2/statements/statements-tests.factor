@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: tools.test db2.statements kernel db2 db2.tester
-continuations db2.errors accessors db2.types ;
+USING: accessors continuations db2 db2.errors db2.statements
+db2.statements.private db2.tester db2.types kernel tools.test ;
 IN: db2.statements.tests
 
 { 1 0 } [ [ drop ] result-set-each ] must-infer-as
@@ -11,7 +11,7 @@ IN: db2.statements.tests
     [ "drop table computer;" sql-command ] ignore-errors
 
     [ "drop table computer;" sql-command ]
-    [ [ sql-table-missing? ] [ table>> "computer" = ] bi and ] must-fail-with
+    [ B [ sql-table-missing? ] [ table>> "computer" = ] bi and ] must-fail-with
 
     [ ] [
         "create table computer(name varchar, os varchar, version integer);"
@@ -73,6 +73,10 @@ IN: db2.statements.tests
         sql-bind-typed-command
     ] unit-test
 
-    ;
+    [ "drop table default_person" sql-command ] ignore-errors
+
+    [ ] [
+        "create table default_person(id INTEGER SERIAL PRIMARY KEY, name TEXT, birthdate TIMESTAMP, email TEXT, homepage TEXT)" f f <statement> sql-bind-command
+    ] unit-test ;
 
 [ test-sql-command ] test-dbs

@@ -12,7 +12,7 @@ TUPLE: db-column accessor name type modifiers ;
 CONSTRUCTOR: db-column ( accessor name type modifiers -- obj ) ;
 
 TUPLE: persistent class name columns ;
-CONSTRUCTOR: persistent ( class table-name columns -- obj ) ;
+CONSTRUCTOR: persistent ( class name columns -- obj ) ;
 
 : sanitize-sql-name ( string -- string' )
     H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
@@ -60,7 +60,7 @@ M: word parse-column-modifiers
     [ parse-column-type ]
     [ parse-column-modifiers ] tri* <db-column> ;
 
-: make-persistent ( class table-name columns -- )
+: make-persistent ( class name columns -- )
     <persistent> dup class>> persistent-table get set-at ;
 
 SYNTAX: PERSISTENT:

@@ -16,6 +16,7 @@ HOOK: select-tuples-statement db-connection ( tuple -- statement )
 HOOK: count-tuples-statement db-connection ( tuple -- statement )
 
 : create-table ( class -- )
+B
     create-table-statement sql-bind-command ;
 
 : drop-table ( class -- )

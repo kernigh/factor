@@ -3,7 +3,7 @@
 USING: accessors arrays calendar.format combinators
 db2.sqlite.ffi db2.sqlite.lib db2.sqlite.statements
 db2.statements db2.types db2.utils fry kernel math present
-sequences serialize urls ;
+sequences serialize urls db2.sqlite ;
 IN: db2.sqlite.types
 
 : (bind-sqlite-type) ( handle key value type -- )
@@ -85,12 +85,12 @@ IN: db2.sqlite.types
         [ no-sql-type ]
     } case ;
 
-M: sqlite-statement bind-sequence ( statement -- )
+M: sqlite-db-connection bind-sequence ( statement -- )
     [ in>> ] [ handle>> ] bi '[
         [ _ ] 2dip 1+ swap sqlite-bind-text
     ] each-index ;
 
-M: sqlite-statement bind-typed-sequence ( statement -- )
+M: sqlite-db-connection bind-typed-sequence ( statement -- )
     [ in>> ] [ handle>> ] bi '[
         [ _ ] 2dip 1+ swap first2 swap bind-next-sqlite-type
     ] each-index ;
@@ -103,4 +103,39 @@ ERROR: no-fql-type type ;
         [ no-fql-type ]
     } case ;
 
+M: sqlite-db-connection sql-type>string
+    dup array? [ first ] when
+    {
+        { INTEGER [ "INTEGER" ] }
+        { BIG-INTEGER [ "INTEGER " ] }
+        { SIGNED-BIG-INTEGER [ "BIGINT" ] }
+        { UNSIGNED-BIG-INTEGER [ "BIGINT" ] }
+        { DOUBLE [ "DOUBLE" ] }
+        { BOOLEAN [ "BOOLEAN" ] }
+        { TEXT [ "TEXT" ] }
+        { VARCHAR [ "TEXT" ] }
+        { DATE [ "DATE" ] }
+        { TIME [ "TIME" ] }
+        { DATETIME [ "DATETIME" ] }
+        { TIMESTAMP [ "TIMESTAMP" ] }
+        { BLOB [ "BLOB" ] }
+        { FACTOR-BLOB [ "BLOB" ] }
+        { URL [ "TEXT" ] }
+        ! { +db-assigned-id+ [ "INTEGER" ] }
+        ! { +random-id+ [ "INTEGER" ] }
+        [ no-sql-type ]
+    } case ;
 
+ERROR: no-sql-modifier modifier ;
+
+: sqlite-modifier>string ( symbol -- string )
+    {
+        { NULL [ "NULL" ] }
+        { NOT-NULL [ "NOT NULL" ] }
+        { SERIAL [ "SERIAL" ] }
+        { PRIMARY-KEY [ "PRIMARY KEY" ] }
+        [ no-sql-modifier ]
+    } case ;
+
+M: sqlite-db-connection sql-modifiers>string
+    [ sqlite-modifier>string ] map " " join ;

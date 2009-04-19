@@ -5,7 +5,7 @@ db2.tuples db2.types kernel make sequences ;
 IN: db2.sqlite.tuples
 
 M: sqlite-db-connection create-table-statement ( class -- statement )
-    [ <statement> ] dip
+    [ statement new ] dip
     lookup-persistent
     ! drop f f f <statement>
     [

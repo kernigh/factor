@@ -11,7 +11,7 @@ persistent-table [ H{ } clone ] initialize
 TUPLE: db-column accessor name type modifiers ;
 CONSTRUCTOR: db-column ( accessor name type modifiers -- obj ) ;
 
-TUPLE: persistent class table-name columns ;
+TUPLE: persistent class name columns ;
 CONSTRUCTOR: persistent ( class table-name columns -- obj ) ;
 
 : sanitize-sql-name ( string -- string' )

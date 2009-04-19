@@ -21,12 +21,12 @@ TUPLE: statement handle sql in out type ;
 
 PRIVATE>
 
-GENERIC: statement>result-set* ( statement -- result-set )
-GENERIC: execute-statement* ( statement type -- )
+HOOK: statement>result-set* db-connection ( statement -- result-set )
+HOOK: execute-statement* db-connection ( statement type -- )
 HOOK: prepare-statement* db-connection ( statement -- statement' )
 HOOK: dispose-statement db-connection ( statement -- )
-GENERIC: bind-sequence ( statement -- )
-GENERIC: bind-typed-sequence ( statement -- )
+HOOK: bind-sequence db-connection ( statement -- )
+HOOK: bind-typed-sequence db-connection ( statement -- )
 
 M: statement dispose dispose-statement ;
 

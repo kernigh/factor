@@ -15,7 +15,7 @@ PERSISTENT: default-person {
 }
 
 : test-default-person ( -- )
-    [ B "drop table default_person" sql-command ] ignore-errors
+    [ "drop table default_person" sql-command ] ignore-errors
 
     [ ] [ default-person create-table ] unit-test
     ! [ ] [ default-person drop-table ] unit-test

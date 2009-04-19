@@ -11,7 +11,7 @@ IN: db2.statements.tests
     [ "drop table computer;" sql-command ] ignore-errors
 
     [ "drop table computer;" sql-command ]
-    [ B [ sql-table-missing? ] [ table>> "computer" = ] bi and ] must-fail-with
+    [ [ sql-table-missing? ] [ table>> "computer" = ] bi and ] must-fail-with
 
     [ ] [
         "create table computer(name varchar, os varchar, version integer);"

@@ -1,8 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db2.result-sets db2.sqlite.statements
-db2.statements kernel db2.sqlite.lib destructors
-db2.sqlite.types ;
+USING: accessors db2.result-sets db2.sqlite db2.sqlite.lib
+db2.sqlite.statements db2.sqlite.types db2.statements
+destructors kernel ;
 IN: db2.sqlite.result-sets
 
 TUPLE: sqlite-result-set < result-set has-more? ;
@@ -10,7 +10,7 @@ TUPLE: sqlite-result-set < result-set has-more? ;
 M: sqlite-result-set dispose
     f >>handle drop ;
 
-M: sqlite-statement statement>result-set*
+M: sqlite-db-connection statement>result-set*
     prepare-statement
     sqlite-result-set new-result-set dup advance-row ;
 

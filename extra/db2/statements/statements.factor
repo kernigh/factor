@@ -63,8 +63,8 @@ M: object execute-statement* ( statement type -- )
     statement>result-set
     [ [ sql-row-typed ] result-set-map ] with-disposal ;
 
-: add-in ( statement parameter -- statement )
+: push-in ( statement parameter -- statement )
     over in>> push ;
 
-: add-out ( statement parameter -- statement )
+: push-out ( statement parameter -- statement )
     over out>> push ;

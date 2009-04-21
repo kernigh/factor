@@ -38,7 +38,11 @@ M: sqlite-db-connection insert-tuple-statement ( tuple -- statement )
                 column-names>> length iota
                 [ ", " % ] [ drop "?" % ] interleave ")" %
             ]
-            [ accessor-quot>> call( tuple -- seq ) over out>> push-all ] 
+            [
+                [ accessor-quot>> call( tuple -- seq ) ]
+                [ nip ] 2bi
+                over in>> push-all
+            ] 
         } 2cleave
     ] "" make >>sql ;
 
@@ -47,14 +51,9 @@ M: sqlite-db-connection update-tuple-statement ( tuple -- statement )
     [
         {
             [ nip "update " % name>> % " set " % ]
-            [ nip update-string>> % ")" % ]
-            [
-                nip
-                " values(" %
-                column-names>> length iota
-                [ ", " % ] [ drop "?" % ] interleave ")" %
-            ]
-            [ accessor-quot>> call( tuple -- seq ) over out>> push-all ] 
+            [ nip update-string>> % " where " % ]
+            [ nip primary-key-names>> [ " = ?" append ] map ", " join % ]
+            [ primary-key-quot>> call( tuple -- seq ) over in>> push-all ] 
         } 2cleave
     ] "" make >>sql ;
 

@@ -12,9 +12,10 @@ persistent-table [ H{ } clone ] initialize
 TUPLE: db-column accessor name type modifiers ;
 CONSTRUCTOR: db-column ( accessor name type modifiers -- obj ) ;
 
-TUPLE: persistent class name columns column-names
+TUPLE: persistent class name columns
+accessor-quot column-names
 insert-string update-string
-accessor-quot db-assigned-id? ;
+primary-key primary-key-names primary-key-quot db-assigned-id? ;
 
 : sanitize-sql-name ( string -- string' )
     H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
@@ -99,17 +100,29 @@ M: db-column db-assigned-id? ( db-column -- ? )
 : primary-key? ( db-column -- ? )
     modifiers>> primary-key-modifiers intersect empty? not ;
 
-: find-primary-key ( persistent -- db-column )
-    columns>> [ primary-key? ] find nip ;
+: find-primary-key ( persistent -- seq )
+    columns>> [ primary-key? ] filter ;
 
 M: persistent db-assigned-id? ( persistent -- ? )
-    find-primary-key db-assigned-id? ;
+    find-primary-key [ db-assigned-id? ] any? ;
 
 : remove-db-assigned-id ( persistent -- seq )
     columns>> [ db-assigned-id? not ] filter ;
 
 : remove-user-assigned-id ( persistent -- seq )
     columns>> [ user-assigned-id? not ] filter ;
+
+
+: set-primary-key ( persistent -- persistent )
+    dup find-primary-key >>primary-key ;
+
+: set-primary-key-names ( persistent -- persistent )
+    dup find-primary-key [ name>> ] map >>primary-key-names ;
+
+: set-primary-key-quot ( persistent -- persistent )
+    dup find-primary-key
+    [ accessor>> 1quotation ] { } map-as
+    '[ [ _ cleave ] curry { } output>sequence ] >>primary-key-quot ;
 
 : set-db-assigned-id? ( persistent -- persistent )
     dup db-assigned-id? >>db-assigned-id? ;
@@ -122,13 +135,8 @@ M: persistent db-assigned-id? ( persistent -- ? )
     dup column-names>> ", " join >>insert-string ;
 
 : set-update-string ( persistent -- persistent )
-    dup column-names>> [
-        [ " = ?, " % ] [ % ] interleave
-    ] { } make >>update-string ;
-
-: set-column-strings ( persistent -- persistent )
-    set-insert-string
-    set-update-string ;
+    dup column-names>>
+    [ " = ?" append ] map ", " join >>update-string ;
 
 : set-accessor-quot ( persistent -- persistent )
     dup remove-db-assigned-id [
@@ -137,9 +145,13 @@ M: persistent db-assigned-id? ( persistent -- ? )
     '[ [ _ cleave ] curry { } output>sequence ] >>accessor-quot ;
     
 : analyze-persistent ( persistent -- persistent )
+    set-primary-key 
+    set-primary-key-names
+    set-primary-key-quot
     set-db-assigned-id?
     set-column-names
-    set-column-strings
+    set-insert-string
+    set-update-string
     set-accessor-quot ;
 
 CONSTRUCTOR: persistent ( class name columns -- obj )

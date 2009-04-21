@@ -29,6 +29,8 @@ PERSISTENT: default-person {
     [ T{ default-person { id 1 } { name "noobar" } } ]
     [ person1 select-tuple ] unit-test
 
+    [ ]
+    [ T{ default-person { id 1 } { name "foobar" } } update-tuple ] unit-test
     ;
 
 [ test-default-person ] test-dbs

@@ -14,6 +14,7 @@ CONSTRUCTOR: db-column ( accessor name type modifiers -- obj ) ;
 
 TUPLE: persistent class name columns
 accessor-quot column-names
+column-types
 insert-string update-string
 primary-key primary-key-names primary-key-quot db-assigned-id? ;
 
@@ -131,6 +132,10 @@ M: persistent db-assigned-id? ( persistent -- ? )
     dup remove-db-assigned-id [ name>> ] map
     >>column-names ;
 
+: set-column-types ( persistent -- persistent )
+    dup remove-db-assigned-id [ type>> ] map
+    >>column-types ;
+
 : set-insert-string ( persistent -- persistent )
     dup column-names>> ", " join >>insert-string ;
 
@@ -150,6 +155,7 @@ M: persistent db-assigned-id? ( persistent -- ? )
     set-primary-key-quot
     set-db-assigned-id?
     set-column-names
+    set-column-types
     set-insert-string
     set-update-string
     set-accessor-quot ;

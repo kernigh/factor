@@ -30,8 +30,7 @@ IN: db2.sqlite.types
         [ no-sql-type ]
     } case ;
 
-: bind-next-sqlite-type ( handle key value type -- )
-    dup array? [ first ] when
+: (bind-next-sqlite-type) ( handle key value type -- )
     {
         { INTEGER [ sqlite-bind-int ] }
         { BIG-INTEGER [ sqlite-bind-int64 ] }
@@ -53,6 +52,14 @@ IN: db2.sqlite.types
         { NULL [ drop sqlite-bind-null ] }
         [ no-sql-type ]
     } case ;
+
+: bind-next-sqlite-type ( handle key value type -- )
+    dup array? [ first ] when
+    over [
+        (bind-next-sqlite-type)
+    ] [
+        2drop sqlite-bind-null
+    ] if ;
 
 : bind-sqlite-type ( handle key value type -- )
     #! null and empty values need to be set by sqlite-bind-null-by-name
@@ -133,6 +140,7 @@ ERROR: no-sql-modifier modifier ;
         { NULL [ "NULL" ] }
         { NOT-NULL [ "NOT NULL" ] }
         { SERIAL [ "SERIAL" ] }
+        { AUTOINCREMENT [ "AUTOINCREMENT" ] }
         { PRIMARY-KEY [ "PRIMARY KEY" ] }
         [ no-sql-modifier ]
     } case ;

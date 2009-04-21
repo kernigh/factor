@@ -70,7 +70,8 @@ SQL-MODIFIERS: +autoincrement+ +serial+ +unique+ +default+ +null+ +not-null+
 +foreign-id+ +has-many+ +on-update+ +on-delete+ +restrict+ +cascade+
 +set-null+ +set-default+ ;
 
-SQL-MODIFIERS: PRIMARY-KEY SERIAL UNIQUE DEFAULT NOT-NULL ;
+SQL-MODIFIERS: PRIMARY-KEY SERIAL AUTOINCREMENT UNIQUE
+DEFAULT NOT-NULL ;
 
 NULL dup db-modifiers get set-at
 

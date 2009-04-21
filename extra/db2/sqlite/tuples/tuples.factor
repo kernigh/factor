@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors db2 db2.persistent db2.sqlite db2.statements
 db2.statements.private db2.tuples db2.types kernel make
-sequences combinators ;
+sequences combinators assocs ;
 IN: db2.sqlite.tuples
 
 M: sqlite-db-connection create-table-statement ( class -- statement )
@@ -39,9 +39,9 @@ M: sqlite-db-connection insert-tuple-statement ( tuple -- statement )
                 [ ", " % ] [ drop "?" % ] interleave ")" %
             ]
             [
-                [ accessor-quot>> call( tuple -- seq ) ]
-                [ nip ] 2bi
-                over in>> push-all
+                [ nip column-types>> ]
+                [ accessor-quot>> call( tuple -- seq ) ] 2bi
+                zip over in>> push-all
             ] 
         } 2cleave
     ] "" make >>sql ;

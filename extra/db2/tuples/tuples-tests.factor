@@ -7,7 +7,7 @@ IN: db2.tuples.tests
 TUPLE: default-person id name birthdate email homepage ;
 
 PERSISTENT: default-person {
-    { "id" INTEGER { SERIAL PRIMARY-KEY } }
+    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
     { "name" VARCHAR }
     { "birthdate" TIMESTAMP }
     { "email" VARCHAR }

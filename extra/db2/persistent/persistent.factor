@@ -11,8 +11,8 @@ persistent-table [ H{ } clone ] initialize
 TUPLE: db-column accessor name type modifiers ;
 CONSTRUCTOR: db-column ( accessor name type modifiers -- obj ) ;
 
-TUPLE: persistent class name columns ;
-CONSTRUCTOR: persistent ( class name columns -- obj ) ;
+TUPLE: persistent class name columns
+column-names accessor-quot db-assigned-id? ;
 
 : sanitize-sql-name ( string -- string' )
     H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
@@ -72,14 +72,6 @@ M: word parse-column-modifiers
     [ parse-column-type ]
     [ parse-column-modifiers ] tri* <db-column> ;
 
-: make-persistent ( class name columns -- )
-    <persistent> dup class>> persistent-table get set-at ;
-
-SYNTAX: PERSISTENT:
-    scan-object parse-table-name check-sanitized-name
-    scan-object [ parse-column ] map
-    make-persistent ;
-
 ERROR: not-persistent class ;
 
 GENERIC: lookup-persistent ( obj -- persistent )
@@ -95,11 +87,12 @@ M: class lookup-persistent ( class -- persistent )
 : primary-key-modifiers ( -- seq )
     { PRIMARY-KEY } ;
 
-: db-assigned-id? ( db-column -- ? )
-    modifiers>> SERIAL swap member? ;
-
+GENERIC: db-assigned-id? ( object -- ? )
 : user-assigned-id? ( db-column -- ? )
     db-assigned-id? not ;
+
+M: db-column db-assigned-id? ( db-column -- ? )
+    modifiers>> SERIAL swap member? ;
 
 : primary-key? ( db-column -- ? )
     modifiers>> primary-key-modifiers intersect empty? not ;
@@ -107,14 +100,38 @@ M: class lookup-persistent ( class -- persistent )
 : find-primary-key ( persistent -- db-column )
     columns>> [ primary-key? ] find nip ;
 
-: db-assigned-persistent? ( persistent -- ? )
+M: persistent db-assigned-id? ( persistent -- ? )
     find-primary-key db-assigned-id? ;
-
-: user-assigned-persistent? ( persistent -- ? )
-    find-primary-key user-assigned-id? ;
 
 : remove-db-assigned-id ( persistent -- seq )
     columns>> [ db-assigned-id? not ] filter ;
 
 : remove-user-assigned-id ( persistent -- seq )
     columns>> [ user-assigned-id? not ] filter ;
+
+: set-db-assigned-id? ( persistent -- persistent )
+    dup db-assigned-id? >>db-assigned-id? ;
+
+: set-column-names ( persistent -- persistent )
+    dup remove-db-assigned-id [ name>> ] map >>column-names ;
+
+: set-accessor-quot ( persistent -- persistent )
+    dup remove-db-assigned-id [
+        accessor>>
+    ] [ ] map-as >>accessor-quot ;
+    
+: analyze-persistent ( persistent -- persistent )
+    set-db-assigned-id?
+    set-column-names
+    set-accessor-quot ;
+
+CONSTRUCTOR: persistent ( class name columns -- obj )
+    analyze-persistent ;
+
+: make-persistent ( class name columns -- )
+    <persistent> dup class>> persistent-table get set-at ;
+
+SYNTAX: PERSISTENT:
+    scan-object parse-table-name check-sanitized-name
+    scan-object [ parse-column ] map
+    make-persistent ;

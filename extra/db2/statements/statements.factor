@@ -19,6 +19,9 @@ TUPLE: statement handle sql in out type ;
         swap obj>vector >>in
         swap >>sql ;
 
+: <empty-statement> ( -- statement )
+    f f f <statement> ;
+
 PRIVATE>
 
 HOOK: statement>result-set* db-connection ( statement -- result-set )

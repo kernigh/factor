@@ -7,8 +7,7 @@ IN: db2.tuples
 HOOK: create-table-statement db-connection ( class -- statement )
 HOOK: drop-table-statement db-connection ( class -- statement )
 
-HOOK: insert-db-assigned-tuple-statement db-connection ( tuple -- statement )
-HOOK: insert-user-assigned-tuple-statement db-connection ( tuple -- statement )
+HOOK: insert-tuple-statement db-connection ( tuple -- statement )
 HOOK: update-tuple-statement db-connection ( tuple -- statement )
 HOOK: delete-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuple-statement db-connection ( tuple -- statement )
@@ -30,10 +29,7 @@ HOOK: count-tuples-statement db-connection ( tuple -- statement )
     [ drop-table ] [ create-table ] bi ;
 
 : insert-tuple ( tuple -- )
-    dup lookup-persistent find-primary-key db-assigned-id?
-    [ insert-db-assigned-tuple-statement ]
-    [ insert-user-assigned-tuple-statement ] if
-    sql-bind-typed-command ;
+    insert-tuple-statement sql-bind-typed-command ;
 
 : update-tuple ( tuple -- )
     update-tuple-statement sql-bind-typed-command ;

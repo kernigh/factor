@@ -1,8 +1,9 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs classes constructors db2.types
-db2.utils kernel lexer math namespaces parser sequences strings
-words db2.types sets ;
+USING: accessors arrays assocs classes combinators.smart
+constructors db2.types db2.utils fry kernel lexer math
+namespaces parser sequences sets strings words combinators
+quotations make ;
 IN: db2.persistent
 
 SYMBOL: persistent-table
@@ -11,8 +12,9 @@ persistent-table [ H{ } clone ] initialize
 TUPLE: db-column accessor name type modifiers ;
 CONSTRUCTOR: db-column ( accessor name type modifiers -- obj ) ;
 
-TUPLE: persistent class name columns
-column-name-string accessor-quot db-assigned-id? ;
+TUPLE: persistent class name columns column-names
+insert-string update-string
+accessor-quot db-assigned-id? ;
 
 : sanitize-sql-name ( string -- string' )
     H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
@@ -112,18 +114,32 @@ M: persistent db-assigned-id? ( persistent -- ? )
 : set-db-assigned-id? ( persistent -- persistent )
     dup db-assigned-id? >>db-assigned-id? ;
 
-: set-column-name-string ( persistent -- persistent )
+: set-column-names ( persistent -- persistent )
     dup remove-db-assigned-id [ name>> ] map
-    ", " join >>column-name-string ;
+    >>column-names ;
+
+: set-insert-string ( persistent -- persistent )
+    dup column-names>> ", " join >>insert-string ;
+
+: set-update-string ( persistent -- persistent )
+    dup column-names>> [
+        [ " = ?, " % ] [ % ] interleave
+    ] { } make >>update-string ;
+
+: set-column-strings ( persistent -- persistent )
+    set-insert-string
+    set-update-string ;
 
 : set-accessor-quot ( persistent -- persistent )
     dup remove-db-assigned-id [
-        accessor>>
-    ] [ ] map-as >>accessor-quot ;
+        accessor>> 1quotation
+    ] { } map-as
+    '[ [ _ cleave ] curry { } output>sequence ] >>accessor-quot ;
     
 : analyze-persistent ( persistent -- persistent )
     set-db-assigned-id?
-    set-column-name-string
+    set-column-names
+    set-column-strings
     set-accessor-quot ;
 
 CONSTRUCTOR: persistent ( class name columns -- obj )

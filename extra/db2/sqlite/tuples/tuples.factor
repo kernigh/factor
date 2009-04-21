@@ -24,46 +24,48 @@ M: sqlite-db-connection drop-table-statement ( class -- statement )
     name>> sanitize-sql-name "drop table " prepend ;
 
 : start-tuple-statement ( tuple -- statement tuple persistent )
-    [ statement new ] dip [ ] [ lookup-persistent ] bi ;
+    [ <empty-statement> ] dip [ ] [ lookup-persistent ] bi ;
 
-M: sqlite-db-connection
-    insert-db-assigned-tuple-statement ( tuple -- statement )
+M: sqlite-db-connection insert-tuple-statement ( tuple -- statement )
     start-tuple-statement
     [
         {
-            [ nip "insert into table " % name>> % "(" % ]
-            [ nip column-name-string>> % ")" % ]
+            [ nip "insert into " % name>> % "(" % ]
+            [ nip insert-string>> % ")" % ]
             [
                 nip
                 " values(" %
-                accessor-quot>> length iota
+                column-names>> length iota
                 [ ", " % ] [ drop "?" % ] interleave ")" %
             ]
             [ accessor-quot>> call( tuple -- seq ) over out>> push-all ] 
         } 2cleave
     ] "" make >>sql ;
 
-M: sqlite-db-connection
-    insert-user-assigned-tuple-statement ( tuple -- statement )
+M: sqlite-db-connection update-tuple-statement ( tuple -- statement )
     start-tuple-statement
     [
         {
-            [ nip "insert into table " % name>> % ]
+            [ nip "update " % name>> % " set " % ]
+            [ nip update-string>> % ")" % ]
+            [
+                nip
+                " values(" %
+                column-names>> length iota
+                [ ", " % ] [ drop "?" % ] interleave ")" %
+            ]
+            [ accessor-quot>> call( tuple -- seq ) over out>> push-all ] 
         } 2cleave
     ] "" make >>sql ;
 
-M: sqlite-db-connection update-tuple-statement ( tuple -- statement )
-    drop f f f <statement>
-    ;
-
 M: sqlite-db-connection delete-tuple-statement ( tuple -- statement )
-    drop f f f <statement>
-    ;
+    start-tuple-statement
+    2drop ;
 
 M: sqlite-db-connection select-tuple-statement ( tuple -- statement )
-    drop f f f <statement>
-    ;
+    start-tuple-statement
+    2drop ;
 
 M: sqlite-db-connection select-tuples-statement ( tuple -- statement )
-    drop f f f <statement>
-    ;
+    start-tuple-statement
+    2drop ;

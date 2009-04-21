@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: db2.persistent db2.types tools.test assocs namespaces
-accessors ;
+USING: accessors assocs combinators.smart db2.persistent
+db2.types namespaces tools.test ;
 IN: db2.persistent.tests
 
 TUPLE: manufacturer id name ;
@@ -17,36 +17,5 @@ PERSISTENT: car {
     { "model" VARCHAR }
 }
 
-[
-T{ persistent
-    { class car }
-    { name "car" }
-    { columns
-        {
-            T{ db-column
-                { accessor id>> }
-                { name "foooid" }
-                { type INTEGER }
-                { modifiers { NOT-NULL SERIAL PRIMARY-KEY } }
-            }
-            T{ db-column
-                { accessor manufacturer-id>> }
-                { name "manufacturer_id" }
-                { type INTEGER }
-            }
-            T{ db-column
-                { accessor year>> }
-                { name "year" }
-                { type INTEGER }
-            }
-            T{ db-column
-                { accessor model>> }
-                { name "model" }
-                { type VARCHAR }
-            }
-        }
-    }
-}
-] [
-    car persistent-table get at
-] unit-test
+[ { "manufacturer_id" "year" "model" } ]
+[ car persistent-table get at column-names>> ] unit-test

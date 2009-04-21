@@ -27,34 +27,30 @@ M: sqlite-db-connection drop-table-statement ( class -- statement )
     [ statement new ] dip [ ] [ lookup-persistent ] bi ;
 
 M: sqlite-db-connection
-   insert-db-assigned-tuple-statement ( tuple -- statement )
-B
+    insert-db-assigned-tuple-statement ( tuple -- statement )
     start-tuple-statement
     [
         {
-            [ nip "insert into table " % name>> % ]
+            [ nip "insert into table " % name>> % "(" % ]
+            [ nip column-name-string>> % ")" % ]
             [
-                [
-                    remove-user-assigned-id
-                    [ "(" % [ ", " % ] [ name>> % ] interleave ")" % ]
-                    [
-                        "values(" % [ ", " % ] [ "?" % ] interleave ")" %
-                    ] bi
-                ]
-                [ B [ accessor>> execute( obj1 -- obj2 ) push-out ] with each ] bi
+                nip
+                " values(" %
+                accessor-quot>> length iota
+                [ ", " % ] [ drop "?" % ] interleave ")" %
             ]
+            [ accessor-quot>> call( tuple -- seq ) over out>> push-all ] 
         } 2cleave
     ] "" make >>sql ;
 
 M: sqlite-db-connection
-   insert-user-assigned-tuple-statement ( tuple -- statement )
+    insert-user-assigned-tuple-statement ( tuple -- statement )
     start-tuple-statement
     [
         {
             [ nip "insert into table " % name>> % ]
         } 2cleave
-    ] "" make >>sql
-    ;
+    ] "" make >>sql ;
 
 M: sqlite-db-connection update-tuple-statement ( tuple -- statement )
     drop f f f <statement>

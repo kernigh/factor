@@ -12,7 +12,7 @@ TUPLE: db-column accessor name type modifiers ;
 CONSTRUCTOR: db-column ( accessor name type modifiers -- obj ) ;
 
 TUPLE: persistent class name columns
-column-names accessor-quot db-assigned-id? ;
+column-name-string accessor-quot db-assigned-id? ;
 
 : sanitize-sql-name ( string -- string' )
     H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
@@ -112,8 +112,9 @@ M: persistent db-assigned-id? ( persistent -- ? )
 : set-db-assigned-id? ( persistent -- persistent )
     dup db-assigned-id? >>db-assigned-id? ;
 
-: set-column-names ( persistent -- persistent )
-    dup remove-db-assigned-id [ name>> ] map >>column-names ;
+: set-column-name-string ( persistent -- persistent )
+    dup remove-db-assigned-id [ name>> ] map
+    ", " join >>column-name-string ;
 
 : set-accessor-quot ( persistent -- persistent )
     dup remove-db-assigned-id [
@@ -122,7 +123,7 @@ M: persistent db-assigned-id? ( persistent -- ? )
     
 : analyze-persistent ( persistent -- persistent )
     set-db-assigned-id?
-    set-column-names
+    set-column-name-string
     set-accessor-quot ;
 
 CONSTRUCTOR: persistent ( class name columns -- obj )

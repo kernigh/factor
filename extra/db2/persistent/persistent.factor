@@ -3,17 +3,23 @@
 USING: accessors arrays assocs classes combinators.smart
 constructors db2.types db2.utils fry kernel lexer math
 namespaces parser sequences sets strings words combinators
-quotations make ;
+quotations make multiline ;
 IN: db2.persistent
 
 SYMBOL: persistent-table
 persistent-table [ H{ } clone ] initialize
 
-TUPLE: db-column accessor name type modifiers ;
-CONSTRUCTOR: db-column ( accessor name type modifiers -- obj ) ;
+TUPLE: db-column getter setter column-name type modifiers ;
+: <db-column> ( slot-name column-name type modifiers -- obj )
+    db-column new
+        swap >>modifiers
+        swap >>type
+        swap >>column-name
+        swap [ lookup-getter >>getter ] [ lookup-setter >>setter ] bi ;
 
-TUPLE: persistent class name columns
+TUPLE: persistent class table-name columns
 accessor-quot column-names
+all-column-types all-column-setters
 column-types
 insert-string update-string
 primary-key primary-key-names primary-key-quot db-assigned-id? ;
@@ -44,16 +50,14 @@ M: sequence parse-table-name
 M: class parse-table-name
     dup name>> sanitize-sql-name ;
 
-: (parse-column-name) ( string object -- accessor string )
-    [ lookup-accessor ]
-    [ ensure-string sanitize-sql-name ] bi* ;
-
 M: sequence parse-column-name
     2 ensure-length
-    ?first2 (parse-column-name) ;
+    first2 
+    [ ensure-string ]
+    [ ensure-string sanitize-sql-name ] bi* ;
 
 M: string parse-column-name
-    dup (parse-column-name) sanitize-sql-name ;
+    dup 2array parse-column-name ;
 
 M: word parse-column-type
     ensure-sql-type ;
@@ -118,23 +122,29 @@ M: persistent db-assigned-id? ( persistent -- ? )
     dup find-primary-key >>primary-key ;
 
 : set-primary-key-names ( persistent -- persistent )
-    dup find-primary-key [ name>> ] map >>primary-key-names ;
+    dup find-primary-key [ column-name>> ] map >>primary-key-names ;
 
 : set-primary-key-quot ( persistent -- persistent )
     dup find-primary-key
-    [ accessor>> 1quotation ] { } map-as
+    [ getter>> 1quotation ] { } map-as
     '[ [ _ cleave ] curry { } output>sequence ] >>primary-key-quot ;
 
 : set-db-assigned-id? ( persistent -- persistent )
     dup db-assigned-id? >>db-assigned-id? ;
 
 : set-column-names ( persistent -- persistent )
-    dup remove-db-assigned-id [ name>> ] map
+    dup remove-db-assigned-id [ column-name>> ] map
     >>column-names ;
 
 : set-column-types ( persistent -- persistent )
     dup remove-db-assigned-id [ type>> ] map
     >>column-types ;
+
+: set-all-column-types ( persistent -- persistent )
+    dup columns>> [ type>> ] map >>all-column-types ;
+
+: set-all-column-setters ( persistent -- persistent )
+    dup columns>> [ setter>> ] map >>all-column-setters ;
 
 : set-insert-string ( persistent -- persistent )
     dup column-names>> ", " join >>insert-string ;
@@ -145,7 +155,7 @@ M: persistent db-assigned-id? ( persistent -- ? )
 
 : set-accessor-quot ( persistent -- persistent )
     dup remove-db-assigned-id [
-        accessor>> 1quotation
+        getter>> 1quotation
     ] { } map-as
     '[ [ _ cleave ] curry { } output>sequence ] >>accessor-quot ;
     
@@ -155,12 +165,14 @@ M: persistent db-assigned-id? ( persistent -- ? )
     set-primary-key-quot
     set-db-assigned-id?
     set-column-names
+    set-all-column-types
+    set-all-column-setters
     set-column-types
     set-insert-string
     set-update-string
     set-accessor-quot ;
 
-CONSTRUCTOR: persistent ( class name columns -- obj )
+CONSTRUCTOR: persistent ( class table-name columns -- obj )
     analyze-persistent ;
 
 : make-persistent ( class name columns -- )
@@ -170,3 +182,22 @@ SYNTAX: PERSISTENT:
     scan-object parse-table-name check-sanitized-name
     scan-object [ parse-column ] map
     make-persistent ;
+
+/*
+ERROR: bad-literal-persistent ;
+
+: scan-db-column ( -- db-column )
+    scan {
+        { f [ unexpected-eof ] }
+        { "{" [ parse- ] }
+        { "}" [ ] }
+        [ dup column-name>> sanitize-sql-name ]
+    } case ;
+
+: scan-db-columns ( -- seq )
+    [ scan-db-column , ] { } make ;
+
+    scan-object parse-table-name check-sanitized-name
+    "{" expect
+    scan-db-columns ;
+*/

@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors db2 db2.persistent db2.sqlite db2.statements
 db2.statements.private db2.tuples db2.types kernel make
-sequences combinators assocs ;
+sequences combinators assocs arrays ;
 IN: db2.sqlite.tuples
 
 M: sqlite-db-connection create-table-statement ( class -- statement )
@@ -26,6 +26,17 @@ M: sqlite-db-connection drop-table-statement ( class -- statement )
 : start-tuple-statement ( tuple -- statement tuple persistent )
     [ <empty-statement> ] dip [ ] [ lookup-persistent ] bi ;
 
+: types-slots ( tuple persistent -- types slots )
+    [ nip column-types>> ]
+    [ accessor-quot>> call( tuple -- seq ) ] 2bi ;
+
+: types/slots ( tuple persistent -- sequence )
+    types-slots zip ;
+
+: types/slots/names ( tuple persistent -- types/slots/names )
+    [ types-slots ]
+    [ nip column-names>> ] 2bi 3array flip ;
+
 M: sqlite-db-connection insert-tuple-statement ( tuple -- statement )
     start-tuple-statement
     [
@@ -39,9 +50,7 @@ M: sqlite-db-connection insert-tuple-statement ( tuple -- statement )
                 [ ", " % ] [ drop "?" % ] interleave ")" %
             ]
             [
-                [ nip column-types>> ]
-                [ accessor-quot>> call( tuple -- seq ) ] 2bi
-                zip over in>> push-all
+                types/slots over in>> push-all
             ] 
         } 2cleave
     ] "" make >>sql ;
@@ -67,4 +76,16 @@ M: sqlite-db-connection select-tuple-statement ( tuple -- statement )
 
 M: sqlite-db-connection select-tuples-statement ( tuple -- statement )
     start-tuple-statement
-    2drop ;
+    [
+        {
+            [ nip "select " % column-names>> ", " join % ]
+            [ nip " from " % name>> % ]
+            [
+                " where " % types/slots/names
+                [ second ] filter
+                [ [ third " = ?" append ] map ", " join % ]
+                [ [ 2 head ] map over in>> push-all ] bi
+            ]
+            [ nip all-column-types>> over out>> push-all ]
+        } 2cleave
+    ] "" make >>sql ;

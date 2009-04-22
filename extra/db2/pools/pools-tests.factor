@@ -4,8 +4,6 @@ io.files.temp kernel math namespaces tools.test
 db2.sqlite.connections ;
 IN: db2.pools.tests
 
-\ <db-pool> must-infer
-
 { 1 0 } [ [ ] with-db-pool ] must-infer-as
 
 { 1 0 } [ [ ] with-pooled-db ] must-infer-as

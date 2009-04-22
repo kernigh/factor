@@ -27,8 +27,13 @@ IN: db2.utils
 ERROR: no-accessor name ;
 
 : lookup-accessor ( string -- accessor )
-    dup ">>" append "accessors" lookup
-    [ nip ] [ no-accessor ] if* ;
+    dup "accessors" lookup [ nip ] [ no-accessor ] if* ;
+
+: lookup-getter ( string -- accessor )
+    ">>" append lookup-accessor ;
+
+: lookup-setter ( string -- accessor )
+    ">>" prepend lookup-accessor ;
 
 ERROR: string-expected object ;
 

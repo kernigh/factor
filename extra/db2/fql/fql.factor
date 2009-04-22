@@ -8,8 +8,6 @@ IN: db2.fql
 GENERIC: expand-fql* ( object -- sequence/statement )
 GENERIC: normalize-fql ( object -- sequence/statement )
 
-! M: object normalize-fql ;
-
 TUPLE: insert into names values ;
 CONSTRUCTOR: insert ( into names values -- obj ) ;
 M: insert normalize-fql ( insert -- insert )
@@ -36,10 +34,6 @@ M: select normalize-fql ( select -- select )
     [ ??1array ] change-from
     [ ??1array ] change-group-by
     [ ??1array ] change-order-by ;
-
-! TUPLE: where sequence ;
-! M: where normalize-fql ( where -- where )
-    ! [ ??1array ] change-sequence ;
 
 TUPLE: and sequence ;
 

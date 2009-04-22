@@ -14,13 +14,14 @@ USE: multiline
     sqlite-db db-open db-connection set ;
 
 : test-sqlite ( quot -- )
-    '[
-        [ ] [ sqlite-test-db _ with-db ] unit-test
-    ] call ; inline
+    '[ sqlite-test-db _ with-db ] call ; inline
+
+: test-sqlite0 ( quot -- )
+    '[ sqlite-test-db _ with-db ] call( -- ) ;
 
 : test-dbs ( quot -- )
     {
-        [ test-sqlite ]
+        [ test-sqlite0 ]
     } cleave ;
 
 /*

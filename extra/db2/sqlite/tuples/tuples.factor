@@ -1,18 +1,19 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors db2 db2.persistent db2.sqlite db2.statements
-db2.statements.private db2.tuples db2.types kernel make
-sequences combinators assocs arrays ;
+db2.tuples db2.types kernel make sequences combinators assocs
+arrays ;
+USE: multiline
 IN: db2.sqlite.tuples
 
 M: sqlite-db-connection create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
     [
         "create table " %
-        [ name>> % "(" % ]
+        [ table-name>> % "(" % ]
         [
             columns>> [ ", " % ] [
-                [ name>> % " " % ]
+                [ column-name>> % " " % ]
                 [ type>> sql-type>string % ]
                 [ modifiers>> [ " " % sql-modifiers>string % ] when* ] tri
             ] interleave
@@ -21,7 +22,7 @@ M: sqlite-db-connection create-table-statement ( class -- statement )
     ] "" make >>sql ;
 
 M: sqlite-db-connection drop-table-statement ( class -- statement )
-    name>> sanitize-sql-name "drop table " prepend ;
+    lookup-persistent table-name>> sanitize-sql-name "drop table " prepend ;
 
 : start-tuple-statement ( tuple -- statement tuple persistent )
     [ <empty-statement> ] dip [ ] [ lookup-persistent ] bi ;
@@ -41,7 +42,7 @@ M: sqlite-db-connection insert-tuple-statement ( tuple -- statement )
     start-tuple-statement
     [
         {
-            [ nip "insert into " % name>> % "(" % ]
+            [ nip "insert into " % table-name>> % "(" % ]
             [ nip insert-string>> % ")" % ]
             [
                 nip
@@ -59,7 +60,7 @@ M: sqlite-db-connection update-tuple-statement ( tuple -- statement )
     start-tuple-statement
     [
         {
-            [ nip "update " % name>> % " set " % ]
+            [ nip "update " % table-name>> % " set " % ]
             [ nip update-string>> % " where " % ]
             [ nip primary-key-names>> [ " = ?" append ] map ", " join % ]
             [ primary-key-quot>> call( tuple -- seq ) over in>> push-all ] 
@@ -79,7 +80,7 @@ M: sqlite-db-connection select-tuples-statement ( tuple -- statement )
     [
         {
             [ nip "select " % column-names>> ", " join % ]
-            [ nip " from " % name>> % ]
+            [ nip " from " % table-name>> % ]
             [
                 " where " % types/slots/names
                 [ second ] filter

@@ -2,8 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2.result-sets db2.sqlite.lib
 db2.sqlite.result-sets db2.sqlite.statements db2.sqlite.types
-db2.statements db2.statements.private destructors fry kernel
-math namespaces sequences strings ;
+db2.statements destructors fry kernel math namespaces sequences
+strings ;
 IN: db2
 
 ERROR: no-in-types statement ;

@@ -9,7 +9,7 @@ IN: db2.persistent
 SYMBOL: persistent-table
 persistent-table [ H{ } clone ] initialize
 
-TUPLE: db-column getter setter column-name type modifiers ;
+TUPLE: db-column persistent getter setter column-name type modifiers ;
 : <db-column> ( slot-name column-name type modifiers -- obj )
     db-column new
         swap >>modifiers
@@ -118,6 +118,9 @@ M: persistent db-assigned-id? ( persistent -- ? )
     columns>> [ user-assigned-id? not ] filter ;
 
 
+: set-column-persistent-slots ( persistent -- persistent )
+    dup [ [ swap >>persistent ] with map ] change-columns ;
+
 : set-primary-key ( persistent -- persistent )
     dup find-primary-key >>primary-key ;
 
@@ -160,6 +163,7 @@ M: persistent db-assigned-id? ( persistent -- ? )
     '[ [ _ cleave ] curry { } output>sequence ] >>accessor-quot ;
     
 : analyze-persistent ( persistent -- persistent )
+    set-column-persistent-slots
     set-primary-key 
     set-primary-key-names
     set-primary-key-quot

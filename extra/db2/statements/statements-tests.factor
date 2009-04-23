@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2 db2.errors db2.statements
-db2.statements.private db2.tester db2.types kernel tools.test ;
+db2.tester db2.types kernel tools.test ;
 IN: db2.statements.tests
 
 { 1 0 } [ [ drop ] result-set-each ] must-infer-as
@@ -71,6 +71,14 @@ IN: db2.statements.tests
             { INTEGER 7 }
         } f <statement>
         sql-bind-typed-command
+    ] unit-test
+
+    [ ] [
+        insert new
+            "computer" >>into
+            { "name" "os" "version" } >>names
+            { "shoes" "freebsd" 5 } >>values
+        
     ] unit-test
 
     [ "drop table default_person" sql-command ] ignore-errors

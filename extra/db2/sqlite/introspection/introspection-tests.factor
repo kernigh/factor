@@ -8,31 +8,33 @@ IN: db2.sqlite.introspection.tests
 : test-sqlite-introspection ( -- )
     [
         {
-            T{ table-schema
-                { table "computer" }
-                { columns
-                    {
-                        T{ column
-                            { name "name" }
-                            { type VARCHAR }
-                            { modifiers "" }
-                        }
-                        T{ column
-                            { name "os" }
-                            { type VARCHAR }
-                            { modifiers "" }
-                        }
+        T{ table-schema
+            { table "computer" }
+            { columns
+                {
+                    T{ column
+                        { name "name" }
+                        { type VARCHAR }
+                        { modifiers "" }
+                    }
+                    T{ column
+                        { name "os" }
+                        { type VARCHAR }
+                        { modifiers "" }
+                    }
+                    T{ column
+                        { name "version" }
+                        { type INTEGER }
+                        { modifiers "" }
                     }
                 }
             }
         }
+        }
     ] [
-        
         sqlite-test-db [
             "computer" query-table-schema
         ] with-db
-    ] unit-test
-
-    ;
+    ] unit-test ;
 
 [ test-sqlite-introspection ] test-sqlite

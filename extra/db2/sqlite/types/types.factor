@@ -107,6 +107,7 @@ ERROR: no-fql-type type ;
 : sqlite-type>fql-type ( string -- type )
     {
         { "varchar" [ VARCHAR ] }
+        { "integer" [ INTEGER ] }
         [ no-fql-type ]
     } case ;
 

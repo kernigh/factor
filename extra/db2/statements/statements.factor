@@ -7,11 +7,22 @@ IN: db2.statements
 
 TUPLE: statement handle sql in out type ;
 
+TUPLE: parameter type value ;
+
+TUPLE: tuple-parameter < parameter db-column ;
+
+: <tuple-parameter> ( value db-column -- obj )
+    tuple-parameter new
+        swap >>db-column
+        swap >>value ;
+
 <PRIVATE
 
 : obj>vector ( obj -- vector )
     V{ } clone or
     dup string? [ 1vector ] [ >vector ] if ;
+
+PRIVATE>
 
 : <statement> ( sql in out -- statement )
     statement new
@@ -21,8 +32,6 @@ TUPLE: statement handle sql in out type ;
 
 : <empty-statement> ( -- statement )
     f f f <statement> ;
-
-PRIVATE>
 
 HOOK: statement>result-set* db-connection ( statement -- result-set )
 HOOK: execute-statement* db-connection ( statement type -- )
@@ -66,8 +75,7 @@ M: object execute-statement* ( statement type -- )
     statement>result-set
     [ [ sql-row-typed ] result-set-map ] with-disposal ;
 
-: push-in ( statement parameter -- statement )
-    over in>> push ;
-
-: push-out ( statement parameter -- statement )
-    over out>> push ;
+: push-in ( statement parameter -- statement ) over in>> push ;
+: push-out ( statement parameter -- statement ) over out>> push ;
+: push-all-in ( statement parameter -- statement ) over in>> push-all ;
+: push-all-out ( statement parameter -- statement ) over out>> push-all ;

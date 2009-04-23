@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays combinators constructors db2
-db2.private db2.sqlite.lib db2.statements db2.utils destructors
+db2.sqlite.lib db2.statements db2.utils destructors
 kernel make math.parser sequences strings assocs db2.utils ;
 IN: db2.fql
 

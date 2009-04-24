@@ -10,12 +10,11 @@ TUPLE: color id name ;
 
 TUPLE: car id manufacturer-id color-id year model ;
 
-PERSISTENT: car {
+PERSISTENT: car
     { { "id" "foooid" } { INTEGER } { NOT-NULL SERIAL PRIMARY-KEY } }
     { "manufacturer-id" INTEGER }
     { "year" INTEGER }
-    { "model" VARCHAR }
-}
+    { "model" VARCHAR } ;
 
-[ { "manufacturer_id" "year" "model" } ]
+[ V{ "manufacturer_id" "year" "model" } ]
 [ car persistent-table get at column-names>> ] unit-test

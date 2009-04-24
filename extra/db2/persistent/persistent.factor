@@ -184,24 +184,18 @@ CONSTRUCTOR: persistent ( class table-name columns -- obj )
 
 SYNTAX: PERSISTENT:
     scan-object parse-table-name check-sanitized-name
-    scan-object [ parse-column ] map
-    make-persistent ;
+    \ ; parse-until
+    [ parse-column ] map make-persistent ;
 
 /*
-ERROR: bad-literal-persistent ;
-
 : scan-db-column ( -- db-column )
-    scan {
-        { f [ unexpected-eof ] }
-        { "{" [ parse- ] }
-        { "}" [ ] }
-        [ dup column-name>> sanitize-sql-name ]
-    } case ;
+    scan-object dup \ ; = [
+        drop
+    ] [
+        parse-column , scan-db-column
+    ] if ;
+
 
 : scan-db-columns ( -- seq )
     [ scan-db-column , ] { } make ;
-
-    scan-object parse-table-name check-sanitized-name
-    "{" expect
-    scan-db-columns ;
 */

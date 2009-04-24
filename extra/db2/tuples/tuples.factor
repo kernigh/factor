@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: db2 db2.connections db2.persistent sequences kernel
-db2.errors fry ;
+db2.errors fry classes db2.utils accessors ;
 IN: db2.tuples
 
 HOOK: create-table-statement db-connection ( class -- statement )
@@ -38,10 +38,15 @@ HOOK: count-tuples-statement db-connection ( tuple -- statement )
     delete-tuple-statement sql-bind-typed-command ;
 
 : select-tuple ( tuple -- tuple' )
-    select-tuple-statement sql-bind-typed-query first ;
+    [ class ]
+    [ select-tuple-statement sql-bind-typed-query first ]
+    [ lookup-persistent all-column-setters>> new-filled-tuple ] tri ;
 
 : select-tuples ( tuple -- seq )
-    select-tuples-statement sql-bind-typed-query ;
+    [ select-tuples-statement sql-bind-typed-query ]
+    [ class ]
+    [ lookup-persistent all-column-setters>> ] tri
+    '[ [ _ ] dip _ new-filled-tuple ] map ;
 
 : count-tuples ( tuple -- n )
     count-tuples-statement sql-bind-typed-query ;

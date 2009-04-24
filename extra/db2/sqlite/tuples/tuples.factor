@@ -68,12 +68,10 @@ M: sqlite-db-connection update-tuple-statement ( tuple -- statement )
     ] "" make >>sql ;
 
 M: sqlite-db-connection delete-tuple-statement ( tuple -- statement )
-    start-tuple-statement
-    2drop ;
+    "unimplemented" throw ;
 
 M: sqlite-db-connection select-tuple-statement ( tuple -- statement )
-    start-tuple-statement
-    2drop ;
+    "unimplemented" throw ;
 
 M: sqlite-db-connection select-tuples-statement ( tuple -- statement )
     start-tuple-statement

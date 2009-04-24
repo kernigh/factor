@@ -2,6 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2 db2.errors db2.statements
 db2.tester db2.types kernel tools.test ;
+USE: multiline
 IN: db2.statements.tests
 
 { 1 0 } [ [ drop ] result-set-each ] must-infer-as
@@ -73,6 +74,7 @@ IN: db2.statements.tests
         sql-bind-typed-command
     ] unit-test
 
+/*
     [ ] [
         insert new
             "computer" >>into
@@ -80,6 +82,7 @@ IN: db2.statements.tests
             { "shoes" "freebsd" 5 } >>values
         
     ] unit-test
+*/
 
     [ "drop table default_person" sql-command ] ignore-errors
 

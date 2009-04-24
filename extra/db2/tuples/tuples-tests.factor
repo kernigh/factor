@@ -25,7 +25,10 @@ PERSISTENT: default-person
     [ ] [ default-person create-table ] unit-test
     [ ] [ person1 insert-tuple ] unit-test
 
-    [ T{ default-person { id 1 } { name "noobar" } } ]
+    ! [ T{ default-person { id 1 } { name "noobar" } } ]
+    ! [ person1 select-tuple ] unit-test
+
+    [ { T{ default-person { id 1 } { name "noobar" } } } ]
     [ person1 select-tuples ] unit-test
 
     ! [ ]

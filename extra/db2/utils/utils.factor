@@ -56,5 +56,5 @@ ERROR: length-expected seq length ;
         length-expected
     ] if ;
 
-: new-filled-tuple ( class values setters -- quot )
+: new-filled-tuple ( class values setters -- tuple )
     [ new ] 2dip [ execute( tuple obj -- tuple ) ] 2each ;

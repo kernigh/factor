@@ -99,7 +99,7 @@ M: sqlite-db-connection bind-sequence ( statement -- )
 
 M: sqlite-db-connection bind-typed-sequence ( statement -- )
     [ in>> ] [ handle>> ] bi '[
-        [ _ ] 2dip 1+ swap first2 swap bind-next-sqlite-type
+        [ _ ] 2dip 1+ swap [ value>> ] [ type>> ] bi bind-next-sqlite-type
     ] each-index ;
 
 ERROR: no-fql-type type ;

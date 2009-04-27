@@ -18,7 +18,7 @@ TUPLE: db-column persistent getter setter column-name type modifiers ;
         swap [ lookup-getter >>getter ] [ lookup-setter >>setter ] bi ;
 
 TUPLE: persistent class table-name columns
-accessor-quot column-names
+accessor-quot column-names no-id-column-names
 all-column-types all-column-setters
 column-types
 insert-string update-string
@@ -100,7 +100,7 @@ GENERIC: db-assigned-id? ( object -- ? )
     db-assigned-id? not ;
 
 M: db-column db-assigned-id? ( db-column -- ? )
-    modifiers>> SERIAL swap member? ;
+    modifiers>> AUTOINCREMENT swap member? ;
 
 : primary-key? ( db-column -- ? )
     modifiers>> primary-key-modifiers intersect empty? not ;
@@ -127,6 +127,8 @@ M: persistent db-assigned-id? ( persistent -- ? )
 : set-primary-key-names ( persistent -- persistent )
     dup find-primary-key [ column-name>> ] map >>primary-key-names ;
 
+/*
+
 : set-primary-key-quot ( persistent -- persistent )
     dup find-primary-key
     [ getter>> 1quotation ] { } map-as
@@ -135,9 +137,12 @@ M: persistent db-assigned-id? ( persistent -- ? )
 : set-db-assigned-id? ( persistent -- persistent )
     dup db-assigned-id? >>db-assigned-id? ;
 
-: set-column-names ( persistent -- persistent )
+: set-all-column-names ( persistent -- persistent )
+    dup [ column-name>> ] map >>column-names ;
+
+: set-no-id-column-names ( persistent -- persistent )
     dup remove-db-assigned-id [ column-name>> ] map
-    >>column-names ;
+    >>no-id-column-names ;
 
 : set-column-types ( persistent -- persistent )
     dup remove-db-assigned-id [ type>> ] map
@@ -161,20 +166,23 @@ M: persistent db-assigned-id? ( persistent -- ? )
         getter>> 1quotation
     ] { } map-as
     '[ [ _ cleave ] curry { } output>sequence ] >>accessor-quot ;
-    
+*/
+
 : analyze-persistent ( persistent -- persistent )
     set-column-persistent-slots
     set-primary-key 
     set-primary-key-names
-    set-primary-key-quot
-    set-db-assigned-id?
-    set-column-names
-    set-all-column-types
-    set-all-column-setters
-    set-column-types
-    set-insert-string
-    set-update-string
-    set-accessor-quot ;
+    ! set-primary-key-quot
+    ! set-db-assigned-id?
+    ! set-all-column-names
+    ! set-no-id-column-names
+    ! set-all-column-types
+    ! set-all-column-setters
+    ! set-column-types
+    ! set-insert-string
+    ! set-update-string
+    ! set-accessor-quot ;
+    ;
 
 CONSTRUCTOR: persistent ( class table-name columns -- obj )
     analyze-persistent ;
@@ -186,16 +194,3 @@ SYNTAX: PERSISTENT:
     scan-object parse-table-name check-sanitized-name
     \ ; parse-until
     [ parse-column ] map make-persistent ;
-
-/*
-: scan-db-column ( -- db-column )
-    scan-object dup \ ; = [
-        drop
-    ] [
-        parse-column , scan-db-column
-    ] if ;
-
-
-: scan-db-columns ( -- seq )
-    [ scan-db-column , ] { } make ;
-*/

@@ -6,6 +6,17 @@ arrays ;
 USE: multiline
 IN: db2.sqlite.tuples
 
+
+
+
+
+
+
+
+
+
+
+/*
 M: sqlite-db-connection create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
     [
@@ -54,7 +65,7 @@ M: sqlite-db-connection insert-tuple-statement ( tuple -- statement )
                 types/slots over in>> push-all
             ] 
         } 2cleave
-    ] "" make >>sql ;
+    ] "" make >>sql throw ;
 
 M: sqlite-db-connection update-tuple-statement ( tuple -- statement )
     start-tuple-statement
@@ -65,13 +76,14 @@ M: sqlite-db-connection update-tuple-statement ( tuple -- statement )
             [ nip primary-key-names>> [ " = ?" append ] map ", " join % ]
             [ primary-key-quot>> call( tuple -- seq ) over in>> push-all ] 
         } 2cleave
-    ] "" make >>sql ;
+    ] "" make >>sql dup . ;
 
 M: sqlite-db-connection delete-tuple-statement ( tuple -- statement )
     "unimplemented" throw ;
 
 M: sqlite-db-connection select-tuple-statement ( tuple -- statement )
-    "unimplemented" throw ;
+    select-tuples-statement
+    [ " limit 1" append ] change-sql ;
 
 M: sqlite-db-connection select-tuples-statement ( tuple -- statement )
     start-tuple-statement
@@ -88,3 +100,4 @@ M: sqlite-db-connection select-tuples-statement ( tuple -- statement )
             [ nip all-column-types>> over out>> push-all ]
         } 2cleave
     ] "" make >>sql ;
+*/

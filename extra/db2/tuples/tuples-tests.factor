@@ -15,7 +15,7 @@ PERSISTENT: default-person
 
 : person1 ( -- person )
     default-person new
-        "noobar" >>name ;
+        "omg" >>name ;
 
 : test-default-person ( -- )
     [ "drop table default_person" sql-command ] ignore-errors
@@ -25,14 +25,14 @@ PERSISTENT: default-person
     [ ] [ default-person create-table ] unit-test
     [ ] [ person1 insert-tuple ] unit-test
 
-    ! [ T{ default-person { id 1 } { name "noobar" } } ]
-    ! [ person1 select-tuple ] unit-test
+    [ T{ default-person { id 1 } { name "omg" } } ]
+    [ person1 select-tuple ] unit-test
 
-    [ { T{ default-person { id 1 } { name "noobar" } } } ]
+    [ { T{ default-person { id 1 } { name "omg" } } } ]
     [ person1 select-tuples ] unit-test
 
-    ! [ ]
-    ! [ T{ default-person { id 1 } { name "foobar" } } update-tuple ] unit-test
+    [ ]
+    [ T{ default-person { id 1 } { name "foobar" } } update-tuple ] unit-test
     ;
 
 [ test-default-person ] test-dbs

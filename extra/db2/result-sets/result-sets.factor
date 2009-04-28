@@ -45,7 +45,3 @@ M: binder get-type type>> ;
         [ sql-column-counter [ inc ] [ get ] bi ] dip
         get-type column-typed
     ] with map ;
-
-! : sql-row-typed-slice ( from to result-set -- seq )
-    ! [ [a,b) ] dip [ out>> ] keep
-    ! '[ [ _ ] 2dip get-type get-type ] 2map ;

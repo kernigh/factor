@@ -1,21 +1,21 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays combinators constructors db2
-db2.sqlite.lib db2.statements db2.utils destructors
+USING: accessors arrays combinators constructors
+db2.sqlite.lib db2.utils destructors db2.statements
 kernel make math.parser sequences strings assocs db2.utils ;
 IN: db2.fql
 
-TUPLE: fql-base ;
+TUPLE: fql ;
 
 GENERIC: expand-fql* ( object -- sequence/statement )
 GENERIC: normalize-fql ( object -- sequence/statement )
 
-TUPLE: insert into names values ;
+TUPLE: insert < fql into names values ;
 CONSTRUCTOR: insert ( into names values -- obj ) ;
 M: insert normalize-fql ( insert -- insert )
     [ ??1array ] change-names ;
 
-TUPLE: update tables keys values where order-by limit ;
+TUPLE: update < fql tables keys values where order-by limit ;
 CONSTRUCTOR: update ( tables keys values where -- obj ) ;
 M: update normalize-fql ( insert -- insert )
     [ ??1array ] change-tables
@@ -23,13 +23,13 @@ M: update normalize-fql ( insert -- insert )
     [ ??1array ] change-values
     [ ??1array ] change-order-by ;
 
-TUPLE: delete tables where order-by limit ;
+TUPLE: delete < fql tables where order-by limit ;
 CONSTRUCTOR: delete ( tables keys values where -- obj ) ;
 M: delete normalize-fql ( insert -- insert )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 
-TUPLE: select names from where group-by order-by offset limit ;
+TUPLE: select < fql names from where group-by order-by offset limit ;
 CONSTRUCTOR: select ( names from -- obj ) ;
 M: select normalize-fql ( select -- select )
     [ ??1array ] change-names
@@ -37,9 +37,9 @@ M: select normalize-fql ( select -- select )
     [ ??1array ] change-group-by
     [ ??1array ] change-order-by ;
 
-TUPLE: and sequence ;
+TUPLE: and < fql sequence ;
 
-TUPLE: or sequence ;
+TUPLE: or < fql sequence ;
 
 : expand-fql ( object1 -- object2 ) normalize-fql expand-fql* ;
 

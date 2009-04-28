@@ -3,7 +3,7 @@
 USING: accessors continuations db2.result-sets db2.sqlite.lib
 db2.sqlite.result-sets db2.sqlite.statements db2.sqlite.types
 db2.statements destructors fry kernel math namespaces sequences
-strings ;
+strings db2.fql ;
 IN: db2
 
 ERROR: no-in-types statement ;
@@ -15,6 +15,9 @@ GENERIC: sql-bind-command ( object -- )
 GENERIC: sql-bind-query ( object -- sequence )
 GENERIC: sql-bind-typed-command ( object -- )
 GENERIC: sql-bind-typed-query ( object -- sequence )
+
+: maybe-expand-fql ( statement -- statement )
+    [ dup fql? [ expand-fql ] when ] change-sql ;
 
 M: string sql-command ( string -- )
     f f <statement> sql-command ;

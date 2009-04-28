@@ -7,12 +7,8 @@ IN: db2.types
 HOOK: sql-type>string db-connection ( type -- string )
 HOOK: sql-modifiers>string db-connection ( modifiers -- string )
 
-<<
-
 MIXIN: sql-type
 MIXIN: sql-modifier
-
->>
 
 : define-sql-type ( word -- )
     sql-type add-mixin-instance ;
@@ -63,7 +59,7 @@ SQL-MODIFIERS: +autoincrement+ +serial+ +unique+ +default+ +null+ +not-null+
 +set-null+ +set-default+ ;
 
 SQL-MODIFIERS: PRIMARY-KEY SERIAL AUTOINCREMENT UNIQUE
-DEFAULT NOT-NULL ;
+DEFAULT NOT-NULL NULL ;
 
 ERROR: no-sql-type name ;
 ERROR: no-sql-modifier name ;

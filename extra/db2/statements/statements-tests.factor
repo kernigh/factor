@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2 db2.errors db2.statements
-db2.tester db2.types kernel tools.test ;
+db2.tester db2.types kernel tools.test db2.binders ;
 USE: multiline
 IN: db2.statements.tests
 
@@ -18,7 +18,6 @@ IN: db2.statements.tests
         "create table computer(name varchar, os varchar, version integer);"
         sql-command
     ] unit-test ;
-
 
 : test-sql-command ( -- )
     create-computer-table
@@ -59,7 +58,14 @@ IN: db2.statements.tests
 
     [ { { "windows" 7 } } ] [
         "select os, version from computer where name = ?;"
-        { { VARCHAR "clubber" } }
+        { TV{ VARCHAR "clubber" } }
+        { VARCHAR INTEGER }
+        <statement> sql-bind-typed-query
+    ] unit-test
+
+    [ { { "windows" 7 } } ] [
+        "select os, version from computer where name = ?;"
+        { TV{ VARCHAR "clubber" } }
         { VARCHAR INTEGER }
         <statement> sql-bind-typed-query
     ] unit-test
@@ -67,9 +73,9 @@ IN: db2.statements.tests
     [ ] [
         "insert into computer (name, os, version) values(?, ?, ?);"
         {
-            { VARCHAR "paulie" }
-            { VARCHAR "netbsd" }
-            { INTEGER 7 }
+            TV{ VARCHAR "paulie" }
+            TV{ VARCHAR "netbsd" }
+            TV{ INTEGER 7 }
         } f <statement>
         sql-bind-typed-command
     ] unit-test

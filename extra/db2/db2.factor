@@ -9,12 +9,6 @@ IN: db2
 ERROR: no-in-types statement ;
 ERROR: no-out-types statement ;
 
-: guard-in ( statement -- statement )
-    dup in>> [ no-in-types ] unless ;
-
-: guard-out ( statement -- statement )
-    dup out>> [ no-out-types ] unless ;
-
 GENERIC: sql-command ( object -- )
 GENERIC: sql-query ( object -- sequence )
 GENERIC: sql-bind-command ( object -- )
@@ -54,7 +48,6 @@ M: statement sql-bind-typed-command ( statement -- )
 
 M: statement sql-bind-typed-query ( statement -- sequence )
     [
-        ! guard-out
         prepare-statement
         [ bind-typed-sequence ] [ statement>typed-result-sequence ] bi
     ] with-disposal ;

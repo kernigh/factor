@@ -1,7 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2 db2.persistent db2.tester
-db2.tuples db2.types kernel tools.test ;
+db2.tuples db2.types kernel tools.test db2.binders
+db2.statements ;
 IN: db2.tuples.tests
 
 TUPLE: default-person id name birthdate email homepage ;
@@ -35,4 +36,75 @@ PERSISTENT: default-person
     [ T{ default-person { id 1 } { name "foobar" } } update-tuple ] unit-test
     ;
 
+TUPLE: computer name os version ;
+
+PERSISTENT: computer
+    { "name" VARCHAR }
+    { "os" VARCHAR }
+    { "version" INTEGER } ;
+
+: test-computer ( -- )
+    [ "drop table computer;" sql-command ] ignore-errors
+
+    [ ] [
+        "create table computer(name varchar, os varchar, version integer);"
+        sql-command
+    ] unit-test
+
+    [ ] [
+        "insert into computer (name, os) values('rocky', 'mac');"
+        sql-command
+    ] unit-test
+
+    [ ] [
+        "insert into computer (name, os) values('bullwinkle', 'haiku');"
+        sql-command
+    ] unit-test
+
+    [
+        {
+            T{ computer { os "mac" } { version 7 } }
+        }
+    ] [
+        "select os, version from computer where name = ?;"
+        { TV{ VARCHAR "rocky" } }
+        {
+            RT{ computer { "os" VARCHAR } { "version" INTEGER } }
+        }
+        <statement> sql-bind-typed-query
+    ] unit-test
+
+
+! Passing in sql-types returns a typed array
+    [
+        {
+            { "rocky" "mac" f }
+        }
+    ] [
+        "select name, os, version from computer where name = ?;"
+        { TV{ VARCHAR "rocky" } }
+        { VARCHAR VARCHAR INTEGER }
+        <statement> sql-bind-typed-query
+    ] unit-test
+
+! Passing in tuple-binders returns a typed tuple
+    [
+        {
+            T{ computer { name "rocky" } { os "mac" } { version f } }
+        }
+    ] [
+        "select name, os, version from computer where name = ?;"
+        { TV{ VARCHAR "rocky" } }
+        {
+            RT{ computer
+                { "name" VARCHAR }
+                { "os" VARCHAR }
+                { "version" INTEGER }
+            }
+        }
+        <statement> sql-bind-typed-query
+    ] unit-test
+    ;
+
 [ test-default-person ] test-dbs
+[ test-computer ] test-dbs

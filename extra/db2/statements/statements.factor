@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2.connections db2.errors
 db2.result-sets db2.utils destructors fry kernel sequences
-strings vectors ;
+strings vectors db2.binders db2.types namespaces math ;
 IN: db2.statements
 
 TUPLE: statement handle sql in out type ;
@@ -71,9 +71,29 @@ M: object execute-statement* ( statement type -- )
 : statement>result-sequence ( statement -- sequence )
     statement>result-set [ [ sql-row ] result-set-map ] with-disposal ;
 
+: return-tuple ( result-set -- seq )
+    -1 sql-column-counter [
+        dup out>> [
+            [ nip class>> ]
+            [ binders>> sql-row-typed-count ]
+            [ nip binders>> [ setter>> ] map ] 2tri new-filled-tuple
+        ] with map
+    ] with-variable ;
+
+: return-sequence ( result-set -- seq ) sql-row-typed ;
+
+: return-tuples? ( result-set -- ? )
+    out>> [ tuple-binder? ] all? ;
+
 : statement>typed-result-sequence ( statement -- sequence )
     statement>result-set
-    [ [ sql-row-typed ] result-set-map ] with-disposal ;
+    [
+        dup return-tuples? [
+            [ return-tuple ] result-set-map
+        ] [
+            [ return-sequence ] result-set-map
+        ] if
+    ] with-disposal ;
 
 : push-in ( statement parameter -- statement ) over in>> push ;
 : push-out ( statement parameter -- statement ) over out>> push ;

@@ -69,8 +69,7 @@ IN: db2.sqlite.types
         drop NULL
     ] if* (bind-sqlite-type) ;
 
-: sqlite-type ( handle index type -- obj )
-    dup array? [ first ] when
+: sql-type-unsafe ( handle index type -- obj )
     {
         { +db-assigned-id+ [ sqlite3_column_int64  ] }
         { +random-id+ [ sqlite3-column-uint64 ] }
@@ -90,6 +89,19 @@ IN: db2.sqlite.types
         { URL [ sqlite3_column_text [ >url ] ?when ] }
         { FACTOR-BLOB [ sqlite-column-blob [ bytes>object ] ?when ] }
         [ no-sql-type ]
+    } case ;
+
+ERROR: sqlite-type-error handle index type n ;
+
+: sqlite-type ( handle index type -- obj )
+    dup array? [ first ] when
+    2over sqlite-column-type {
+        { SQLITE_INTEGER [ sql-type-unsafe ] }
+        { SQLITE_FLOAT [ sql-type-unsafe ] }
+        { SQLITE_TEXT [ sql-type-unsafe ] }
+        { SQLITE_BLOB [ sql-type-unsafe ] }
+        { SQLITE_NULL [ 3drop f ] }
+        [ sqlite-type-error ]
     } case ;
 
 M: sqlite-db-connection bind-sequence ( statement -- )

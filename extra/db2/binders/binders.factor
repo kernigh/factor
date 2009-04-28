@@ -3,7 +3,9 @@
 USING: accessors db2.utils kernel parser sequences ;
 IN: db2.binders
 
-TUPLE: binder class table-name slot-name value type getter setter ;
+TUPLE: binder table-name slot-name type value getter setter ;
+
+TUPLE: tuple-binder class binders ;
 
 : set-binder-accessors ( binder -- binder )
     dup slot-name>>
@@ -14,18 +16,23 @@ TUPLE: binder class table-name slot-name value type getter setter ;
         swap >>value
         swap >>type ;
 
+: <return-binder> ( slot-name type -- binder )
+    binder new
+        swap >>type
+        swap >>slot-name
+        set-binder-accessors ;
+
 SYNTAX: TV{
     \ } [
         2 ensure-length first2 <simple-binder>
     ] parse-literal ;
 
-: <return-binder> ( class type -- binder )
-    binder new
-        swap >>type
-        swap >>class ;
+: <tuple-binder> ( binders class -- binder )
+    tuple-binder new
+        swap >>class
+        swap >>binders ;
 
-SYNTAX: CT{
+SYNTAX: RT{
     \ } [
-        2 ensure-length first2 <return-binder>
+        unclip [ [ first2 <return-binder> ] map ] dip <tuple-binder>
     ] parse-literal ;
-

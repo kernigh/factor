@@ -18,7 +18,10 @@ M: object insert-tuple-statement ( tuple -- statement )
     [ \ insert new ] dip
     dup lookup-persistent {
         [ nip table-name>> >>into ]
+        [ nip columns>> [ name>> ] map >>names ]
     } 2cleave
+    expand-fql
+    >>in
     throw
     ;
 

@@ -16,5 +16,5 @@ PERSISTENT: car
     { "year" INTEGER }
     { "model" VARCHAR } ;
 
-[ V{ "manufacturer_id" "year" "model" } ]
-[ car persistent-table get at column-names>> ] unit-test
+! [ V{ "manufacturer_id" "year" "model" } ]
+! [ car persistent-table get at column-names>> ] unit-test

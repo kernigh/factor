@@ -89,7 +89,7 @@ M: object execute-statement* ( statement type -- )
     statement>result-set
     [
         dup return-tuples? [
-            [ return-tuple ] result-set-map
+            [ return-tuple ] result-set-map concat
         ] [
             [ return-sequence ] result-set-map
         ] if

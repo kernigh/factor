@@ -57,23 +57,31 @@ PERSISTENT: computer
     ] unit-test
 
     [ ] [
-        "insert into computer (name, os) values('bullwinkle', 'haiku');"
+        "insert into computer (name, os, version) values('bullwinkle', 'haiku', '1');"
         sql-command
     ] unit-test
 
     [
-        {
-            T{ computer { os "mac" } { version 7 } }
+        V{
+            T{ computer { os "mac" } }
         }
     ] [
         "select os, version from computer where name = ?;"
         { TV{ VARCHAR "rocky" } }
-        {
-            RT{ computer { "os" VARCHAR } { "version" INTEGER } }
-        }
+        { RT{ computer { "os" VARCHAR } { "version" INTEGER } } }
         <statement> sql-bind-typed-query
     ] unit-test
 
+    [
+        V{
+            T{ computer { name "bullwinkle" } { os "haiku" } { version 1 } }
+        }
+    ] [
+        "select name, os, version from computer where name = ?;"
+        { TV{ VARCHAR "bullwinkle" } }
+        { RT{ computer { "name" VARCHAR } { "os" VARCHAR } { "version" INTEGER } } }
+        <statement> sql-bind-typed-query
+    ] unit-test
 
 ! Passing in sql-types returns a typed array
     [
@@ -89,7 +97,7 @@ PERSISTENT: computer
 
 ! Passing in tuple-binders returns a typed tuple
     [
-        {
+        V{
             T{ computer { name "rocky" } { os "mac" } { version f } }
         }
     ] [

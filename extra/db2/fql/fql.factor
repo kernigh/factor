@@ -17,7 +17,7 @@ M: insert normalize-fql ( insert -- insert )
 
 TUPLE: update < fql tables keys values where order-by limit ;
 CONSTRUCTOR: update ( tables keys values where -- obj ) ;
-M: update normalize-fql ( insert -- insert )
+M: update normalize-fql ( update -- update )
     [ ??1array ] change-tables
     [ ??1array ] change-keys
     [ ??1array ] change-values
@@ -25,7 +25,7 @@ M: update normalize-fql ( insert -- insert )
 
 TUPLE: delete < fql tables where order-by limit ;
 CONSTRUCTOR: delete ( tables keys values where -- obj ) ;
-M: delete normalize-fql ( insert -- insert )
+M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 

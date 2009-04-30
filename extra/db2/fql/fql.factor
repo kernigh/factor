@@ -5,7 +5,7 @@ db2.sqlite.lib db2.utils destructors db2.statements
 kernel make math.parser sequences strings assocs db2.utils ;
 IN: db2.fql
 
-TUPLE: fql ;
+TUPLE: fql in out ;
 
 GENERIC: expand-fql* ( object -- sequence/statement )
 GENERIC: normalize-fql ( object -- sequence/statement )

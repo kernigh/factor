@@ -39,7 +39,7 @@ IN: db2.fql.tests
         select new
             { "name" "os" } >>names
             "computer" >>from
-            T{ or f { "hmm > 1" "foo is NULL" } } >>where
+            T{ or { sequence { "hmm > 1" "foo is NULL" } } } >>where
             "os" >>group-by
             "lol" >>order-by
             100 >>offset

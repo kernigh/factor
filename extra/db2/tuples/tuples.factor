@@ -18,9 +18,13 @@ M: object insert-tuple-statement ( tuple -- statement )
     [ \ insert new ] dip
     dup lookup-persistent {
         [ nip table-name>> >>into ]
-        [ nip columns>> [ name>> ] map >>names ]
-    } 2cleave
-    throw
+        [ nip columns>> [ column-name>> ] map >>names ]
+        ! [ slot-values >>values ]
+        [
+            columns>> [ getter>> ] map
+            [ execute( obj -- obj' ) ] with map >>values
+        ]
+    } 2cleave expand-fql throw
     ;
 
 M: object update-tuple-statement ( tuple -- statement )

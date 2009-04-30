@@ -11,26 +11,29 @@ MIXIN: sql-type
 MIXIN: sql-modifier
 
 : define-sql-type ( word -- )
-    sql-type add-mixin-instance ;
+    [ define-singleton-class ]
+    [ sql-type add-mixin-instance ] bi ;
 
 : define-sql-modifier ( word -- )
-    sql-modifier add-mixin-instance ;
+    [ define-singleton-class ]
+    [ sql-modifier add-mixin-instance ] bi ;
 
 <<
 
 SYNTAX: SQL-TYPE:
-    CREATE-WORD define-sql-type ;
+    CREATE-CLASS define-sql-type ;
 
 SYNTAX: SQL-TYPES:
     ";" parse-tokens
     [ create-class-in define-sql-type ] each ;
 
 SYNTAX: SQL-MODIFIER:
-    CREATE-WORD define-sql-modifier ;
+    CREATE-CLASS define-sql-modifier ;
 
 SYNTAX: SQL-MODIFIERS:
     ";" parse-tokens
     [ create-class-in define-sql-modifier ] each ;
+
 >>
 
 SQL-TYPES:

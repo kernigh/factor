@@ -20,8 +20,6 @@ M: object insert-tuple-statement ( tuple -- statement )
         [ nip table-name>> >>into ]
         [ nip columns>> [ name>> ] map >>names ]
     } 2cleave
-    expand-fql
-    >>in
     throw
     ;
 

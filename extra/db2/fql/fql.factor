@@ -11,8 +11,8 @@ TUPLE: fql ;
 GENERIC: expand-fql* ( object -- sequence/statement )
 GENERIC: normalize-fql ( object -- sequence/statement )
 
-M: object normalize-fql ( object -- fql )
-    ;
+M: object normalize-fql ( object -- fql ) ;
+
 
 TUPLE: insert < fql into names values ;
 CONSTRUCTOR: insert ( into names values -- obj ) ;
@@ -33,7 +33,7 @@ M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 
-TUPLE: select < fql names from where group-by order-by offset limit ;
+TUPLE: select < fql names from where group-by having order-by offset limit ;
 CONSTRUCTOR: select ( names from -- obj ) ;
 M: select normalize-fql ( select -- select )
     [ ??1array ] change-names
@@ -65,6 +65,8 @@ TUPLE: left-outer-join < fql-join ;
 
 TUPLE: right-outer-join < fql-join ;
 
+TUPLE: full-outer-join < fql-join ;
+
 : <cross-join> ( table1.column table2.column -- cross-join )
     cross-join make-join ;
 
@@ -76,6 +78,9 @@ TUPLE: right-outer-join < fql-join ;
 
 : <right-outer-join> ( table1.column table2.column -- right-outer-join )
     right-outer-join make-join ;
+
+: <full-outer-join> ( table1.column table2.column -- full-outer-join )
+    full-outer-join make-join ;
 
 : table-join% ( join string -- )
     over left-table>> % % right-table>> % ;
@@ -109,6 +114,12 @@ M: left-outer-join expand-fql* ( obj -- string )
 M: right-outer-join expand-fql* ( obj -- string )
     [
         [ " right outer join " table-join% ]
+        [ table-column-join% ] bi
+    ] "" make ;
+
+M: full-outer-join expand-fql* ( obj -- string )
+    [
+        [ " full outer join " table-join% ]
         [ table-column-join% ] bi
     ] "" make ;
 
@@ -181,3 +192,37 @@ M: select expand-fql*
             [ limit>> [ " limit " % # ] when* ]
         } cleave
     ] "" make >>sql ;
+
+TUPLE: set-operator < fql all? selects ;
+
+TUPLE: intersect < set-operator ;
+
+TUPLE: union < set-operator ;
+
+TUPLE: except < set-operator ;
+
+TUPLE: between < fql from to ;
+
+! Null-handling
+
+TUPLE: coalesce < fql a b ; ! a if a not null, else b
+
+TUPLE: nullif < fql a b ; ! if a == b, then null, else a
+
+! Aggregate functions
+
+TUPLE: aggregate-function < fql column ;
+
+TUPLE: avg < aggregate-function ;
+
+TUPLE: sum < aggregate-function ;
+
+TUPLE: count < aggregate-function ;
+
+TUPLE: min < aggregate-function ;
+
+TUPLE: max < aggregate-function ;
+
+TUPLE: fql-first < aggregate-function ;
+
+TUPLE: fql-last < aggregate-function ;

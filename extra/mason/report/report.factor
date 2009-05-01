@@ -3,7 +3,8 @@
 USING: benchmark combinators.smart debugger fry io assocs
 io.encodings.utf8 io.files io.sockets io.streams.string kernel
 locals mason.common mason.config mason.platform math namespaces
-prettyprint sequences xml.syntax xml.writer combinators.short-circuit ;
+prettyprint sequences xml.syntax xml.writer combinators.short-circuit
+literals ;
 IN: mason.report
 
 : common-report ( -- xml )
@@ -27,7 +28,7 @@ IN: mason.report
         common-report
         _ call( -- xml )
         [XML <html><body><-><-></body></html> XML]
-        pprint-xml
+        write-xml
     ] with-file-writer ; inline
 
 :: failed-report ( error file what -- status )
@@ -56,14 +57,14 @@ IN: mason.report
 
 : timings-table ( -- xml )
     {
-        boot-time-file
-        load-time-file
-        test-time-file
-        help-lint-time-file
-        benchmark-time-file
-        html-help-time-file
+        $ boot-time-file
+        $ load-time-file
+        $ test-time-file
+        $ help-lint-time-file
+        $ benchmark-time-file
+        $ html-help-time-file
     } [
-        dup utf8 file-contents milli-seconds>time
+        dup eval-file milli-seconds>time
         [XML <tr><td><-></td><td><-></td></tr> XML]
     ] map [XML <h2>Timings</h2> <table><-></table> XML] ;
 
@@ -92,7 +93,7 @@ IN: mason.report
             load-everything-errors-file
             error-dump
 
-            "Compiler warnings and errors"
+            "Compiler errors"
             compiler-errors-file
             compiler-error-messages-file
             error-dump

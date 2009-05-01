@@ -115,9 +115,13 @@ void copy_gen_cards(CELL gen)
 old->new references */
 void copy_cards(void)
 {
+	u64 start = current_micros();
+
 	int i;
 	for(i = collecting_gen + 1; i < data_heap->gen_count; i++)
 		copy_gen_cards(i);
+
+	card_scan_time += (current_micros() - start);
 }
 
 /* Copy all tagged pointers in a range of memory */
@@ -149,21 +153,23 @@ void copy_roots(void)
 	copy_registered_locals();
 	copy_stack_elements(extra_roots_region,extra_roots);
 
-	save_stacks();
-	F_CONTEXT *stacks = stack_chain;
-
-	while(stacks)
+	if(!performing_compaction)
 	{
-		copy_stack_elements(stacks->datastack_region,stacks->datastack);
-		copy_stack_elements(stacks->retainstack_region,stacks->retainstack);
+		save_stacks();
+		F_CONTEXT *stacks = stack_chain;
 
-		copy_handle(&stacks->catchstack_save);
-		copy_handle(&stacks->current_callback_save);
+		while(stacks)
+		{
+			copy_stack_elements(stacks->datastack_region,stacks->datastack);
+			copy_stack_elements(stacks->retainstack_region,stacks->retainstack);
 
-		if(!performing_compaction)
+			copy_handle(&stacks->catchstack_save);
+			copy_handle(&stacks->current_callback_save);
+
 			mark_active_blocks(stacks);
 
-		stacks = stacks->next;
+			stacks = stacks->next;
+		}
 	}
 
 	int i;
@@ -205,6 +211,8 @@ INLINE CELL copy_object_impl(CELL pointer)
 /* Follow a chain of forwarding pointers */
 CELL resolve_forwarding(CELL untagged, CELL tag)
 {
+	check_data_pointer(untagged);
+
 	CELL header = get(untagged);
 	/* another forwarding pointer */
 	if(TAG(header) == GC_COLLECTED)
@@ -212,6 +220,7 @@ CELL resolve_forwarding(CELL untagged, CELL tag)
 	/* we've found the destination */
 	else
 	{
+		check_header(header);
 		CELL pointer = RETAG(untagged,tag);
 		if(should_copy(untagged))
 			pointer = RETAG(copy_object_impl(pointer),tag);
@@ -225,21 +234,30 @@ pointer address without copying anything; otherwise, install
 a new forwarding pointer. */
 INLINE CELL copy_object(CELL pointer)
 {
+	check_data_pointer(pointer);
+
 	CELL tag = TAG(pointer);
 	CELL header = get(UNTAG(pointer));
 
 	if(TAG(header) == GC_COLLECTED)
 		return resolve_forwarding(UNTAG(header),tag);
 	else
+	{
+		check_header(header);
 		return RETAG(copy_object_impl(pointer),tag);
+	}
 }
 
 void copy_handle(CELL *handle)
 {
 	CELL pointer = *handle;
 
-	if(!immediate_p(pointer) && should_copy(pointer))
-		*handle = copy_object(pointer);
+	if(!immediate_p(pointer))
+	{
+		check_data_pointer(pointer);
+		if(should_copy(pointer))
+			*handle = copy_object(pointer);
+	}
 }
 
 CELL copy_next_from_nursery(CELL scan)
@@ -258,9 +276,12 @@ CELL copy_next_from_nursery(CELL scan)
 		{
 			CELL pointer = *obj;
 
-			if(!immediate_p(pointer)
-				&& (pointer >= nursery_start && pointer < nursery_end))
-				*obj = copy_object(pointer);
+			if(!immediate_p(pointer))
+			{
+				check_data_pointer(pointer);
+				if(pointer >= nursery_start && pointer < nursery_end)
+					*obj = copy_object(pointer);
+			}
 		}
 	}
 
@@ -286,10 +307,13 @@ CELL copy_next_from_aging(CELL scan)
 		{
 			CELL pointer = *obj;
 
-			if(!immediate_p(pointer)
-				&& !(pointer >= newspace_start && pointer < newspace_end)
-				&& !(pointer >= tenured_start && pointer < tenured_end))
-				*obj = copy_object(pointer);
+			if(!immediate_p(pointer))
+			{
+				check_data_pointer(pointer);
+				if(!(pointer >= newspace_start && pointer < newspace_end)
+				   && !(pointer >= tenured_start && pointer < tenured_end))
+					*obj = copy_object(pointer);
+			}
 		}
 	}
 
@@ -312,8 +336,12 @@ CELL copy_next_from_tenured(CELL scan)
 		{
 			CELL pointer = *obj;
 
-			if(!immediate_p(pointer) && !(pointer >= newspace_start && pointer < newspace_end))
-				*obj = copy_object(pointer);
+			if(!immediate_p(pointer))
+			{
+				check_data_pointer(pointer);
+				if(!(pointer >= newspace_start && pointer < newspace_end))
+					*obj = copy_object(pointer);
+			}
 		}
 	}
 
@@ -324,7 +352,7 @@ CELL copy_next_from_tenured(CELL scan)
 
 void copy_reachable_objects(CELL scan, CELL *end)
 {
-	if(HAVE_NURSERY_P && collecting_gen == NURSERY)
+	if(collecting_gen == NURSERY)
 	{
 		while(scan < *end)
 			scan = copy_next_from_nursery(scan);
@@ -399,7 +427,7 @@ void end_gc(CELL gc_elapsed)
 		if(collecting_gen != NURSERY)
 			reset_generations(NURSERY,collecting_gen - 1);
 	}
-	else if(HAVE_NURSERY_P && collecting_gen == NURSERY)
+	else if(collecting_gen == NURSERY)
 	{
 		nursery.here = nursery.start;
 	}
@@ -408,13 +436,6 @@ void end_gc(CELL gc_elapsed)
 		/* all generations up to and including the one
 		collected are now empty */
 		reset_generations(NURSERY,collecting_gen);
-	}
-
-	if(collecting_gen == TENURED)
-	{
-		/* now that all reachable code blocks have been marked,
-		deallocate the rest */
-		free_unmarked(&code_heap);
 	}
 
 	collecting_aging_again = false;
@@ -433,7 +454,7 @@ void garbage_collection(CELL gen,
 		return;
 	}
 
-	s64 start = current_micros();
+	u64 start = current_micros();
 
 	performing_gc = true;
 	growing_data_heap = growing_data_heap_;
@@ -475,6 +496,7 @@ void garbage_collection(CELL gen,
 	copy_roots();
 	/* collect objects referenced from older generations */
 	copy_cards();
+
 	/* do some tracing */
 	copy_reachable_objects(scan,&newspace->here);
 
@@ -485,7 +507,7 @@ void garbage_collection(CELL gen,
 		code_heap_scans++;
 
 		if(collecting_gen == TENURED)
-			update_code_heap_roots();
+			free_unmarked(&code_heap,(HEAP_ITERATOR)update_literal_and_word_references);
 		else
 			copy_code_heap_roots();
 
@@ -537,12 +559,14 @@ void primitive_gc_stats(void)
 		total_gc_time += s->gc_time;
 	}
 
-	GROWABLE_ARRAY_ADD(stats,tag_bignum(long_long_to_bignum(total_gc_time)));
-	GROWABLE_ARRAY_ADD(stats,tag_bignum(long_long_to_bignum(cards_scanned)));
-	GROWABLE_ARRAY_ADD(stats,tag_bignum(long_long_to_bignum(decks_scanned)));
+	GROWABLE_ARRAY_ADD(stats,tag_bignum(ulong_long_to_bignum(total_gc_time)));
+	GROWABLE_ARRAY_ADD(stats,tag_bignum(ulong_long_to_bignum(cards_scanned)));
+	GROWABLE_ARRAY_ADD(stats,tag_bignum(ulong_long_to_bignum(decks_scanned)));
+	GROWABLE_ARRAY_ADD(stats,tag_bignum(ulong_long_to_bignum(card_scan_time)));
 	GROWABLE_ARRAY_ADD(stats,allot_cell(code_heap_scans));
 
 	GROWABLE_ARRAY_TRIM(stats);
+	GROWABLE_ARRAY_DONE(stats);
 	dpush(stats);
 }
 
@@ -554,6 +578,7 @@ void clear_gc_stats(void)
 
 	cards_scanned = 0;
 	decks_scanned = 0;
+	card_scan_time = 0;
 	code_heap_scans = 0;
 }
 
@@ -562,6 +587,8 @@ void primitive_clear_gc_stats(void)
 	clear_gc_stats();
 }
 
+/* classes.tuple uses this to reshape tuples; tools.deploy.shaker uses this
+   to coalesce equal but distinct quotations and wrappers. */
 void primitive_become(void)
 {
 	F_ARRAY *new_objects = untag_array(dpop());
@@ -583,5 +610,9 @@ void primitive_become(void)
 
 	gc();
 
+	/* If a word's definition quotation was in old_objects and the
+	   quotation in new_objects is not compiled, we might leak memory
+	   by referencing the old quotation unless we recompile all
+	   unoptimized words. */
 	compile_all_words();
 }

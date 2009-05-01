@@ -1110,7 +1110,19 @@ FUNCTION: BOOL FindVolumeMountPointClose ( HANDLE hFindVolumeMountPoint ) ;
 ! FUNCTION: FoldStringA
 ! FUNCTION: FoldStringW
 ! FUNCTION: FormatMessageA
-! FUNCTION: FormatMessageW
+FUNCTION: DWORD FormatMessageW (
+        DWORD dwFlags,
+        LPCVOID lpSource,
+        DWORD dwMessageId,
+        DWORD dwLanguageId,
+        LPTSTR lpBuffer,
+        DWORD nSize,
+        void* Arguments
+    ) ;
+
+ALIAS: FormatMessage FormatMessageW
+
+
 FUNCTION: BOOL FreeConsole ( ) ;
 ! FUNCTION: FreeEnvironmentStringsA
 FUNCTION: BOOL FreeEnvironmentStringsW ( LPTCH lpszEnvironmentBlock ) ;
@@ -1139,7 +1151,8 @@ FUNCTION: BOOL GetCommState ( HANDLE hFile, LPDCB lpDCB ) ;
 ! FUNCTION: GetCommTimeouts
 ! FUNCTION: GetComPlusPackageInstallStatus
 ! FUNCTION: GetCompressedFileSizeA
-! FUNCTION: GetCompressedFileSizeW
+FUNCTION: DWORD GetCompressedFileSizeW ( LPCTSTR lpFileName, LPDWORD lpFileSizeHigh ) ;
+ALIAS: GetCompressedFileSize GetCompressedFileSizeW
 FUNCTION: BOOL GetComputerNameW ( LPTSTR lpBuffer, LPDWORD lpnSize ) ;
 ALIAS: GetComputerName GetComputerNameW
 FUNCTION: BOOL GetComputerNameExW ( COMPUTER_NAME_FORMAT NameType, LPTSTR lpBuffer, LPDWORD lpnSize ) ;

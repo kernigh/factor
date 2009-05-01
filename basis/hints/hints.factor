@@ -1,10 +1,10 @@
-! Copyright (C) 2008 Slava Pestov.
+! Copyright (C) 2008, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: parser words definitions kernel sequences assocs arrays
 kernel.private fry combinators accessors vectors strings sbufs
-byte-arrays byte-vectors io.binary io.streams.string splitting
-math math.parser generic generic.standard generic.standard.engines classes
-hashtables ;
+byte-arrays byte-vectors io.binary io.streams.string splitting math
+math.parser generic generic.single generic.standard classes
+hashtables namespaces ;
 IN: hints
 
 GENERIC: specializer-predicate ( spec -- quot )
@@ -37,13 +37,18 @@ M: object specializer-declaration class ;
 : specialize-quot ( quot specializer -- quot' )
     specializer-cases alist>quot ;
 
+! compiler.tree.propagation.inlining sets this to f
+SYMBOL: specialize-method?
+
+t specialize-method? set-global
+
 : method-declaration ( method -- quot )
     [ "method-generic" word-prop dispatch# object <array> ]
     [ "method-class" word-prop ]
-    bi prefix ;
+    bi prefix [ declare ] curry [ ] like ;
 
 : specialize-method ( quot method -- quot' )
-    [ method-declaration '[ _ declare ] prepend ]
+    [ specialize-method? get [ method-declaration prepend ] [ drop ] if ]
     [ "method-generic" word-prop "specializer" word-prop ] bi
     [ specialize-quot ] when* ;
 
@@ -65,8 +70,8 @@ M: object specializer-declaration class ;
 
 SYNTAX: HINTS:
     scan-object
-    [ redefined ]
-    [ parse-definition "specializer" set-word-prop ] bi ;
+    [ changed-definition ]
+    [ parse-definition { } like "specializer" set-word-prop ] bi ;
 
 ! Default specializers
 { first first2 first3 first4 }

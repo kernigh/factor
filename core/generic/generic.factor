@@ -123,8 +123,6 @@ M: method-body crossref?
 
 PREDICATE: default-method < word "default" word-prop ;
 
-M: default-method irrelevant? drop t ;
-
 : <default-method> ( generic combination -- method )
     [ drop object bootstrap-word swap <method> ] [ make-default-method ] 2bi
     [ define ] [ drop t "default" set-word-prop ] [ drop ] 2tri ;
@@ -155,9 +153,6 @@ M: method-body forget*
         [ call-next-method ] bi
     ] if ;
 
-M: method-body smart-usage
-    "method-generic" word-prop smart-usage ;
-
 M: sequence update-methods ( class seq -- )
     implementors [
         [ changed-generic ] [ remake-generic drop ] 2bi
@@ -169,8 +164,8 @@ M: sequence update-methods ( class seq -- )
         drop
         2dup [ "combination" word-prop ] dip = [ 2drop ] [
             {
+                [ drop reset-generic ]
                 [ "combination" set-word-prop ]
-                [ drop "methods" word-prop values forget-all ]
                 [ drop H{ } clone "methods" set-word-prop ]
                 [ define-default-method ]
             }
@@ -192,6 +187,3 @@ M: generic forget*
 
 M: class forget-methods
     [ implementors ] [ [ swap method ] curry ] bi map forget-all ;
-
-: xref-generics ( -- )
-    all-words [ subwords [ xref ] each ] each ;

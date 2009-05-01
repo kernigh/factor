@@ -7,17 +7,18 @@ CONSOLE_EXECUTABLE = factor-console
 TEST_LIBRARY = factor-ffi-test
 VERSION = 0.92
 
-IMAGE = factor.image
 BUNDLE = Factor.app
 LIBPATH = -L/usr/X11R6/lib
-CFLAGS = -Wall
+CFLAGS = -Wall -Werror
 FFI_TEST_CFLAGS = -fPIC
 
 ifdef DEBUG
-	CFLAGS += -g
+	CFLAGS += -g -DFACTOR_DEBUG
 else
-	CFLAGS += -O3 $(SITE_CFLAGS)
+	CFLAGS += -O3
 endif
+
+CFLAGS += $(SITE_CFLAGS)
 
 ENGINE = $(DLL_PREFIX)factor$(DLL_SUFFIX)$(DLL_EXTENSION)
 
@@ -27,7 +28,10 @@ endif
 
 DLL_OBJS = $(PLAF_DLL_OBJS) \
 	vm/alien.o \
+	vm/arrays.o \
 	vm/bignum.o \
+	vm/booleans.o \
+	vm/byte_arrays.o \
 	vm/callstack.o \
 	vm/code_block.o \
 	vm/code_gc.o \
@@ -35,17 +39,22 @@ DLL_OBJS = $(PLAF_DLL_OBJS) \
 	vm/data_gc.o \
 	vm/data_heap.o \
 	vm/debug.o \
+	vm/dispatch.o \
 	vm/errors.o \
 	vm/factor.o \
 	vm/image.o \
+	vm/inline_cache.o \
 	vm/io.o \
+	vm/jit.o \
 	vm/math.o \
 	vm/primitives.o \
 	vm/profiler.o \
 	vm/quotations.o \
 	vm/run.o \
-	vm/types.o \
-	vm/utilities.o
+	vm/strings.o \
+	vm/tuples.o \
+	vm/utilities.o \
+	vm/words.o
 
 EXE_OBJS = $(PLAF_EXE_OBJS)
 
@@ -151,17 +160,17 @@ macosx.app: factor
 		@executable_path/../Frameworks/libfactor.dylib \
 		Factor.app/Contents/MacOS/factor
 
-factor: $(DLL_OBJS) $(EXE_OBJS)
+$(EXECUTABLE): $(DLL_OBJS) $(EXE_OBJS)
 	$(LINKER) $(ENGINE) $(DLL_OBJS)
 	$(CC) $(LIBS) $(LIBPATH) -L. $(LINK_WITH_ENGINE) \
 		$(CFLAGS) -o $@$(EXE_SUFFIX)$(EXE_EXTENSION) $(EXE_OBJS)
 
-factor-console: $(DLL_OBJS) $(EXE_OBJS)
+$(CONSOLE_EXECUTABLE): $(DLL_OBJS) $(EXE_OBJS)
 	$(LINKER) $(ENGINE) $(DLL_OBJS)
 	$(CC) $(LIBS) $(LIBPATH) -L. $(LINK_WITH_ENGINE) \
 		$(CFLAGS) $(CFLAGS_CONSOLE) -o factor$(EXE_SUFFIX)$(CONSOLE_EXTENSION) $(EXE_OBJS)
 
-factor-ffi-test: vm/ffi_test.o
+$(TEST_LIBRARY): vm/ffi_test.o
 	$(CC) $(LIBPATH) $(CFLAGS) $(FFI_TEST_CFLAGS) $(SHARED_FLAG) -o libfactor-ffi-test$(SHARED_DLL_EXTENSION) $(TEST_OBJS)
 
 clean:
@@ -182,5 +191,5 @@ vm/ffi_test.o: vm/ffi_test.c
 
 .m.o:
 	$(CC) -c $(CFLAGS) -o $@ $<
-	
+
 .PHONY: factor

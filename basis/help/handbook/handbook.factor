@@ -13,13 +13,13 @@ ARTICLE: "conventions" "Conventions"
 { $heading "Documentation conventions" }
 "Factor documentation consists of two distinct bodies of text. There is a hierarchy of articles, much like this one, and there is word documentation. Help articles reference word documentation, and vice versa, but not every documented word is referenced from some help article."
 $nl
-"Every article has links to parent articles at the top. These can be persued if the article is too specific."
+"Every article has links to parent articles at the top. Explore these if the article you are reading is too specific."
 $nl
 "Some generic words have " { $strong "Description" } " headings, and others have " { $strong "Contract" } " headings. A distinction is made between words which are not intended to be extended with user-defined methods, and those that are."
 { $heading "Vocabulary naming conventions" }
 "A vocabulary name ending in " { $snippet ".private" } " contains words which are either implementation detail, unsafe, or both. For example, the " { $snippet "sequence.private" } " vocabulary contains words which access sequence elements without bounds checking (" { $link "sequences-unsafe" } ")."
 $nl
-"You should should avoid using internal words from the Factor library unless absolutely necessary. Similarly, your own code can place words in internal vocabularies if you do not want other people to use them unless they have a good reason."
+"You should avoid using internal words from the Factor library unless absolutely necessary. Similarly, your own code can place words in internal vocabularies if you do not want other people to use them unless they have a good reason."
 { $heading "Word naming conventions" }
 "These conventions are not hard and fast, but are usually a good first step in understanding a word's behavior:"
 { $table
@@ -39,7 +39,7 @@ $nl
     { { $snippet "$" { $emphasis "foo" } } { "help markup" } { $links $heading $emphasis } }
 }
 { $heading "Stack effect conventions" }
-"Stack effect conventions are documented in " { $link "effect-declaration" } "."
+"Stack effect conventions are documented in " { $link "effects" } "."
 { $heading "Glossary of terms" }
 "Common terminology and abbreviations used throughout Factor and its documentation:"
 { $table
@@ -229,9 +229,11 @@ ARTICLE: "handbook-language-reference" "The language"
 { $heading "Fundamentals" }
 { $subsection "conventions" }
 { $subsection "syntax" }
-{ $subsection "effects" }
+{ $heading "The stack" }
 { $subsection "evaluator" }
-{ $heading "Data types" }
+{ $subsection "effects" }
+{ $subsection "inference" }
+{ $heading "Basic data types" }
 { $subsection "booleans" }
 { $subsection "numbers" }
 { $subsection "collections" }
@@ -239,16 +241,19 @@ ARTICLE: "handbook-language-reference" "The language"
 { $subsection "words" }
 { $subsection "shuffle-words" }
 { $subsection "combinators" }
-{ $subsection "errors" }
-{ $subsection "continuations" }
+{ $subsection "threads" }
 { $heading "Named values" }
 { $subsection "locals" }
 { $subsection "namespaces" }
 { $subsection "namespaces-global" }
 { $subsection "values" }
 { $heading "Abstractions" }
+{ $subsection "errors" }
 { $subsection "objects" }
 { $subsection "destructors" }
+{ $subsection "continuations" }
+{ $subsection "memoize" }
+{ $subsection "parsing-words" }
 { $subsection "macros" }
 { $subsection "fry" }
 { $heading "Program organization" }
@@ -262,6 +267,7 @@ ARTICLE: "handbook-system-reference" "The implementation"
 { $subsection "vocabularies" }
 { $subsection "source-files" }
 { $subsection "compiler" }
+{ $subsection "tools.errors" }
 { $heading "Virtual machine" }
 { $subsection "images" }
 { $subsection "cli" }
@@ -282,7 +288,7 @@ ARTICLE: "handbook-tools-reference" "Developer tools"
 { $subsection "prettyprint" }
 { $subsection "inspector" }
 { $subsection "tools.annotations" }
-{ $subsection "inference" }
+{ $subsection "tools.inference" }
 { $heading "Browsing" }
 { $subsection "see" }
 { $subsection "tools.crossref" }

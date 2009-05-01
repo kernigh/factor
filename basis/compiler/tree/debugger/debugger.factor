@@ -142,8 +142,7 @@ SYMBOL: node-count
 
 : make-report ( word/quot -- assoc )
     [
-        dup word? [ build-tree-from-word ] [ build-tree ] if
-        optimize-tree
+        build-tree optimize-tree
 
         H{ } clone words-called set
         H{ } clone generics-called set
@@ -154,7 +153,7 @@ SYMBOL: node-count
             [ 1+ ] dip
             dup #call? [
                 word>> {
-                    { [ dup "intrinsics" word-prop over "if-intrinsics" word-prop or ] [ intrinsics-called ] }
+                    { [ dup "intrinsic" word-prop ] [ intrinsics-called ] }
                     { [ dup generic? ] [ generics-called ] }
                     { [ dup method-body? ] [ methods-called ] }
                     [ words-called ]

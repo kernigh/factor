@@ -1,6 +1,7 @@
 USING: help.markup help.syntax words classes classes.algebra
 definitions kernel alien sequences math quotations
-generic.standard generic.math combinators prettyprint effects ;
+generic.single generic.standard generic.hook generic.math
+combinators prettyprint effects ;
 IN: generic
 
 ARTICLE: "method-order" "Method precedence"
@@ -95,7 +96,7 @@ $nl
 { $subsection POSTPONE: MATH: }
 "Method definition:"
 { $subsection POSTPONE: M: }
-"Generic words must declare their stack effect in order to compile. See " { $link "effect-declaration" } "."
+"Generic words must declare their stack effect in order to compile. See " { $link "effects" } "."
 { $subsection "method-order" }
 { $subsection "call-next-method" }
 { $subsection "method-combination" }

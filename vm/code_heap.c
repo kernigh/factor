@@ -12,24 +12,19 @@ bool in_code_heap_p(CELL ptr)
 		&& ptr <= code_heap.segment->end);
 }
 
-void set_word_code(F_WORD *word, F_CODE_BLOCK *compiled)
+/* Compile a word definition with the non-optimizing compiler. Allocates memory */
+void jit_compile_word(F_WORD *word, CELL def, bool relocate)
 {
-	if(compiled->block.type != WORD_TYPE)
-		critical_error("bad param to set_word_xt",(CELL)compiled);
-
-	word->code = compiled;
-	word->optimizedp = T;
-}
-
-/* Allocates memory */
-void default_word_code(F_WORD *word, bool relocate)
-{
+	REGISTER_ROOT(def);
 	REGISTER_UNTAGGED(word);
-	jit_compile(word->def,relocate);
+	jit_compile(def,relocate);
 	UNREGISTER_UNTAGGED(word);
+	UNREGISTER_ROOT(def);
 
-	word->code = untag_quotation(word->def)->code;
-	word->optimizedp = F;
+	word->code = untag_quotation(def)->code;
+
+	if(word->direct_entry_def != F)
+		jit_compile(word->direct_entry_def,relocate);
 }
 
 /* Apply a function to every code block */
@@ -50,13 +45,6 @@ aging and nursery collections */
 void copy_code_heap_roots(void)
 {
 	iterate_code_heap(copy_literal_references);
-}
-
-/* Update literals referenced from all code blocks. Only for tenured
-collections, done at the end. */
-void update_code_heap_roots(void)
-{
-	iterate_code_heap(update_literal_references);
 }
 
 /* Update pointers to words referenced from all code blocks. Only after
@@ -83,22 +71,22 @@ void primitive_modify_code_heap(void)
 
 		CELL data = array_nth(pair,1);
 
-		if(data == F)
+		if(type_of(data) == QUOTATION_TYPE)
 		{
 			REGISTER_UNTAGGED(alist);
 			REGISTER_UNTAGGED(word);
-			default_word_code(word,false);
+			jit_compile_word(word,data,false);
 			UNREGISTER_UNTAGGED(word);
 			UNREGISTER_UNTAGGED(alist);
 		}
-		else
+		else if(type_of(data) == ARRAY_TYPE)
 		{
 			F_ARRAY *compiled_code = untag_array(data);
 
-			F_ARRAY *literals = untag_array(array_nth(compiled_code,0));
+			CELL literals = array_nth(compiled_code,0);
 			CELL relocation = array_nth(compiled_code,1);
 			F_ARRAY *labels = untag_array(array_nth(compiled_code,2));
-			F_ARRAY *code = untag_array(array_nth(compiled_code,3));
+			F_BYTE_ARRAY *code = untag_byte_array(array_nth(compiled_code,3));
 
 			REGISTER_UNTAGGED(alist);
 			REGISTER_UNTAGGED(word);
@@ -108,13 +96,15 @@ void primitive_modify_code_heap(void)
 				code,
 				labels,
 				relocation,
-				tag_object(literals));
+				literals);
 
 			UNREGISTER_UNTAGGED(word);
 			UNREGISTER_UNTAGGED(alist);
 
-			set_word_code(word,compiled);
+			word->code = compiled;
 		}
+		else
+			critical_error("Expected a quotation or an array",data);
 
 		REGISTER_UNTAGGED(alist);
 		update_word_xt(word);

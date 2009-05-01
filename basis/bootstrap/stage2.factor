@@ -16,13 +16,6 @@ SYMBOL: bootstrap-time
     vm file-name os windows? [ "." split1-last drop ] when
     ".image" append resource-path ;
 
-: do-crossref ( -- )
-    "Cross-referencing..." print flush
-    H{ } clone crossref set-global
-    xref-words
-    xref-generics
-    xref-sources ;
-
 : load-components ( -- )
     "include" "exclude"
     [ get-global " " split harvest ] bi@
@@ -42,10 +35,6 @@ SYMBOL: bootstrap-time
     "Core bootstrap completed in " write core-bootstrap-time get print-time
     "Bootstrap completed in "      write bootstrap-time      get print-time
 
-    [ optimized>> ] count-words " compiled words" print
-    [ symbol? ] count-words " symbol words" print
-    [ ] count-words " words total" print
-    
     "Bootstrapping is complete." print
     "Now, you can run Factor:" print
     vm write " -i=" write "output-image" get print flush ;
@@ -68,8 +57,6 @@ SYMBOL: bootstrap-time
 
     (command-line) parse-command-line
 
-    do-crossref
-
     ! Set dll paths
     os wince? [ "windows.ce" require ] when
     os winnt? [ "windows.nt" require ] when
@@ -77,6 +64,10 @@ SYMBOL: bootstrap-time
     "staging" get "deploy-vocab" get or [
         "stage2: deployment mode" print
     ] [
+        "debugger" require
+        "alien.prettyprint" require
+        "inspector" require
+        "tools.errors" require
         "listener" require
         "none" require
     ] if

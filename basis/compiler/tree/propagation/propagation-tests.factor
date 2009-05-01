@@ -12,8 +12,6 @@ specialized-arrays.double system sorting math.libm
 math.intervals ;
 IN: compiler.tree.propagation.tests
 
-\ propagate must-infer
-
 [ V{ } ] [ [ ] final-classes ] unit-test
 
 [ V{ fixnum } ] [ [ 1 ] final-classes ] unit-test
@@ -359,7 +357,7 @@ TUPLE: immutable-prop-test-tuple { x sequence read-only } ;
 ] unit-test
 
 [ V{ complex } ] [
-    [ <complex> ] final-classes
+    [ complex boa ] final-classes
 ] unit-test
 
 [ V{ complex } ] [
@@ -377,7 +375,7 @@ TUPLE: immutable-prop-test-tuple { x sequence read-only } ;
 [ V{ complex } ] [
     [
         { float float object } declare
-        [ "Oops" throw ] [ <complex> ] if
+        [ "Oops" throw ] [ complex boa ] if
     ] final-classes
 ] unit-test
 
@@ -592,7 +590,7 @@ MIXIN: empty-mixin
 
 [ V{ float } ] [
     [
-        [ { float float } declare <complex> ]
+        [ { float float } declare complex boa ]
         [ 2drop C{ 0.0 0.0 } ]
         if real-part
     ] final-classes

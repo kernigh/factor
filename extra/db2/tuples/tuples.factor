@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: db2 db2.connections db2.persistent sequences kernel
 db2.errors fry classes db2.utils accessors db2.fql combinators
-db2.statements db2.types make db2.binders ;
+db2.statements db2.types make db2.binders combinators.short-circuit ;
 IN: db2.tuples
 
 HOOK: create-table-statement db-connection ( class -- statement )
@@ -24,10 +24,22 @@ M: object create-table-statement ( class -- statement )
             columns>> [ ", " % ] [
                 [ column-name>> % " " % ]
                 [ type>> sql-type>string % ]
-                [ modifiers>> [ " " % sql-modifiers>string % ] when* ] tri
+                [
+                    modifiers>> [
+                        { [ PRIMARY-KEY? ] [ AUTOINCREMENT? ] } 1|| not
+                    ] filter
+                    [ " " % sql-modifiers>string % ] when*
+                ] tri
             ] interleave
-        ] bi
-        ")" %
+        ] [ 
+            find-primary-key [
+                ", " %
+                "primary key(" %
+                [ "," % ] [ column-name>> % ] interleave
+                ")" %
+            ] unless-empty
+            ")" %
+        ] tri
     ] "" make >>sql ;
 
 M: object drop-table-statement ( class -- statement )

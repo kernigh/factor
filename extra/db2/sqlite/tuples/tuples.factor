@@ -6,35 +6,7 @@ arrays ;
 USE: multiline
 IN: db2.sqlite.tuples
 
-
-
-
-
-
-
-
-
-
-
 /*
-M: sqlite-db-connection create-table-statement ( class -- statement )
-    [ statement new ] dip lookup-persistent
-    [
-        "create table " %
-        [ table-name>> % "(" % ]
-        [
-            columns>> [ ", " % ] [
-                [ column-name>> % " " % ]
-                [ type>> sql-type>string % ]
-                [ modifiers>> [ " " % sql-modifiers>string % ] when* ] tri
-            ] interleave
-        ] bi
-        ")" %
-    ] "" make >>sql ;
-
-M: sqlite-db-connection drop-table-statement ( class -- statement )
-    lookup-persistent table-name>> sanitize-sql-name "drop table " prepend ;
-
 : start-tuple-statement ( tuple -- statement tuple persistent )
     [ <empty-statement> ] dip [ ] [ lookup-persistent ] bi ;
 

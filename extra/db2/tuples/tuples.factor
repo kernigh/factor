@@ -1,7 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: db2 db2.connections db2.persistent sequences kernel
-db2.errors fry classes db2.utils accessors db2.fql combinators ;
+db2.errors fry classes db2.utils accessors db2.fql combinators
+db2.statements db2.types make db2.binders ;
 IN: db2.tuples
 
 HOOK: create-table-statement db-connection ( class -- statement )
@@ -14,6 +15,25 @@ HOOK: select-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuples-statement db-connection ( tuple -- statement )
 HOOK: count-tuples-statement db-connection ( tuple -- statement )
 
+M: object create-table-statement ( class -- statement )
+    [ statement new ] dip lookup-persistent
+    [
+        "create table " %
+        [ table-name>> % "(" % ]
+        [
+            columns>> [ ", " % ] [
+                [ column-name>> % " " % ]
+                [ type>> sql-type>string % ]
+                [ modifiers>> [ " " % sql-modifiers>string % ] when* ] tri
+            ] interleave
+        ] bi
+        ")" %
+    ] "" make >>sql ;
+
+M: object drop-table-statement ( class -- statement )
+    lookup-persistent table-name>> sanitize-sql-name
+    "drop table " prepend ;
+
 M: object insert-tuple-statement ( tuple -- statement )
     [ \ insert new ] dip
     dup lookup-persistent {
@@ -21,11 +41,14 @@ M: object insert-tuple-statement ( tuple -- statement )
         [ nip columns>> [ column-name>> ] map >>names ]
         ! [ slot-values >>values ]
         [
-            columns>> [ getter>> ] map
-            [ execute( obj -- obj' ) ] with map >>values
+            [
+                nip columns>> [ type>> ] map
+            ] [
+                columns>> [ getter>> ] map
+                [ execute( obj -- obj' ) ] with map
+            ] 2bi [ <simple-binder> ] 2map >>values
         ]
-    } 2cleave expand-fql throw
-    ;
+    } 2cleave expand-fql ;
 
 M: object update-tuple-statement ( tuple -- statement )
     ;
@@ -41,7 +64,6 @@ M: object select-tuples-statement ( tuple -- statement )
 
 M: object count-tuples-statement ( tuple -- statement )
     ;
-
 
 : create-table ( class -- )
     create-table-statement sql-bind-command ;

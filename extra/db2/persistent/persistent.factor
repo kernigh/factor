@@ -127,7 +127,7 @@ M: persistent db-assigned-id? ( persistent -- ? )
 
 
 : set-column-persistent-slots ( persistent -- persistent )
-    dup [ [ swap >>persistent ] with map ] change-columns ;
+    dup [ [ clone swap >>persistent ] with map ] change-columns ;
 
 : set-primary-key ( persistent -- persistent )
     dup find-primary-key >>primary-key ;

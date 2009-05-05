@@ -3,7 +3,7 @@
 USING: accessors arrays assocs classes combinators.smart
 constructors db2.types db2.utils fry kernel lexer math
 namespaces parser sequences sets strings words combinators
-quotations make multiline ;
+quotations make multiline classes.tuple ;
 IN: db2.persistent
 
 SYMBOL: persistent-table
@@ -12,12 +12,12 @@ persistent-table [ H{ } clone ] initialize
 TUPLE: db-column persistent getter setter column-name type modifiers ;
 : <db-column> ( slot-name column-name type modifiers -- obj )
     db-column new
-        swap >>modifiers
+        swap ??1array >>modifiers
         swap >>type
         swap >>column-name
         swap [ lookup-getter >>getter ] [ lookup-setter >>setter ] bi ;
 
-TUPLE: persistent class table-name columns
+TUPLE: persistent class table-name columns relations
 accessor-quot column-names no-id-column-names
 all-column-types all-column-setters
 column-types
@@ -36,6 +36,13 @@ ERROR: bad-table-name name ;
 
 : check-sanitized-name ( string -- string )
     dup dup sanitize-sql-name = [ bad-table-name ] unless ;
+
+ERROR: not-persistent class ;
+
+GENERIC: lookup-persistent ( obj -- persistent )
+
+: ensure-persistent ( obj -- obj )
+    dup lookup-persistent [ ] unless ;
 
 M: integer parse-table-name throw ;
 
@@ -60,7 +67,9 @@ M: string parse-column-name
     dup 2array parse-column-name ;
 
 M: word parse-column-type
-    ensure-sql-type ;
+    dup tuple-class?
+    [ ensure-persistent ]
+    [ ensure-sql-type ] if ;
 
 M: sequence parse-column-type
     1 2 ensure-length-range
@@ -80,9 +89,8 @@ M: word parse-column-modifiers
     [ parse-column-type ]
     [ parse-column-modifiers ] tri* <db-column> ;
 
-ERROR: not-persistent class ;
-
-GENERIC: lookup-persistent ( obj -- persistent )
+: ?lookup-persistent ( class -- persistent/f )
+    persistent-table get ?at [ drop f ] unless ;
 
 M: tuple lookup-persistent class lookup-persistent ;
 
@@ -185,12 +193,86 @@ M: persistent db-assigned-id? ( persistent -- ? )
     ;
 
 CONSTRUCTOR: persistent ( class table-name columns -- obj )
+    H{ } clone >>relations
     analyze-persistent ;
 
+: superclass-persistent-columns ( class -- columns )
+    superclasses rest-slice but-last-slice
+    [ ?lookup-persistent ] map sift
+    [ columns>> ] map concat ;
+
 : make-persistent ( class name columns -- )
+    pick superclass-persistent-columns append
     <persistent> dup class>> persistent-table get set-at ;
 
 SYNTAX: PERSISTENT:
     scan-object parse-table-name check-sanitized-name
     \ ; parse-until
     [ parse-column ] map make-persistent ;
+
+: scan-relation ( -- class class )
+    scan-word scan-word [ ensure-persistent ] bi@ ;
+
+TUPLE: relation left right ;
+
+: normalize-relation ( relation -- relation )
+    [ lookup-persistent ] change-left
+    [ lookup-persistent ] change-right ;
+
+TUPLE: one-one < relation ;
+CONSTRUCTOR: one-one ( left right -- relation )
+    normalize-relation ;
+
+TUPLE: one-many < relation ;
+CONSTRUCTOR: one-many ( left right -- relation )
+    normalize-relation ;
+
+TUPLE: many-many < relation ;
+CONSTRUCTOR: many-many ( left right -- relation )
+    normalize-relation ;
+
+ERROR: relation-already-defined relation ;
+
+: lookup-relations ( class -- relations )
+    lookup-persistent relations>> ;
+
+: check-relation ( relation persistent persistent -- relation )
+    [ class>> ] [ relations>> ] bi* key? [ relation-already-defined ] when ;
+
+: check-left ( relation -- relation )
+    dup [ left>> ] [ right>> ] bi check-relation ;
+
+: check-right ( relation -- relation )
+    dup [ right>> ] [ left>> ] bi check-relation ;
+
+: check-relations ( relation -- relation )
+    check-left check-right ;
+
+: add-relation-left ( relation -- )
+    [ left>> ] [ right>> class>> ] [ left>> relations>> ] tri set-at ;
+
+: add-relation-right ( relation -- )
+    [ right>> ] [ left>> class>> ] [ right>> relations>> ] tri set-at ;
+
+: add-relations ( relation -- )
+    [ add-relation-left ] [ add-relation-right ] bi ;
+
+GENERIC: add-relation ( relation -- )
+
+M: one-one add-relation ( relation -- )
+    check-relations add-relations ;
+
+M: one-many add-relation ( relation -- )
+    check-left add-relation-left ;
+
+M: many-many add-relation ( relation -- )
+    check-relations add-relations ;
+
+SYNTAX: HAS-ONE:
+    scan-relation <one-one> add-relation ;
+
+SYNTAX: HAS-MANY:
+    scan-relation <one-many> add-relation ;
+
+SYNTAX: MANY-MANY:
+    scan-relation <many-many> add-relation ;

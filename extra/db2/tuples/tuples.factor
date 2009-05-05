@@ -51,7 +51,6 @@ M: object insert-tuple-statement ( tuple -- statement )
     dup lookup-persistent {
         [ nip table-name>> >>into ]
         [ nip columns>> [ column-name>> ] map >>names ]
-        ! [ slot-values >>values ]
         [
             [
                 nip columns>> [ type>> ] map
@@ -69,10 +68,19 @@ M: object delete-tuple-statement ( tuple -- statement )
     ;
 
 M: object select-tuple-statement ( tuple -- statement )
-    ;
+    select-tuples-statement
+        1 >>limit ;
+
+: full-column-names ( persistent -- seq )
+    [ table-name>> ] [ columns>> [ column-name>> ] map ] bi
+    [ "." glue ] with map ;
 
 M: object select-tuples-statement ( tuple -- statement )
-    ;
+    [ \ select new ] dip
+    dup lookup-persistent {
+        [ nip full-column-names >>names ]
+        [ nip table-name>> >>from ]
+    } 2cleave expand-fql ;
 
 M: object count-tuples-statement ( tuple -- statement )
     ;

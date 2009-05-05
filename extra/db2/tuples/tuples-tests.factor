@@ -2,21 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2 db2.persistent db2.tester
 db2.tuples db2.types kernel tools.test db2.binders
-db2.statements multiline db2.fql ;
+db2.statements multiline db2.fql db2.persistent.tests ;
 IN: db2.tuples.tests
-
-TUPLE: default-person id name birthdate email homepage ;
-
-PERSISTENT: default-person
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
-    { "name" VARCHAR }
-    { "birthdate" TIMESTAMP }
-    { "email" VARCHAR }
-    { "homepage" URL } ;
-
-: person1 ( -- person )
-    default-person new
-        "omg" >>name ;
 
 : test-default-person ( -- )
     [ "drop table default_person" sql-command ] ignore-errors
@@ -35,13 +22,6 @@ PERSISTENT: default-person
     [ ]
     [ T{ default-person { id 1 } { name "foobar" } } update-tuple ] unit-test
     ;
-
-TUPLE: computer name os version ;
-
-PERSISTENT: computer
-    { "name" VARCHAR }
-    { "os" VARCHAR }
-    { "version" INTEGER } ;
 
 : test-computer ( -- )
     [ "drop table computer;" sql-command ] ignore-errors
@@ -263,5 +243,5 @@ PERSISTENT: pet
 
 
 [ test-default-person ] test-dbs
-[ test-computer ] test-dbs
-[ test-pets ] test-dbs
+! [ test-computer ] test-dbs
+! [ test-pets ] test-dbs

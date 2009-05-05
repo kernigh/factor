@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db2 db2.statements.tests db2.tester
-kernel tools.test db2.fql ;
+USING: accessors db2 db2.tester db2.persistent.tests
+kernel tools.test db2.fql db2.statements.tests ;
 IN: db2.fql.tests
 
 : test-fql ( -- )

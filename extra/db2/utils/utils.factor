@@ -1,11 +1,14 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: arrays kernel math math.parser strings sequences
-words math.order ;
+words math.order vectors combinators.short-circuit ;
 IN: db2.utils
 
 : ?when ( object quot -- object' ) dupd when ; inline
-: ?1array ( obj -- array ) dup string? [ 1array ] when ; inline
+
+: ?1array ( obj -- array )
+    dup { [ array? ] [ vector? ] } 1|| [ 1array ] unless ; inline
+
 : ??1array ( obj -- array/f ) [ ?1array ] ?when ; inline
 
 : ?first ( sequence -- object/f ) 0 swap ?nth ;

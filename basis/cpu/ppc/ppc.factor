@@ -2,10 +2,11 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs sequences kernel combinators make math
 math.order math.ranges system namespaces locals layouts words
-alien alien.c-types literals cpu.architecture cpu.ppc.assembler
-literals compiler.cfg.registers compiler.cfg.instructions
-compiler.constants compiler.codegen compiler.codegen.fixup
-compiler.cfg.intrinsics compiler.cfg.stack-frame ;
+alien alien.accessors alien.c-types literals cpu.architecture
+cpu.ppc.assembler cpu.ppc.assembler.backend literals compiler.cfg.registers
+compiler.cfg.instructions compiler.constants compiler.codegen
+compiler.codegen.fixup compiler.cfg.intrinsics
+compiler.cfg.stack-frame compiler.units ;
 IN: cpu.ppc
 
 ! PowerPC register assignments:
@@ -114,7 +115,11 @@ M: ppc stack-frame-size ( stack-frame -- i )
     4 cells align ;
 
 M: ppc %call ( word -- ) 0 BL rc-relative-ppc-3 rel-word-pic ;
-M: ppc %jump ( word -- ) 0 B rc-relative-ppc-3 rel-word ;
+
+M: ppc %jump ( word -- )
+    0 6 LOAD32 8 rc-absolute-ppc-2/2 rel-here
+    0 B rc-relative-ppc-3 rel-word-pic-tail ;
+
 M: ppc %jump-label ( label -- ) B ;
 M: ppc %return ( -- ) BLR ;
 
@@ -126,7 +131,7 @@ M:: ppc %dispatch ( src temp offset -- )
     BCTR ;
 
 M: ppc %dispatch-label ( word -- )
-    0 , rc-absolute-cell rel-word ;
+    B{ 0 0 0 0 } % rc-absolute-cell rel-word ;
 
 :: (%slot) ( obj slot tag temp -- reg offset )
     temp slot obj ADD
@@ -647,10 +652,10 @@ M: ppc %alien-callback ( quot -- )
 
 M: ppc %prepare-alien-indirect ( -- )
     "unbox_alien" f %alien-invoke
-    13 3 MR ;
+    15 3 MR ;
 
 M: ppc %alien-indirect ( -- )
-    13 MTLR BLRL ;
+    15 MTLR BLRL ;
 
 M: ppc %callback-value ( ctype -- )
     ! Save top of data stack
@@ -708,3 +713,14 @@ USE: vocabs.loader
 } cond
 
 "complex-double" c-type t >>return-in-registers? drop
+
+[
+    <c-type>
+        [ alien-unsigned-4 c-bool> ] >>getter
+        [ [ >c-bool ] 2dip set-alien-unsigned-4 ] >>setter
+        4 >>size
+        4 >>align
+        "box_boolean" >>boxer
+        "to_boolean" >>unboxer
+    "bool" define-primitive-type
+] with-compilation-unit

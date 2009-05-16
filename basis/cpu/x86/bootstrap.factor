@@ -42,12 +42,17 @@ big-endian off
 ] jit-push-immediate jit-define
 
 [
-    0 JMP rc-relative rt-xt jit-rel
+    temp3 0 MOV rc-absolute-cell rt-here jit-rel
+    0 JMP rc-relative rt-xt-pic-tail jit-rel
 ] jit-word-jump jit-define
 
 [
     0 CALL rc-relative rt-xt-pic jit-rel
 ] jit-word-call jit-define
+
+[
+    0 JMP rc-relative rt-xt jit-rel
+] jit-word-special jit-define
 
 [
     ! load boolean
@@ -58,12 +63,9 @@ big-endian off
     temp0 \ f tag-number CMP
     ! jump to true branch if not equal
     0 JNE rc-relative rt-xt jit-rel
-] jit-if-1 jit-define
-
-[
     ! jump to false branch if equal
     0 JMP rc-relative rt-xt jit-rel
-] jit-if-2 jit-define
+] jit-if jit-define
 
 : jit->r ( -- )
     rs-reg bootstrap-cell ADD
@@ -152,6 +154,8 @@ big-endian off
 
 ! ! ! Polymorphic inline caches
 
+! The PIC and megamorphic code stubs are not permitted to touch temp3.
+
 ! Load a value from a stack position
 [
     temp1 ds-reg HEX: ffffffff [+] MOV rc-absolute rt-untagged jit-rel
@@ -229,12 +233,13 @@ big-endian off
     temp0 temp2 ADD
     ! if(get(cache) == class)
     temp0 [] temp1 CMP
-    ! ... goto get(cache + bootstrap-cell)
-    [
-        temp0 temp0 bootstrap-cell [+] MOV
-        temp0 word-xt-offset [+] JMP
-    ] [ ] make
-    [ length JNE ] [ % ] bi
+    bootstrap-cell 4 = 14 22 ? JNE ! Yuck!
+    ! megamorphic_cache_hits++
+    temp1 0 MOV rc-absolute-cell rt-megamorphic-cache-hits jit-rel
+    temp1 [] 1 ADD
+    ! goto get(cache + bootstrap-cell)
+    temp0 temp0 bootstrap-cell [+] MOV
+    temp0 word-xt-offset [+] JMP
     ! fall-through on miss
 ] mega-lookup jit-define
 

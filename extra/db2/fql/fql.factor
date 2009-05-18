@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays combinators constructors
 db2.sqlite.lib db2.utils destructors db2.statements
-kernel make math.parser sequences strings assocs db2.utils
+kernel make math.parser sequences strings assocs
 splitting ;
 IN: db2.fql
 

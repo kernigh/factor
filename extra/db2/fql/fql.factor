@@ -6,7 +6,7 @@ kernel make math.parser sequences strings assocs
 splitting ;
 IN: db2.fql
 
-TUPLE: fql in out ;
+TUPLE: fql ;
 
 GENERIC: expand-fql* ( object -- sequence/statement )
 GENERIC: normalize-fql ( object -- sequence/statement )
@@ -33,7 +33,8 @@ M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 
-TUPLE: select < fql names from where group-by having order-by offset limit ;
+TUPLE: select < fql names out-columns from where group-by
+having order-by offset limit ;
 CONSTRUCTOR: select ( names from -- obj ) ;
 M: select normalize-fql ( select -- select )
     [ ??1array ] change-names
@@ -124,8 +125,7 @@ M: full-outer-join expand-fql* ( obj -- string )
     ] "" make ;
 
 : expand-fql ( object1 -- object2 )
-    [ normalize-fql expand-fql* ] keep
-    [ out>> >>out ] [ in>> >>in ] bi ;
+    normalize-fql expand-fql* ;
 
 M: or expand-fql* ( obj -- string )
     [
@@ -152,7 +152,7 @@ M: insert expand-fql*
             [ " values (" % values>> length "?" <array> ", " join % ");" % ]
             [ values>> >>in ]
         } cleave
-    ] "" make >>sql ;
+    ] "" make >>sql normalize-statement ;
 
 M: update expand-fql*
     [ statement new ] dip
@@ -168,7 +168,7 @@ M: update expand-fql*
             [ order-by>> [ " order by " % ", " join % ] when* ]
             [ limit>> [ " limit " % # ] when* ]
         } cleave
-    ] "" make >>sql ;
+    ] "" make >>sql normalize-statement ;
 
 M: delete expand-fql*
     [ statement new ] dip
@@ -179,13 +179,14 @@ M: delete expand-fql*
                 [ order-by>> [ " order by " % ", " join % ] when* ]
             [ limit>> [ " limit " % # ] when* ]
         } cleave
-    ] "" make >>sql ;
+    ] "" make >>sql normalize-statement ;
 
 M: select expand-fql*
     [ statement new ] dip
     [
         {
             [ "select " % names>> ", " join % ]
+            [ out-columns>> >>out ]
             [ " from " % from>> ", " join % ]
             [ where>> [ " where " % expand-fql* % ] when* ]
             [ group-by>> [ " group by " % ", " join % ] when* ]
@@ -193,7 +194,7 @@ M: select expand-fql*
             [ offset>> [ " offset " % # ] when* ]
             [ limit>> [ " limit " % # ] when* ]
         } cleave
-    ] "" make >>sql ;
+    ] "" make >>sql normalize-statement ;
 
 TUPLE: set-operator < fql all? selects ;
 

@@ -57,7 +57,8 @@ M: object insert-tuple-statement ( tuple -- statement )
             ] [
                 columns>> [ getter>> ] map
                 [ execute( obj -- obj' ) ] with map
-            ] 2bi [ <simple-binder> ] 2map >>values
+            ] 2bi
+            [ <simple-binder> ] 2map >>values
         ]
     } 2cleave expand-fql ;
 
@@ -78,8 +79,17 @@ M: object select-tuple-statement ( tuple -- statement )
 M: object select-tuples-statement ( tuple -- statement )
     [ \ select new ] dip
     dup lookup-persistent {
-        [ nip full-column-names >>names ]
-        [ nip columns>> [ type>> ] map >>out ]
+        [
+            nip [ table-name>> ] [ columns>> ] bi
+            [ column-name>> "." glue ] with map >>names
+        ]
+        [
+            nip
+            [ class>> ]
+            [ columns>> [ slot-name>> ] map ]
+            [ columns>> [ type>> ] map ] tri
+            [ <return-binder> ] 2map <tuple-binder> >>out-columns
+        ]
         [ nip table-name>> >>from ]
     } 2cleave expand-fql ;
 
@@ -115,10 +125,7 @@ M: object count-tuples-statement ( tuple -- statement )
     [ lookup-persistent columns>> [ setter>> ] map new-filled-tuple ] tri ;
 
 : select-tuples ( tuple -- seq )
-    [ select-tuples-statement sql-bind-typed-query ]
-    [ class ]
-    [ lookup-persistent columns>> [ setter>> ] map ] tri
-    '[ [ _ ] dip _ new-filled-tuple ] map ;
+    select-tuples-statement sql-bind-typed-query ;
 
 : count-tuples ( tuple -- n )
     count-tuples-statement sql-bind-typed-query ;

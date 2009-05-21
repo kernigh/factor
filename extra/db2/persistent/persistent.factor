@@ -9,13 +9,15 @@ IN: db2.persistent
 SYMBOL: persistent-table
 persistent-table [ H{ } clone ] initialize
 
-TUPLE: db-column persistent getter setter column-name type modifiers ;
+TUPLE: db-column persistent slot-name getter setter column-name type modifiers ;
 : <db-column> ( slot-name column-name type modifiers -- obj )
     db-column new
         swap ??1array >>modifiers
         swap >>type
         swap >>column-name
-        swap [ lookup-getter >>getter ] [ lookup-setter >>setter ] bi ;
+        swap [ >>slot-name ]
+             [ lookup-getter >>getter ]
+             [ lookup-setter >>setter ] tri ;
 
 TUPLE: persistent class table-name columns relations
 accessor-quot column-names no-id-column-names

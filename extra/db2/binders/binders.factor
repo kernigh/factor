@@ -3,7 +3,7 @@
 USING: accessors db2.utils kernel parser sequences ;
 IN: db2.binders
 
-TUPLE: binder table-name slot-name type value getter setter ;
+TUPLE: binder table-name column-name slot-name type value getter setter ;
 
 TUPLE: tuple-binder class binders ;
 
@@ -27,12 +27,13 @@ SYNTAX: TV{
         2 ensure-length first2 <simple-binder>
     ] parse-literal ;
 
-: <tuple-binder> ( binders class -- binder )
+: <tuple-binder> ( class binders -- binder )
     tuple-binder new
-        swap >>class
-        swap >>binders ;
+        swap >>binders
+        swap >>class ;
 
 SYNTAX: RT{
     \ } [
         unclip [ [ first2 <return-binder> ] map ] dip <tuple-binder>
     ] parse-literal ;
+

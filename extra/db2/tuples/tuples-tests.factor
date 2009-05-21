@@ -16,7 +16,7 @@ IN: db2.tuples.tests
     [ T{ default-person { id 1 } { name "omg" } } ]
     [ person1 select-tuple ] unit-test
 
-    [ { T{ default-person { id 1 } { name "omg" } } } ]
+    [ V{ T{ default-person { id 1 } { name "omg" } } } ]
     [ person1 select-tuples ] unit-test
 
     [ ]

@@ -68,15 +68,7 @@ M: object update-tuple-statement ( tuple -- statement )
 M: object delete-tuple-statement ( tuple -- statement )
     ;
 
-M: object select-tuple-statement ( tuple -- statement )
-    select-tuples-statement
-        1 >>limit ;
-
-: full-column-names ( persistent -- seq )
-    [ table-name>> ] [ columns>> [ column-name>> ] map ] bi
-    [ "." glue ] with map ;
-
-M: object select-tuples-statement ( tuple -- statement )
+: (select-tuples-statement) ( tuple -- fql )
     [ \ select new ] dip
     dup lookup-persistent {
         [
@@ -91,7 +83,17 @@ M: object select-tuples-statement ( tuple -- statement )
             [ <return-binder> ] 2map <tuple-binder> >>out-columns
         ]
         [ nip table-name>> >>from ]
-    } 2cleave expand-fql ;
+    } 2cleave ;
+
+M: object select-tuple-statement ( tuple -- statement )
+    (select-tuples-statement) 1 >>limit expand-fql ;
+
+: full-column-names ( persistent -- seq )
+    [ table-name>> ] [ columns>> [ column-name>> ] map ] bi
+    [ "." glue ] with map ;
+
+M: object select-tuples-statement ( tuple -- statement )
+    (select-tuples-statement) expand-fql ;
 
 M: object count-tuples-statement ( tuple -- statement )
     ;
@@ -120,9 +122,7 @@ M: object count-tuples-statement ( tuple -- statement )
     delete-tuple-statement sql-bind-typed-command ;
 
 : select-tuple ( tuple -- tuple' )
-    [ class ]
-    [ select-tuple-statement sql-bind-typed-query first ]
-    [ lookup-persistent columns>> [ setter>> ] map new-filled-tuple ] tri ;
+    select-tuple-statement sql-bind-typed-query first ;
 
 : select-tuples ( tuple -- seq )
     select-tuples-statement sql-bind-typed-query ;

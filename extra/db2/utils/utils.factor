@@ -1,7 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: arrays kernel math math.parser strings sequences
-words math.order vectors combinators.short-circuit ;
+USING: accessors arrays classes combinators.short-circuit
+kernel math math.order math.parser sequences slots
+slots.private strings vectors words ;
 IN: db2.utils
 
 : ?when ( object quot -- object' ) dupd when ; inline
@@ -61,3 +62,21 @@ ERROR: length-expected seq length ;
 
 : new-filled-tuple ( class values setters -- tuple )
     [ new ] 2dip [ execute( tuple obj -- tuple ) ] 2each ;
+
+ERROR: no-slot ;
+
+: offset-of-slot ( string tuple -- n )
+    class superclasses [ "slots" word-prop ] map concat
+    slot-named dup [ no-slot ] unless offset>> ;
+
+: get-slot-named ( name tuple -- value )
+    [ nip ] [ offset-of-slot ] 2bi slot ;
+
+: set-slot-named ( value name obj -- )
+    [ nip ] [ offset-of-slot ] 2bi set-slot ;
+
+: filter-slots ( tuple specs -- specs' )
+    [
+        slot-name>> swap get-slot-named
+        ! dup double-infinite-interval? [ drop f ] when
+    ] with filter ;

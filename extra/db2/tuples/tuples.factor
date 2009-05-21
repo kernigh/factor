@@ -1,8 +1,11 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: db2 db2.connections db2.persistent sequences kernel
-db2.errors fry classes db2.utils accessors db2.fql combinators
-db2.statements db2.types make db2.binders combinators.short-circuit ;
+USING: accessors byte-arrays classes combinators
+combinators.short-circuit db2 db2.binders db2.connections
+db2.errors db2.fql db2.persistent db2.statements db2.types
+db2.utils fry kernel make math math.intervals sequences strings
+;
+FROM: db2.types => NULL ;
 IN: db2.tuples
 
 HOOK: create-table-statement db-connection ( class -- statement )
@@ -14,6 +17,81 @@ HOOK: delete-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuples-statement db-connection ( tuple -- statement )
 HOOK: count-tuples-statement db-connection ( tuple -- statement )
+
+
+GENERIC: where ( specs obj -- )
+
+: binder, ( spec obj -- )
+    [ type>> ] dip <simple-binder> , ;
+
+: interval-comparison ( ? str -- str )
+    "from" = " >" " <" ? swap [ "= " append ] when ;
+
+: (infinite-interval?) ( interval -- ?1 ?2 )
+    [ from>> ] [ to>> ] bi
+    [ first fp-infinity? ] bi@ ;
+
+: double-infinite-interval? ( obj -- ? )
+    dup interval? [ (infinite-interval?) and ] [ drop f ] if ;
+
+: infinite-interval? ( obj -- ? )
+    dup interval? [ (infinite-interval?) or ] [ drop f ] if ;
+
+: where-interval ( spec obj from/to -- )
+    over first fp-infinity? [
+        3drop
+    ] [
+        pick column-name>> %
+        [ first2 ] dip interval-comparison %
+        binder,
+    ] if ;
+
+: parens, ( quot -- ) "(" % call ")" % ; inline
+
+M: interval where ( spec obj -- )
+    [
+        [ from>> "from" where-interval ]
+        [ nip infinite-interval? [ " and " % ] unless ]
+        [ to>> "to" where-interval ] 2tri
+    ] parens, ;
+
+M: sequence where ( spec obj -- )
+    [
+        [ " or " % ] [ dupd where ] interleave drop
+    ] parens, ;
+
+M: NULL where ( spec obj -- )
+    drop column-name>> % " is NULL" % ;
+
+: object-where ( spec obj -- )
+    over column-name>> % " = " % "?" % binder, ;
+
+M: byte-array where ( spec obj -- )
+    object-where ;
+
+M: object where ( spec obj -- ) object-where ;
+
+M: integer where ( spec obj -- ) object-where ;
+
+M: string where ( spec obj -- ) object-where ;
+
+: filter-slots ( tuple specs -- specs' )
+    [
+        slot-name>> swap get-slot-named
+        dup double-infinite-interval? [ drop f ] when
+    ] with filter ;
+
+: many-where ( tuple seq -- )
+    " where " % [
+        " and " %
+    ] [
+        2dup slot-name>> swap get-slot-named where
+    ] interleave drop ;
+
+: where-clause ( tuple specs -- )
+    dupd filter-slots [ drop ] [ many-where ] if-empty ;
+
+
 
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
@@ -83,6 +161,8 @@ M: object delete-tuple-statement ( tuple -- statement )
             [ <return-binder> ] 2map <tuple-binder> >>out-columns
         ]
         [ nip table-name>> >>from ]
+        ! [ B columns>> swap where ]
+        ! [ B columns>> filter-slots drop ]
     } 2cleave ;
 
 M: object select-tuple-statement ( tuple -- statement )

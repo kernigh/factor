@@ -41,7 +41,7 @@ FROM: db2.fql => or ;
         select new
             { "name" "os" } >>names
             "computer" >>from
-            T{ or { sequence { "hmm > 1" "foo is NULL" } } } >>where
+            T{ or-sequence { sequence { "hmm > 1" "foo is NULL" } } } >>where
             "os" >>group-by
             "lol" >>order-by
             100 >>offset

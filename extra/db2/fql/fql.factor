@@ -42,9 +42,9 @@ M: select normalize-fql ( select -- select )
     [ ??1array ] change-group-by
     [ ??1array ] change-order-by ;
 
-TUPLE: and < fql sequence ;
+TUPLE: and-sequence < fql sequence ;
 
-TUPLE: or < fql sequence ;
+TUPLE: or-sequence < fql sequence ;
 
 TUPLE: fql-join < fql left-table left-column right-table right-column ;
 
@@ -127,14 +127,14 @@ M: full-outer-join expand-fql* ( obj -- string )
 : expand-fql ( object1 -- object2 )
     normalize-fql expand-fql* ;
 
-M: or expand-fql* ( obj -- string )
+M: or-sequence expand-fql* ( obj -- string )
     [
         sequence>> "(" %
         [ " or " % ] [ expand-fql* % ] interleave
         ")" %
     ] "" make ;
 
-M: and expand-fql* ( obj -- string )
+M: and-sequence expand-fql* ( obj -- string )
     [
         sequence>> "(" %
         [ " and " % ] [ expand-fql* % ] interleave

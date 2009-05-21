@@ -6,7 +6,7 @@ kernel make math.parser sequences strings assocs
 splitting ;
 IN: db2.fql
 
-TUPLE: fql ;
+TUPLE: fql in out ;
 
 GENERIC: expand-fql* ( object -- sequence/statement )
 GENERIC: normalize-fql ( object -- sequence/statement )
@@ -123,7 +123,9 @@ M: full-outer-join expand-fql* ( obj -- string )
         [ table-column-join% ] bi
     ] "" make ;
 
-: expand-fql ( object1 -- object2 ) normalize-fql expand-fql* ;
+: expand-fql ( object1 -- object2 )
+    [ normalize-fql expand-fql* ] keep
+    [ out>> >>out ] [ in>> >>in ] bi ;
 
 M: or expand-fql* ( obj -- string )
     [

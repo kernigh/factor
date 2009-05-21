@@ -79,6 +79,7 @@ M: object select-tuples-statement ( tuple -- statement )
     [ \ select new ] dip
     dup lookup-persistent {
         [ nip full-column-names >>names ]
+        [ nip columns>> [ type>> ] map >>out ]
         [ nip table-name>> >>from ]
     } 2cleave expand-fql ;
 
@@ -111,12 +112,12 @@ M: object count-tuples-statement ( tuple -- statement )
 : select-tuple ( tuple -- tuple' )
     [ class ]
     [ select-tuple-statement sql-bind-typed-query first ]
-    [ lookup-persistent all-column-setters>> new-filled-tuple ] tri ;
+    [ lookup-persistent columns>> [ setter>> ] map new-filled-tuple ] tri ;
 
 : select-tuples ( tuple -- seq )
     [ select-tuples-statement sql-bind-typed-query ]
     [ class ]
-    [ lookup-persistent all-column-setters>> ] tri
+    [ lookup-persistent columns>> [ setter>> ] map ] tri
     '[ [ _ ] dip _ new-filled-tuple ] map ;
 
 : count-tuples ( tuple -- n )

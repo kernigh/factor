@@ -4,8 +4,6 @@ USING: accessors db2 db2.tester db2.persistent.tests
 kernel tools.test db2.fql db2.statements.tests ;
 IN: db2.fql.tests
 
-FROM: db2.fql => or ;
-
 : test-fql ( -- )
     create-computer-table
 

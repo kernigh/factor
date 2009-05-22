@@ -93,27 +93,27 @@ M: string where ( spec obj -- ) object-where ;
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
     [
-        "create table " ,
-        [ table-name>> , "(" , ]
+        "create table " %
+        [ table-name>> % "(" % ]
         [
-            columns>> [ ", " , ] [
-                [ column-name>> , " " , ]
-                [ type>> sql-type>string , ]
+            columns>> [ ", " % ] [
+                [ column-name>> % " " % ]
+                [ type>> sql-type>string % ]
                 [
                     modifiers>> [
                         { [ PRIMARY-KEY? ] [ AUTOINCREMENT? ] } 1|| not
                     ] filter
-                    [ " " , sql-modifiers>string , ] when*
+                    [ " " % sql-modifiers>string % ] when*
                 ] tri
             ] interleave
         ] [ 
             find-primary-key [
-                ", " ,
-                "primary key(" ,
-                [ "," , ] [ column-name>> , ] interleave
-                ")" ,
+                ", " %
+                "primary key(" %
+                [ "," % ] [ column-name>> % ] interleave
+                ")" %
             ] unless-empty
-            ")" ,
+            ")" %
         ] tri
     ] "" make >>sql ;
 

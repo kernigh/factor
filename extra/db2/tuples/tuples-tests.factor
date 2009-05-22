@@ -250,6 +250,7 @@ PERSISTENT: pet
 ! [ test-pets ] test-dbs
 
 
+
 TUPLE: test1 id timestamp ;
 
 PERSISTENT: test1
@@ -295,7 +296,8 @@ PERSISTENT: test2
     [ ] [ T{ test2 { score 80 } } insert-tuple ] unit-test
     [ ] [ T{ test2 { score 90 } } insert-tuple ] unit-test
     [ ] [ T{ test2 { score 100 } } insert-tuple ] unit-test
-    [ 8 ] [ T{ test2 } select-tuples length ] unit-test
+    [ ] [ T{ test2 { score f } } insert-tuple ] unit-test
+    [ 9 ] [ T{ test2 } select-tuples length ] unit-test
     [ t ] [ T{ test2 } select-tuples [ score>> integer? ] all? ] unit-test
     [ 1 ] [
         T{ test2 { score $[ 45 55 1 <range> ] } } select-tuples length
@@ -303,6 +305,49 @@ PERSISTENT: test2
     [ 1 ] [
         T{ test2 { score $[ 45 55 <interval> ] } } select-tuples length
     ] unit-test
+
+    ! Double infinite interval should select any where the score is a number
+    [ 8 ] [
+        T{ test2 { score $[ -1/0. 1/0. <interval> ] } } select-tuples length
+    ] unit-test
+
+    [
+        T{ statement
+            { sql
+                "select id, score from test2 where (score = ? or score = ? or score = ?)"
+            }
+            { in V{
+                    T{ binder { type INTEGER } { value 49 } }
+                    T{ binder { type INTEGER } { value 50 } }
+                    T{ binder { type INTEGER } { value 51 } }
+                }
+            { out V{ } }
+        }
+    ] [
+       T{ select
+           { names { "id" "score" } }
+           { from "test2" }
+           { where
+               T{ or-sequence
+                { sequence
+                    {
+                       T{ op-eq { left "score" } { right "?" } }
+                       T{ op-eq { left "score" } { right "?" } }
+                       T{ op-eq { left "score" } { right "?" } }
+                    }
+                }
+              }
+           }
+           { where-in
+                {
+                    T{ binder { type INTEGER } { value 49 } }
+                    T{ binder { type INTEGER } { value 50 } }
+                    T{ binder { type INTEGER } { value 51 } }
+                }
+           }
+       } expand-fql
+    ] unit-test
+
     ;
 
 [ test-test2 ] test-dbs

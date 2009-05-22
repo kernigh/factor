@@ -4,7 +4,7 @@ USING: accessors arrays byte-arrays classes combinators
 combinators.short-circuit db2 db2.binders db2.connections
 db2.errors db2.fql db2.persistent db2.statements db2.types
 db2.utils fry kernel make math math.intervals sequences strings
-assocs ;
+assocs multiline math.ranges ;
 FROM: db2.types => NULL ;
 IN: db2.tuples
 
@@ -19,7 +19,8 @@ HOOK: select-tuples-statement db-connection ( tuple -- statement )
 HOOK: count-tuples-statement db-connection ( tuple -- statement )
 
 
-GENERIC: where ( specs obj -- )
+/*
+GENERIC# where 1 ( obj specs -- )
 
 : binder, ( spec obj -- )
     [ type>> ] dip <simple-binder> , ;
@@ -27,15 +28,6 @@ GENERIC: where ( specs obj -- )
 : interval-comparison ( ? str -- str )
     "from" = " >" " <" ? swap [ "= " append ] when ;
 
-: (infinite-interval?) ( interval -- ?1 ?2 )
-    [ from>> ] [ to>> ] bi
-    [ first fp-infinity? ] bi@ ;
-
-: double-infinite-interval? ( obj -- ? )
-    dup interval? [ (infinite-interval?) and ] [ drop f ] if ;
-
-: infinite-interval? ( obj -- ? )
-    dup interval? [ (infinite-interval?) or ] [ drop f ] if ;
 
 : where-interval ( spec obj from/to -- )
     over first fp-infinity? [
@@ -45,6 +37,16 @@ GENERIC: where ( specs obj -- )
         [ first2 ] dip interval-comparison ,
         binder,
     ] if ;
+
+: (infinite-interval?) ( interval -- ?1 ?2 )
+    [ from>> ] [ to>> ] bi [ first fp-infinity? ] bi@ ;
+
+: double-infinite-interval? ( obj -- ? )
+    dup interval? [ (infinite-interval?) and ] [ drop f ] if ;
+
+: infinite-interval? ( obj -- ? )
+    dup interval? [ (infinite-interval?) or ] [ drop f ] if ;
+
 
 : parens, ( quot -- ) "(" , call ")" , ; inline
 
@@ -71,27 +73,51 @@ M: byte-array where ( spec obj -- ) object-where ;
 M: object where ( spec obj -- ) object-where ;
 M: integer where ( spec obj -- ) object-where ;
 M: string where ( spec obj -- ) object-where ;
+*/
 
-: filter-slots ( tuple specs -- specs' )
-    [
-        slot-name>> swap get-slot-named
-        dup double-infinite-interval? [ drop f ] when
-    ] with filter ;
+
+
+
+
+
+
+GENERIC# where-object 1 ( obj spec -- fqls binders )
+
+M: object where-object
+    2drop { } { } ;
+
+M: range where-object
+    '[
+        _
+        [ type>> swap <simple-binder> ]
+        [ nip slot-name>> ] 2bi
+        ! [ _ type>> ] dip <simple-binder>
+    ] map ;
+
 
 : many-where ( tuple seq -- seq' )
     [
-        [ nip column-name>> "?" <op-eq> ]
-        [ nip type>> ]
-        [ slot-name>> swap get-slot-named ]
-        2tri <simple-binder> 2array
+B
+        [ getter>> execute( obj -- obj ) ] keep where-object
     ] with map ;
 
+: filter-slots ( tuple specs -- specs' )
+    [ slot-name>> swap get-slot-named ] with filter ;
+
 : where-clause ( tuple specs -- and-sequence binder-sequence )
-    dupd filter-slots [ drop f f ]
+    [ drop ] [ filter-slots ] 2bi
+    [ drop f f ]
     [
         many-where
         [ keys <and-sequence> ] [ values ] bi
     ] if-empty ;
+
+
+
+
+
+
+
 
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
@@ -162,6 +188,7 @@ M: object delete-tuple-statement ( tuple -- statement )
         ]
         [ nip table-name>> >>from ]
         [
+B
             columns>> where-clause
             [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty
         ]

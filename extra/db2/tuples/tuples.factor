@@ -160,7 +160,9 @@ M: object delete-tuple-statement ( tuple -- statement )
         [ nip table-name>> >>from ]
         [
             columns>> [ where-clause ] { } make
-            [ keys <and-sequence> >>where ] [ values >>where-in ] bi
+            [
+                [ keys <and-sequence> >>where ] [ values >>where-in ] bi
+            ] unless-empty
         ]
     } 2cleave ;
 

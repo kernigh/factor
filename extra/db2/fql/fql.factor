@@ -7,6 +7,7 @@ splitting ;
 IN: db2.fql
 
 TUPLE: fql ;
+TUPLE: fql-op < fql left right ;
 
 GENERIC: expand-fql* ( object -- sequence/statement )
 GENERIC: normalize-fql ( object -- sequence/statement )
@@ -33,7 +34,7 @@ M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 
-TUPLE: select < fql names out-columns from where group-by
+TUPLE: select < fql names names-out from where where-in group-by
 having order-by offset limit ;
 CONSTRUCTOR: select ( names from -- obj ) ;
 M: select normalize-fql ( select -- select )
@@ -43,8 +44,28 @@ M: select normalize-fql ( select -- select )
     [ ??1array ] change-order-by ;
 
 TUPLE: and-sequence < fql sequence ;
+CONSTRUCTOR: and-sequence ( sequence -- obj ) ;
 
 TUPLE: or-sequence < fql sequence ;
+CONSTRUCTOR: or-sequence ( sequence -- obj ) ;
+
+TUPLE: op-eq < fql-op ;
+CONSTRUCTOR: op-eq ( left right -- obj ) ;
+
+TUPLE: op-not-eq < fql-op ;
+CONSTRUCTOR: op-not-eq ( left right -- obj ) ;
+
+TUPLE: op-lt < fql-op ;
+CONSTRUCTOR: op-lt ( left right -- obj ) ;
+
+TUPLE: op-lteq < fql-op ;
+CONSTRUCTOR: op-lteq ( left right -- obj ) ;
+
+TUPLE: op-gt < fql-op ;
+CONSTRUCTOR: op-gt ( left right -- obj ) ;
+
+TUPLE: op-gteq < fql-op ;
+CONSTRUCTOR: op-gteq ( left right -- obj ) ;
 
 TUPLE: fql-join < fql left-table left-column right-table right-column ;
 
@@ -141,6 +162,15 @@ M: and-sequence expand-fql* ( obj -- string )
         ")" %
     ] "" make ;
 
+: >op< ( op -- left right ) [ left>> ] [ right>> ] bi ;
+
+M: op-eq expand-fql* >op< " = " glue ;
+M: op-not-eq expand-fql* >op< " <> " glue ;
+M: op-lt expand-fql* >op< " < " glue ;
+M: op-lteq expand-fql* >op< " <= " glue ;
+M: op-gt expand-fql* >op< " > " glue ;
+M: op-gteq expand-fql* >op< " >= " glue ;
+
 M: string expand-fql* ( string -- string ) ;
 
 M: insert expand-fql*
@@ -186,9 +216,10 @@ M: select expand-fql*
     [
         {
             [ "select " % names>> ", " join % ]
-            [ out-columns>> >>out ]
+            [ names-out>> >>out ]
             [ " from " % from>> ", " join % ]
             [ where>> [ " where " % expand-fql* % ] when* ]
+            [ where-in>> >>in ]
             [ group-by>> [ " group by " % ", " join % ] when* ]
             [ order-by>> [ " order by " % ", " join % ] when* ]
             [ offset>> [ " offset " % # ] when* ]

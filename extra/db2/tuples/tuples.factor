@@ -1,10 +1,10 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors byte-arrays classes combinators
+USING: accessors arrays byte-arrays classes combinators
 combinators.short-circuit db2 db2.binders db2.connections
 db2.errors db2.fql db2.persistent db2.statements db2.types
 db2.utils fry kernel make math math.intervals sequences strings
-;
+assocs ;
 FROM: db2.types => NULL ;
 IN: db2.tuples
 
@@ -41,38 +41,35 @@ GENERIC: where ( specs obj -- )
     over first fp-infinity? [
         3drop
     ] [
-        pick column-name>> %
-        [ first2 ] dip interval-comparison %
+        pick column-name>> ,
+        [ first2 ] dip interval-comparison ,
         binder,
     ] if ;
 
-: parens, ( quot -- ) "(" % call ")" % ; inline
+: parens, ( quot -- ) "(" , call ")" , ; inline
 
 M: interval where ( spec obj -- )
     [
         [ from>> "from" where-interval ]
-        [ nip infinite-interval? [ " and " % ] unless ]
+        [ nip infinite-interval? [ " and " , ] unless ]
         [ to>> "to" where-interval ] 2tri
     ] parens, ;
 
 M: sequence where ( spec obj -- )
     [
-        [ " or " % ] [ dupd where ] interleave drop
+        [ " or " , ] [ dupd where ] interleave drop
     ] parens, ;
 
 M: NULL where ( spec obj -- )
-    drop column-name>> % " is NULL" % ;
+    drop column-name>> , " is NULL" , ;
 
 : object-where ( spec obj -- )
-    over column-name>> % " = " % "?" % binder, ;
+    [ swap column-name>> "?" <op-eq> , ]
+    [ drop binder, ] 2bi ;
 
-M: byte-array where ( spec obj -- )
-    object-where ;
-
+M: byte-array where ( spec obj -- ) object-where ;
 M: object where ( spec obj -- ) object-where ;
-
 M: integer where ( spec obj -- ) object-where ;
-
 M: string where ( spec obj -- ) object-where ;
 
 : filter-slots ( tuple specs -- specs' )
@@ -82,41 +79,41 @@ M: string where ( spec obj -- ) object-where ;
     ] with filter ;
 
 : many-where ( tuple seq -- )
-    " where " % [
-        " and " %
-    ] [
-        2dup slot-name>> swap get-slot-named where
-    ] interleave drop ;
+    [
+        [ nip column-name>> "?" <op-eq> ]
+        [ nip type>> ]
+        [ slot-name>> swap get-slot-named ]
+        2tri <simple-binder> 2array
+    ] with map % ;
 
 : where-clause ( tuple specs -- )
     dupd filter-slots [ drop ] [ many-where ] if-empty ;
 
 
-
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
     [
-        "create table " %
-        [ table-name>> % "(" % ]
+        "create table " ,
+        [ table-name>> , "(" , ]
         [
-            columns>> [ ", " % ] [
-                [ column-name>> % " " % ]
-                [ type>> sql-type>string % ]
+            columns>> [ ", " , ] [
+                [ column-name>> , " " , ]
+                [ type>> sql-type>string , ]
                 [
                     modifiers>> [
                         { [ PRIMARY-KEY? ] [ AUTOINCREMENT? ] } 1|| not
                     ] filter
-                    [ " " % sql-modifiers>string % ] when*
+                    [ " " , sql-modifiers>string , ] when*
                 ] tri
             ] interleave
         ] [ 
             find-primary-key [
-                ", " %
-                "primary key(" %
-                [ "," % ] [ column-name>> % ] interleave
-                ")" %
+                ", " ,
+                "primary key(" ,
+                [ "," , ] [ column-name>> , ] interleave
+                ")" ,
             ] unless-empty
-            ")" %
+            ")" ,
         ] tri
     ] "" make >>sql ;
 
@@ -158,11 +155,13 @@ M: object delete-tuple-statement ( tuple -- statement )
             [ class>> ]
             [ columns>> [ slot-name>> ] map ]
             [ columns>> [ type>> ] map ] tri
-            [ <return-binder> ] 2map <tuple-binder> >>out-columns
+            [ <return-binder> ] 2map <tuple-binder> >>names-out
         ]
         [ nip table-name>> >>from ]
-        ! [ B columns>> swap where ]
-        ! [ B columns>> filter-slots drop ]
+        [
+            columns>> [ where-clause ] { } make
+            [ keys <and-sequence> >>where ] [ values >>where-in ] bi
+        ]
     } 2cleave ;
 
 M: object select-tuple-statement ( tuple -- statement )

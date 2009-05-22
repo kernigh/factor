@@ -78,17 +78,20 @@ M: string where ( spec obj -- ) object-where ;
         dup double-infinite-interval? [ drop f ] when
     ] with filter ;
 
-: many-where ( tuple seq -- )
+: many-where ( tuple seq -- seq' )
     [
         [ nip column-name>> "?" <op-eq> ]
         [ nip type>> ]
         [ slot-name>> swap get-slot-named ]
         2tri <simple-binder> 2array
-    ] with map % ;
+    ] with map ;
 
-: where-clause ( tuple specs -- )
-    dupd filter-slots [ drop ] [ many-where ] if-empty ;
-
+: where-clause ( tuple specs -- and-sequence binder-sequence )
+    dupd filter-slots [ drop f f ]
+    [
+        many-where
+        [ keys <and-sequence> ] [ values ] bi
+    ] if-empty ;
 
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
@@ -159,10 +162,8 @@ M: object delete-tuple-statement ( tuple -- statement )
         ]
         [ nip table-name>> >>from ]
         [
-            columns>> [ where-clause ] { } make
-            [
-                [ keys <and-sequence> >>where ] [ values >>where-in ] bi
-            ] unless-empty
+            columns>> where-clause
+            [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty
         ]
     } 2cleave ;
 

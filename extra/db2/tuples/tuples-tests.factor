@@ -2,7 +2,10 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2 db2.persistent db2.tester
 db2.tuples db2.types kernel tools.test db2.binders
-db2.statements multiline db2.fql db2.persistent.tests ;
+db2.statements multiline db2.fql db2.persistent.tests
+calendar literals sequences math math.ranges math.intervals ;
+QUALIFIED-WITH: math.intervals I
+QUALIFIED-WITH: math.ranges R
 IN: db2.tuples.tests
 
 : test-default-person ( -- )
@@ -16,7 +19,7 @@ IN: db2.tuples.tests
     [ T{ default-person { id 1 } { name "omg" } } ]
     [ person1 select-tuple ] unit-test
 
-    [ { T{ default-person { id 1 } { name "omg" } } } ]
+    [ V{ T{ default-person { id 1 } { name "omg" } } } ]
     [ person1 select-tuples ] unit-test
 
     [ ]
@@ -245,3 +248,108 @@ PERSISTENT: pet
 [ test-default-person ] test-dbs
 ! [ test-computer ] test-dbs
 ! [ test-pets ] test-dbs
+
+
+
+TUPLE: test1 id timestamp ;
+
+PERSISTENT: test1
+    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { { "timestamp" "ts" } TIMESTAMP } ;
+
+: test-test1 ( -- )
+    [ test1 drop-table ] ignore-errors
+    [ ] [ test1 create-table ] unit-test
+    [ ] [ T{ test1 { timestamp $[ 2010 1 1 <date> ] } } insert-tuple ] unit-test
+    [ ] [ T{ test1 { timestamp $[ 2010 1 2 <date> ] } } insert-tuple ] unit-test
+    [ ] [ T{ test1 { timestamp $[ 2010 1 3 <date> ] } } insert-tuple ] unit-test
+    [ ] [ T{ test1 { timestamp $[ 2010 1 4 <date> ] } } insert-tuple ] unit-test
+    [ ] [ T{ test1 { timestamp $[ 2010 1 5 <date> ] } } insert-tuple ] unit-test
+    [ 5 ] [ T{ test1 } select-tuples length ] unit-test
+    [ t ] [ T{ test1 } select-tuples [ timestamp>> ] all? ] unit-test
+/*
+    [ ] [
+        T{ test1 { timestamp $[ 2010 1 2 <date> 2010 1 4 <date> R:[a,b] ] } }
+        select-tuples
+    ] unit-test
+*/
+    ;
+
+[ test-test1 ] test-dbs
+
+
+TUPLE: test2 id score ;
+
+PERSISTENT: test2
+    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "score" INTEGER } ;
+
+
+: test-test2 ( -- )
+    [ test2 drop-table ] ignore-errors
+    [ ] [ test2 create-table ] unit-test
+    [ ] [ T{ test2 { score 0 } } insert-tuple ] unit-test
+    [ ] [ T{ test2 { score 10 } } insert-tuple ] unit-test
+    [ ] [ T{ test2 { score 20 } } insert-tuple ] unit-test
+    [ ] [ T{ test2 { score 40 } } insert-tuple ] unit-test
+    [ ] [ T{ test2 { score 50 } } insert-tuple ] unit-test
+    [ ] [ T{ test2 { score 80 } } insert-tuple ] unit-test
+    [ ] [ T{ test2 { score 90 } } insert-tuple ] unit-test
+    [ ] [ T{ test2 { score 100 } } insert-tuple ] unit-test
+    [ ] [ T{ test2 { score f } } insert-tuple ] unit-test
+    [ 9 ] [ T{ test2 } select-tuples length ] unit-test
+    [ f ] [ T{ test2 } select-tuples [ score>> integer? ] all? ] unit-test
+    [ 1 ] [
+        T{ test2 { score $[ 45 55 1 <range> ] } } select-tuples length
+    ] unit-test
+    [ 1 ] [
+        T{ test2 { score $[ 45 55 <interval> ] } } select-tuples length
+    ] unit-test
+
+    ! Double infinite interval should select any where the score is a number
+    [ 8 ] [
+B
+        T{ test2 { score $[ -1/0. 1/0. I:[a,b] ] } } select-tuples length
+    ] unit-test
+
+    [
+        T{ statement
+            { sql
+                "select id, score from test2 where (score = ? or score = ? or score = ?)"
+            }
+            { in V{
+                    T{ binder { type INTEGER } { value 49 } }
+                    T{ binder { type INTEGER } { value 50 } }
+                    T{ binder { type INTEGER } { value 51 } }
+                }
+            }
+            { out V{ } }
+        }
+    ] [
+       T{ select
+           { names { "id" "score" } }
+           { from "test2" }
+           { where
+               T{ or-sequence
+                { sequence
+                    {
+                       T{ op-eq { left "score" } { right "?" } }
+                       T{ op-eq { left "score" } { right "?" } }
+                       T{ op-eq { left "score" } { right "?" } }
+                    }
+                }
+              }
+           }
+           { where-in
+                {
+                    T{ binder { type INTEGER } { value 49 } }
+                    T{ binder { type INTEGER } { value 50 } }
+                    T{ binder { type INTEGER } { value 51 } }
+                }
+           }
+       } expand-fql
+    ] unit-test
+
+    ;
+
+[ test-test2 ] test-dbs

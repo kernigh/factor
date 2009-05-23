@@ -7,6 +7,7 @@ splitting ;
 IN: db2.fql
 
 TUPLE: fql ;
+TUPLE: fql-op < fql left right ;
 
 GENERIC: expand-fql* ( object -- sequence/statement )
 GENERIC: normalize-fql ( object -- sequence/statement )
@@ -33,7 +34,8 @@ M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 
-TUPLE: select < fql names from where group-by having order-by offset limit ;
+TUPLE: select < fql names names-out from where where-in group-by
+having order-by offset limit ;
 CONSTRUCTOR: select ( names from -- obj ) ;
 M: select normalize-fql ( select -- select )
     [ ??1array ] change-names
@@ -41,9 +43,29 @@ M: select normalize-fql ( select -- select )
     [ ??1array ] change-group-by
     [ ??1array ] change-order-by ;
 
-TUPLE: and < fql sequence ;
+TUPLE: and-sequence < fql sequence ;
+CONSTRUCTOR: and-sequence ( sequence -- obj ) ;
 
-TUPLE: or < fql sequence ;
+TUPLE: or-sequence < fql sequence ;
+CONSTRUCTOR: or-sequence ( sequence -- obj ) ;
+
+TUPLE: op-eq < fql-op ;
+CONSTRUCTOR: op-eq ( left right -- obj ) ;
+
+TUPLE: op-not-eq < fql-op ;
+CONSTRUCTOR: op-not-eq ( left right -- obj ) ;
+
+TUPLE: op-lt < fql-op ;
+CONSTRUCTOR: op-lt ( left right -- obj ) ;
+
+TUPLE: op-lteq < fql-op ;
+CONSTRUCTOR: op-lteq ( left right -- obj ) ;
+
+TUPLE: op-gt < fql-op ;
+CONSTRUCTOR: op-gt ( left right -- obj ) ;
+
+TUPLE: op-gteq < fql-op ;
+CONSTRUCTOR: op-gteq ( left right -- obj ) ;
 
 TUPLE: fql-join < fql left-table left-column right-table right-column ;
 
@@ -123,21 +145,31 @@ M: full-outer-join expand-fql* ( obj -- string )
         [ table-column-join% ] bi
     ] "" make ;
 
-: expand-fql ( object1 -- object2 ) normalize-fql expand-fql* ;
+: expand-fql ( object1 -- object2 )
+    normalize-fql expand-fql* ;
 
-M: or expand-fql* ( obj -- string )
+M: or-sequence expand-fql* ( obj -- string )
     [
         sequence>> "(" %
         [ " or " % ] [ expand-fql* % ] interleave
         ")" %
     ] "" make ;
 
-M: and expand-fql* ( obj -- string )
+M: and-sequence expand-fql* ( obj -- string )
     [
         sequence>> "(" %
         [ " and " % ] [ expand-fql* % ] interleave
         ")" %
     ] "" make ;
+
+: >op< ( op -- left right ) [ left>> ] [ right>> ] bi ;
+
+M: op-eq expand-fql* >op< " = " glue ;
+M: op-not-eq expand-fql* >op< " <> " glue ;
+M: op-lt expand-fql* >op< " < " glue ;
+M: op-lteq expand-fql* >op< " <= " glue ;
+M: op-gt expand-fql* >op< " > " glue ;
+M: op-gteq expand-fql* >op< " >= " glue ;
 
 M: string expand-fql* ( string -- string ) ;
 
@@ -150,7 +182,7 @@ M: insert expand-fql*
             [ " values (" % values>> length "?" <array> ", " join % ");" % ]
             [ values>> >>in ]
         } cleave
-    ] "" make >>sql ;
+    ] "" make >>sql normalize-statement ;
 
 M: update expand-fql*
     [ statement new ] dip
@@ -166,7 +198,7 @@ M: update expand-fql*
             [ order-by>> [ " order by " % ", " join % ] when* ]
             [ limit>> [ " limit " % # ] when* ]
         } cleave
-    ] "" make >>sql ;
+    ] "" make >>sql normalize-statement ;
 
 M: delete expand-fql*
     [ statement new ] dip
@@ -177,21 +209,23 @@ M: delete expand-fql*
                 [ order-by>> [ " order by " % ", " join % ] when* ]
             [ limit>> [ " limit " % # ] when* ]
         } cleave
-    ] "" make >>sql ;
+    ] "" make >>sql normalize-statement ;
 
 M: select expand-fql*
     [ statement new ] dip
     [
         {
             [ "select " % names>> ", " join % ]
+            [ names-out>> >>out ]
             [ " from " % from>> ", " join % ]
             [ where>> [ " where " % expand-fql* % ] when* ]
+            [ where-in>> >>in ]
             [ group-by>> [ " group by " % ", " join % ] when* ]
             [ order-by>> [ " order by " % ", " join % ] when* ]
             [ offset>> [ " offset " % # ] when* ]
             [ limit>> [ " limit " % # ] when* ]
         } cleave
-    ] "" make >>sql ;
+    ] "" make >>sql normalize-statement ;
 
 TUPLE: set-operator < fql all? selects ;
 

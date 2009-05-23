@@ -1,8 +1,11 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: db2 db2.connections db2.persistent sequences kernel
-db2.errors fry classes db2.utils accessors db2.fql combinators
-db2.statements db2.types make db2.binders combinators.short-circuit ;
+USING: accessors arrays byte-arrays classes combinators
+combinators.short-circuit db2 db2.binders db2.connections
+db2.errors db2.fql db2.persistent db2.statements db2.types
+db2.utils fry kernel make math math.intervals sequences strings
+assocs multiline math.ranges sequences.deep ;
+FROM: db2.types => NULL ;
 IN: db2.tuples
 
 HOOK: create-table-statement db-connection ( class -- statement )
@@ -14,6 +17,115 @@ HOOK: delete-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuples-statement db-connection ( tuple -- statement )
 HOOK: count-tuples-statement db-connection ( tuple -- statement )
+
+
+/*
+GENERIC# where 1 ( obj specs -- )
+
+: binder, ( spec obj -- )
+    [ type>> ] dip <simple-binder> , ;
+
+: interval-comparison ( ? str -- str )
+    "from" = " >" " <" ? swap [ "= " append ] when ;
+
+
+: where-interval ( spec obj from/to -- )
+    over first fp-infinity? [
+        3drop
+    ] [
+        pick column-name>> ,
+        [ first2 ] dip interval-comparison ,
+        binder,
+    ] if ;
+
+: (infinite-interval?) ( interval -- ?1 ?2 )
+    [ from>> ] [ to>> ] bi [ first fp-infinity? ] bi@ ;
+
+: double-infinite-interval? ( obj -- ? )
+    dup interval? [ (infinite-interval?) and ] [ drop f ] if ;
+
+: infinite-interval? ( obj -- ? )
+    dup interval? [ (infinite-interval?) or ] [ drop f ] if ;
+
+
+: parens, ( quot -- ) "(" , call ")" , ; inline
+
+M: interval where ( spec obj -- )
+    [
+        [ from>> "from" where-interval ]
+        [ nip infinite-interval? [ " and " , ] unless ]
+        [ to>> "to" where-interval ] 2tri
+    ] parens, ;
+
+M: sequence where ( spec obj -- )
+    [
+        [ " or " , ] [ dupd where ] interleave drop
+    ] parens, ;
+
+M: NULL where ( spec obj -- )
+    drop column-name>> , " is NULL" , ;
+
+: object-where ( spec obj -- )
+    [ swap column-name>> "?" <op-eq> , ]
+    [ drop binder, ] 2bi ;
+
+M: byte-array where ( spec obj -- ) object-where ;
+M: object where ( spec obj -- ) object-where ;
+M: integer where ( spec obj -- ) object-where ;
+M: string where ( spec obj -- ) object-where ;
+*/
+
+
+
+
+
+
+TUPLE: where op binder ;
+
+GENERIC# where-object 1 ( obj spec -- where )
+
+: (where-object) ( obj spec -- where )
+    swap [
+        drop slot-name>> "?" <op-eq>
+    ] [
+        [ type>> ] dip <simple-binder>
+    ] 2bi where boa ;
+
+M: object where-object (where-object) ;
+M: integer where-object (where-object) ;
+M: byte-array where-object (where-object) ;
+M: string where-object (where-object) ;
+
+! binders should be an <or-sequence>
+M: sequence where-object
+    swap [
+        [
+            drop slot-name>> "?" <op-eq>
+        ] [
+            [ type>> ] dip <simple-binder>
+        ] 2bi where boa
+    ] with map ;
+
+: many-where ( tuple seq -- wheres )
+    [
+        [ getter>> execute( obj -- obj ) ] keep where-object
+    ] with map ;
+
+: filter-slots ( tuple specs -- specs' )
+    [ slot-name>> swap get-slot-named ] with filter ;
+
+: where-clause ( tuple specs -- and-sequence binder-sequence )
+    [ drop ] [ filter-slots ] 2bi
+    [ drop f f ]
+    [
+B
+        many-where flatten
+        [ [ op>> ] map <and-sequence> ]
+        [ [ binder>> ] map ] bi
+    ] if-empty ;
+
+
+
 
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
@@ -57,7 +169,8 @@ M: object insert-tuple-statement ( tuple -- statement )
             ] [
                 columns>> [ getter>> ] map
                 [ execute( obj -- obj' ) ] with map
-            ] 2bi [ <simple-binder> ] 2map >>values
+            ] 2bi
+            [ <simple-binder> ] 2map >>values
         ]
     } 2cleave expand-fql ;
 
@@ -67,20 +180,36 @@ M: object update-tuple-statement ( tuple -- statement )
 M: object delete-tuple-statement ( tuple -- statement )
     ;
 
+: (select-tuples-statement) ( tuple -- fql )
+    [ \ select new ] dip
+    dup lookup-persistent {
+        [
+            nip [ table-name>> ] [ columns>> ] bi
+            [ column-name>> "." glue ] with map >>names
+        ]
+        [
+            nip
+            [ class>> ]
+            [ columns>> [ slot-name>> ] map ]
+            [ columns>> [ type>> ] map ] tri
+            [ <return-binder> ] 2map <tuple-binder> >>names-out
+        ]
+        [ nip table-name>> >>from ]
+        [
+            columns>> where-clause
+            [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty
+        ]
+    } 2cleave ;
+
 M: object select-tuple-statement ( tuple -- statement )
-    select-tuples-statement
-        1 >>limit ;
+    (select-tuples-statement) 1 >>limit expand-fql ;
 
 : full-column-names ( persistent -- seq )
     [ table-name>> ] [ columns>> [ column-name>> ] map ] bi
     [ "." glue ] with map ;
 
 M: object select-tuples-statement ( tuple -- statement )
-    [ \ select new ] dip
-    dup lookup-persistent {
-        [ nip full-column-names >>names ]
-        [ nip table-name>> >>from ]
-    } 2cleave expand-fql ;
+    (select-tuples-statement) expand-fql ;
 
 M: object count-tuples-statement ( tuple -- statement )
     ;
@@ -109,15 +238,10 @@ M: object count-tuples-statement ( tuple -- statement )
     delete-tuple-statement sql-bind-typed-command ;
 
 : select-tuple ( tuple -- tuple' )
-    [ class ]
-    [ select-tuple-statement sql-bind-typed-query first ]
-    [ lookup-persistent all-column-setters>> new-filled-tuple ] tri ;
+    select-tuple-statement sql-bind-typed-query first ;
 
 : select-tuples ( tuple -- seq )
-    [ select-tuples-statement sql-bind-typed-query ]
-    [ class ]
-    [ lookup-persistent all-column-setters>> ] tri
-    '[ [ _ ] dip _ new-filled-tuple ] map ;
+    select-tuples-statement sql-bind-typed-query ;
 
 : count-tuples ( tuple -- n )
     count-tuples-statement sql-bind-typed-query ;

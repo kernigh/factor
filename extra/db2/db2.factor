@@ -3,7 +3,7 @@
 USING: accessors continuations db2.result-sets db2.sqlite.lib
 db2.sqlite.result-sets db2.sqlite.statements db2.sqlite.types
 db2.statements destructors fry kernel math namespaces sequences
-strings db2.fql ;
+strings db2.fql summary ;
 IN: db2
 
 ERROR: no-in-types statement ;
@@ -45,12 +45,17 @@ M: statement sql-bind-query ( statement -- sequence )
 
 M: statement sql-bind-typed-command ( statement -- )
     [
+        dup in>> empty? [ no-in-types ] when
         prepare-statement
         [ bind-typed-sequence ] [ statement>result-set drop ] bi
     ] with-disposal ;
 
+M: no-out-types summary
+    drop "SQL types are required for the return values of this query" ;
+
 M: statement sql-bind-typed-query ( statement -- sequence )
     [
+        dup out>> empty? [ no-out-types ] when
         prepare-statement
         [ bind-typed-sequence ] [ statement>typed-result-sequence ] bi
     ] with-disposal ;

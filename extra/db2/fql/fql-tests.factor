@@ -4,8 +4,6 @@ USING: accessors db2 db2.tester db2.persistent.tests
 kernel tools.test db2.fql db2.statements.tests ;
 IN: db2.fql.tests
 
-FROM: db2.fql => or ;
-
 : test-fql ( -- )
     create-computer-table
 
@@ -41,7 +39,7 @@ FROM: db2.fql => or ;
         select new
             { "name" "os" } >>names
             "computer" >>from
-            T{ or { sequence { "hmm > 1" "foo is NULL" } } } >>where
+            T{ or-sequence { sequence { "hmm > 1" "foo is NULL" } } } >>where
             "os" >>group-by
             "lol" >>order-by
             100 >>offset

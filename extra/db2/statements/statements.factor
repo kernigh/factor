@@ -2,7 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2.connections db2.errors
 db2.result-sets db2.utils destructors fry kernel sequences
-strings vectors db2.binders db2.types namespaces math ;
+strings vectors db2.binders db2.types namespaces math
+combinators.short-circuit ;
 IN: db2.statements
 
 TUPLE: statement handle sql in out type ;
@@ -19,16 +20,24 @@ TUPLE: tuple-parameter < parameter db-column ;
 <PRIVATE
 
 : obj>vector ( obj -- vector )
-    V{ } clone or
-    dup string? [ 1vector ] [ >vector ] if ;
+    dup { [ sequence? ] [ integer? not ] } 1&& [
+        >vector
+    ] [
+        1vector
+    ] if ;
 
 PRIVATE>
 
+: normalize-statement ( statement -- statement )  
+    [ obj>vector ] change-out
+    [ obj>vector ] change-in ;
+
 : <statement> ( sql in out -- statement )
     statement new
-        swap obj>vector >>out
-        swap obj>vector >>in
-        swap >>sql ;
+        swap >>out
+        swap >>in
+        swap >>sql
+        normalize-statement ;
 
 : <empty-statement> ( -- statement )
     f f f <statement> ;
@@ -86,6 +95,7 @@ M: object execute-statement* ( statement type -- )
     out>> [ tuple-binder? ] all? ;
 
 : statement>typed-result-sequence ( statement -- sequence )
+    normalize-statement
     statement>result-set
     [
         dup return-tuples? [
@@ -94,8 +104,3 @@ M: object execute-statement* ( statement type -- )
             [ return-sequence ] result-set-map
         ] if
     ] with-disposal ;
-
-: push-in ( statement parameter -- statement ) over in>> push ;
-: push-out ( statement parameter -- statement ) over out>> push ;
-: push-all-in ( statement parameter -- statement ) over in>> push-all ;
-: push-all-out ( statement parameter -- statement ) over out>> push-all ;

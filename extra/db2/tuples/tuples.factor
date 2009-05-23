@@ -4,7 +4,7 @@ USING: accessors arrays byte-arrays classes combinators
 combinators.short-circuit db2 db2.binders db2.connections
 db2.errors db2.fql db2.persistent db2.statements db2.types
 db2.utils fry kernel make math math.intervals sequences strings
-assocs multiline math.ranges ;
+assocs multiline math.ranges sequences.deep ;
 FROM: db2.types => NULL ;
 IN: db2.tuples
 
@@ -80,24 +80,34 @@ M: string where ( spec obj -- ) object-where ;
 
 
 
+TUPLE: where op binder ;
 
-GENERIC# where-object 1 ( obj spec -- fqls binders )
+GENERIC# where-object 1 ( obj spec -- where )
 
-M: object where-object
-    2drop { } { } ;
+: (where-object) ( obj spec -- where )
+    swap [
+        drop slot-name>> "?" <op-eq>
+    ] [
+        [ type>> ] dip <simple-binder>
+    ] 2bi where boa ;
 
-M: range where-object
-    '[
-        _
-        [ type>> swap <simple-binder> ]
-        [ nip slot-name>> ] 2bi
-        ! [ _ type>> ] dip <simple-binder>
-    ] map ;
+M: object where-object (where-object) ;
+M: integer where-object (where-object) ;
+M: byte-array where-object (where-object) ;
+M: string where-object (where-object) ;
 
+! binders should be an <or-sequence>
+M: sequence where-object
+    swap [
+        [
+            drop slot-name>> "?" <op-eq>
+        ] [
+            [ type>> ] dip <simple-binder>
+        ] 2bi where boa
+    ] with map ;
 
-: many-where ( tuple seq -- seq' )
+: many-where ( tuple seq -- wheres )
     [
-B
         [ getter>> execute( obj -- obj ) ] keep where-object
     ] with map ;
 
@@ -108,13 +118,11 @@ B
     [ drop ] [ filter-slots ] 2bi
     [ drop f f ]
     [
-        many-where
-        [ keys <and-sequence> ] [ values ] bi
+B
+        many-where flatten
+        [ [ op>> ] map <and-sequence> ]
+        [ [ binder>> ] map ] bi
     ] if-empty ;
-
-
-
-
 
 
 
@@ -188,7 +196,6 @@ M: object delete-tuple-statement ( tuple -- statement )
         ]
         [ nip table-name>> >>from ]
         [
-B
             columns>> where-clause
             [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty
         ]

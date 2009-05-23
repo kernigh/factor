@@ -298,7 +298,7 @@ PERSISTENT: test2
     [ ] [ T{ test2 { score 100 } } insert-tuple ] unit-test
     [ ] [ T{ test2 { score f } } insert-tuple ] unit-test
     [ 9 ] [ T{ test2 } select-tuples length ] unit-test
-    [ t ] [ T{ test2 } select-tuples [ score>> integer? ] all? ] unit-test
+    [ f ] [ T{ test2 } select-tuples [ score>> integer? ] all? ] unit-test
     [ 1 ] [
         T{ test2 { score $[ 45 55 1 <range> ] } } select-tuples length
     ] unit-test
@@ -308,7 +308,8 @@ PERSISTENT: test2
 
     ! Double infinite interval should select any where the score is a number
     [ 8 ] [
-        T{ test2 { score $[ -1/0. 1/0. <interval> ] } } select-tuples length
+B
+        T{ test2 { score $[ -1/0. 1/0. I:[a,b] ] } } select-tuples length
     ] unit-test
 
     [
@@ -321,6 +322,7 @@ PERSISTENT: test2
                     T{ binder { type INTEGER } { value 50 } }
                     T{ binder { type INTEGER } { value 51 } }
                 }
+            }
             { out V{ } }
         }
     ] [

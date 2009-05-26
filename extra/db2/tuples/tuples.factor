@@ -76,6 +76,10 @@ M: sequence where-object
         [ keys <and-sequence> ] [ values concat ] bi
     ] if-empty ;
 
+: set-statement-where ( statement tuple specs -- statement )
+    columns>> where-clause
+    [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty ;
+
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
     [
@@ -146,10 +150,7 @@ M: object delete-tuple-statement ( tuple -- statement )
             [ <return-binder> ] 2map <tuple-binder> >>names-out
         ]
         [ nip table-name>> >>from ]
-        [
-            columns>> where-clause
-            [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty
-        ]
+        [ set-statement-where ]
     } 2cleave ;
 
 M: object select-tuple-statement ( tuple -- statement )
@@ -167,23 +168,12 @@ M: object count-tuples-statement ( tuple -- statement )
     dup lookup-persistent {
         [
             nip [ table-name>> ] [ columns>> ] bi
-            [ column-name>> "." glue ] with map >>names
-        ]
-        [
-            ! [ B <count>  ]
-            nip
-            [ class>> ]
-            [ columns>> [ slot-name>> ] map ]
-            [ columns>> [ type>> ] map ] tri
-            [ <return-binder> ] 2map <tuple-binder> >>names-out
+            first column-name>> "." glue <fql-count> >>names
+            INTEGER f <simple-binder> >>names-out
         ]
         [ nip table-name>> >>from ]
-        [
-            columns>> where-clause
-            [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty
-        ]
-    } 2cleave
-    ;
+        [ set-statement-where ]
+    } 2cleave expand-fql ;
 
 : create-table ( class -- )
     create-table-statement sql-bind-command ;
@@ -215,4 +205,4 @@ M: object count-tuples-statement ( tuple -- statement )
     select-tuples-statement sql-bind-typed-query ;
 
 : count-tuples ( tuple -- n )
-    count-tuples-statement sql-bind-typed-query ;
+    count-tuples-statement sql-bind-typed-query first first ;

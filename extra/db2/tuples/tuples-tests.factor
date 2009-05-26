@@ -308,7 +308,6 @@ PERSISTENT: test2
 
     ! Double infinite interval should select any where the score is a number
     [ 8 ] [
-B
         T{ test2 { score $[ -1/0. 1/0. I:[a,b] ] } } select-tuples length
     ] unit-test
 

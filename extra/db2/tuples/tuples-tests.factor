@@ -300,10 +300,10 @@ PERSISTENT: test2
     [ 9 ] [ T{ test2 } select-tuples length ] unit-test
     [ f ] [ T{ test2 } select-tuples [ score>> integer? ] all? ] unit-test
     [ 1 ] [
-        T{ test2 { score $[ 45 55 1 <range> ] } } select-tuples length
+        T{ test2 { score $[ 45 55 R:[a,b] ] } } select-tuples length
     ] unit-test
     [ 1 ] [
-        T{ test2 { score $[ 45 55 <interval> ] } } select-tuples length
+        T{ test2 { score $[ 45 55 I:[a,b] ] } } select-tuples length
     ] unit-test
 
     ! Double infinite interval should select any where the score is a number

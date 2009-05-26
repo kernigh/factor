@@ -58,14 +58,14 @@ CONSTRUCTOR: op-not-eq ( left right -- obj ) ;
 TUPLE: op-lt < fql-op ;
 CONSTRUCTOR: op-lt ( left right -- obj ) ;
 
-TUPLE: op-lteq < fql-op ;
-CONSTRUCTOR: op-lteq ( left right -- obj ) ;
+TUPLE: op-lt-eq < fql-op ;
+CONSTRUCTOR: op-lt-eq ( left right -- obj ) ;
 
 TUPLE: op-gt < fql-op ;
 CONSTRUCTOR: op-gt ( left right -- obj ) ;
 
-TUPLE: op-gteq < fql-op ;
-CONSTRUCTOR: op-gteq ( left right -- obj ) ;
+TUPLE: op-gt-eq < fql-op ;
+CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
 
 TUPLE: fql-join < fql left-table left-column right-table right-column ;
 
@@ -167,9 +167,9 @@ M: and-sequence expand-fql* ( obj -- string )
 M: op-eq expand-fql* >op< " = " glue ;
 M: op-not-eq expand-fql* >op< " <> " glue ;
 M: op-lt expand-fql* >op< " < " glue ;
-M: op-lteq expand-fql* >op< " <= " glue ;
+M: op-lt-eq expand-fql* >op< " <= " glue ;
 M: op-gt expand-fql* >op< " > " glue ;
-M: op-gteq expand-fql* >op< " >= " glue ;
+M: op-gt-eq expand-fql* >op< " >= " glue ;
 
 M: string expand-fql* ( string -- string ) ;
 

@@ -33,9 +33,29 @@ M: byte-array where-object (where-object) ;
 M: string where-object (where-object) ;
 
 ERROR: unimplemented ;
-M: interval where-object unimplemented ;
-/*
 M: interval where-object
+B
+    swap
+    [
+        from>> first2 [
+            [ slot-name>> "?" <op-gt-eq> ] dip
+        ] [
+            [ slot-name>> "?" <op-gt> ] dip
+        ] if
+        REAL swap <simple-binder> 1array 2array ,
+    ] [
+        to>> first2 [
+            [ slot-name>> "?" <op-lt-eq> ] dip
+        ] [
+            [ slot-name>> "?" <op-lt> ] dip
+        ] if
+        REAL swap <simple-binder> 1array 2array ,
+    ] 2bi ;
+    
+/*
+    2drop ;
+
+: omg ( -- )
     swap
     [
         from>> first2

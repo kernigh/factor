@@ -214,7 +214,7 @@ M: select expand-fql*
     [ statement new ] dip
     [
         {
-            [ "select " % names>> ", " join % ]
+            [ "select " % names>> [ expand-fql* ] map ", " join % ]
             [ names-out>> >>out ]
             [ " from " % from>> ", " join % ]
             [ where>> [ " where " % expand-fql* % ] when* ]

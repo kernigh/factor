@@ -8,6 +8,8 @@ assocs multiline math.ranges sequences.deep ;
 FROM: db2.types => NULL ;
 IN: db2.tuples
 
+ERROR: unimplemented ;
+
 HOOK: create-table-statement db-connection ( class -- statement )
 HOOK: drop-table-statement db-connection ( class -- statement )
 
@@ -31,10 +33,7 @@ M: object where-object (where-object) ;
 M: integer where-object (where-object) ;
 M: byte-array where-object (where-object) ;
 M: string where-object (where-object) ;
-
-ERROR: unimplemented ;
 M: interval where-object
-B
     swap
     [
         from>> first2 [
@@ -51,23 +50,7 @@ B
         ] if
         REAL swap <simple-binder> 1array 2array ,
     ] 2bi ;
-    
-/*
-    2drop ;
 
-: omg ( -- )
-    swap
-    [
-        from>> first2
-        [
-        ] [
-        ] if
-    ] [
-        to>> first2
-    ] 2bi ;
-*/
-
-! binders should be an <or-sequence>
 M: sequence where-object
     swap [
         [

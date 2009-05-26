@@ -14,7 +14,6 @@ GENERIC: normalize-fql ( object -- sequence/statement )
 
 M: object normalize-fql ( object -- fql ) ;
 
-
 TUPLE: insert < fql into names values ;
 CONSTRUCTOR: insert ( into names values -- obj ) ;
 M: insert normalize-fql ( insert -- insert )
@@ -246,17 +245,47 @@ TUPLE: nullif < fql a b ; ! if a == b, then null, else a
 ! Aggregate functions
 
 TUPLE: aggregate-function < fql column ;
+: new-aggregate-function ( column class -- obj )
+    new swap >>column ; inline
 
-TUPLE: avg < aggregate-function ;
+TUPLE: fql-avg < aggregate-function ;
+: <fql-avg> ( column -- count ) fql-avg new-aggregate-function ;
 
-TUPLE: sum < aggregate-function ;
+TUPLE: fql-sum < aggregate-function ;
+: <fql-sum> ( column -- count ) fql-sum new-aggregate-function ;
 
-TUPLE: count < aggregate-function ;
+TUPLE: fql-count < aggregate-function ;
+: <fql-count> ( column -- count ) fql-count new-aggregate-function ;
 
-TUPLE: min < aggregate-function ;
+TUPLE: fql-min < aggregate-function ;
+: <fql-min> ( column -- count ) fql-min new-aggregate-function ;
 
-TUPLE: max < aggregate-function ;
+TUPLE: fql-max < aggregate-function ;
+: <fql-max> ( column -- count ) fql-max new-aggregate-function ;
 
 TUPLE: fql-first < aggregate-function ;
+: <fql-first> ( column -- count ) fql-first new-aggregate-function ;
 
 TUPLE: fql-last < aggregate-function ;
+: <fql-last> ( column -- count ) fql-last new-aggregate-function ;
+
+M: fql-avg expand-fql* ( obj -- string )
+    column>> "avg(" ")" surround ;
+
+M: fql-sum expand-fql* ( obj -- string )
+    column>> "sum(" ")" surround ;
+
+M: fql-count expand-fql* ( obj -- string )
+    column>> "count(" ")" surround ;
+
+M: fql-min expand-fql* ( obj -- string )
+    column>> "min(" ")" surround ;
+
+M: fql-max expand-fql* ( obj -- string )
+    column>> "max(" ")" surround ;
+
+M: fql-first expand-fql* ( obj -- string )
+    column>> "first(" ")" surround ;
+
+M: fql-last expand-fql* ( obj -- string )
+    column>> "last(" ")" surround ;

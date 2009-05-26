@@ -266,6 +266,7 @@ PERSISTENT: test1
     [ ] [ T{ test1 { timestamp $[ 2010 1 4 <date> ] } } insert-tuple ] unit-test
     [ ] [ T{ test1 { timestamp $[ 2010 1 5 <date> ] } } insert-tuple ] unit-test
     [ 5 ] [ T{ test1 } select-tuples length ] unit-test
+    [ 5 ] [ T{ test1 } count-tuples ] unit-test
     [ t ] [ T{ test1 } select-tuples [ timestamp>> ] all? ] unit-test
 /*
     [ ] [

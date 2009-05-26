@@ -163,6 +163,26 @@ M: object select-tuples-statement ( tuple -- statement )
     (select-tuples-statement) expand-fql ;
 
 M: object count-tuples-statement ( tuple -- statement )
+    [ \ select new ] dip
+    dup lookup-persistent {
+        [
+            nip [ table-name>> ] [ columns>> ] bi
+            [ column-name>> "." glue ] with map >>names
+        ]
+        [
+            ! [ B <count>  ]
+            nip
+            [ class>> ]
+            [ columns>> [ slot-name>> ] map ]
+            [ columns>> [ type>> ] map ] tri
+            [ <return-binder> ] 2map <tuple-binder> >>names-out
+        ]
+        [ nip table-name>> >>from ]
+        [
+            columns>> where-clause
+            [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty
+        ]
+    } 2cleave
     ;
 
 : create-table ( class -- )

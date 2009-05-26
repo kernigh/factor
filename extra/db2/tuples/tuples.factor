@@ -6,6 +6,7 @@ db2.errors db2.fql db2.persistent db2.statements db2.types
 db2.utils fry kernel make math math.intervals sequences strings
 assocs multiline math.ranges sequences.deep ;
 FROM: db2.types => NULL ;
+FROM: db2.fql => update ;
 IN: db2.tuples
 
 ERROR: unimplemented ;
@@ -129,7 +130,26 @@ M: object insert-tuple-statement ( tuple -- statement )
 
 M: object update-tuple-statement ( tuple -- statement )
     unimplemented
-    ;
+    [ \ update new ] dip
+    dup lookup-persistent {
+        [ nip table-name>> >>tables ]
+        [
+            nip [ table-name>> ] [ columns>> ] bi
+            [ column-name>> "." glue ] with map >>keys
+        ]
+        [
+            nip
+            [ nip columns>> [ type>> ] map ]
+            [
+                columns>> [ getter>> ] map
+                [ execute( obj -- obj' ) ] with map
+            ] 2bi
+
+            [ <simple-binder> ] 2map >>values
+        ]
+        [ nip table-name>> >>from ]
+        ! [ set-statement-where ]
+    } 2cleave ;
 
 M: object delete-tuple-statement ( tuple -- statement )
     unimplemented

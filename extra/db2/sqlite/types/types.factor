@@ -17,6 +17,7 @@ IN: db2.sqlite.types
         { TEXT [ sqlite-bind-text-by-name ] }
         { VARCHAR [ sqlite-bind-text-by-name ] }
         { DOUBLE [ sqlite-bind-double-by-name ] }
+        { REAL [ sqlite-bind-double-by-name ] }
         { DATE [ timestamp>ymd sqlite-bind-text-by-name ] }
         { TIME [ timestamp>hms sqlite-bind-text-by-name ] }
         { DATETIME [ timestamp>ymdhms sqlite-bind-text-by-name ] }
@@ -40,6 +41,7 @@ IN: db2.sqlite.types
         { TEXT [ sqlite-bind-text ] }
         { VARCHAR [ sqlite-bind-text ] }
         { DOUBLE [ sqlite-bind-double ] }
+        { REAL [ sqlite-bind-double ] }
         { DATE [ timestamp>ymd sqlite-bind-text ] }
         { TIME [ timestamp>hms sqlite-bind-text ] }
         { DATETIME [ timestamp>ymdhms sqlite-bind-text ] }
@@ -79,6 +81,7 @@ IN: db2.sqlite.types
         { UNSIGNED-BIG-INTEGER [ sqlite3-column-uint64 ] }
         { BOOLEAN [ sqlite3_column_int 1 = ] }
         { DOUBLE [ sqlite3_column_double ] }
+        { REAL [ sqlite3_column_double ] }
         { TEXT [ sqlite3_column_text ] }
         { VARCHAR [ sqlite3_column_text ] }
         { DATE [ sqlite3_column_text [ ymd>timestamp ] ?when ] }
@@ -131,6 +134,7 @@ M: sqlite-db-connection sql-type>string
         { SIGNED-BIG-INTEGER [ "BIGINT" ] }
         { UNSIGNED-BIG-INTEGER [ "BIGINT" ] }
         { DOUBLE [ "DOUBLE" ] }
+        { REAL [ "DOUBLE" ] }
         { BOOLEAN [ "BOOLEAN" ] }
         { TEXT [ "TEXT" ] }
         { VARCHAR [ "TEXT" ] }

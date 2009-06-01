@@ -14,7 +14,6 @@ GENERIC: normalize-fql ( object -- sequence/statement )
 
 M: object normalize-fql ( object -- fql ) ;
 
-
 TUPLE: insert < fql into names values ;
 CONSTRUCTOR: insert ( into names values -- obj ) ;
 M: insert normalize-fql ( insert -- insert )
@@ -58,14 +57,14 @@ CONSTRUCTOR: op-not-eq ( left right -- obj ) ;
 TUPLE: op-lt < fql-op ;
 CONSTRUCTOR: op-lt ( left right -- obj ) ;
 
-TUPLE: op-lteq < fql-op ;
-CONSTRUCTOR: op-lteq ( left right -- obj ) ;
+TUPLE: op-lt-eq < fql-op ;
+CONSTRUCTOR: op-lt-eq ( left right -- obj ) ;
 
 TUPLE: op-gt < fql-op ;
 CONSTRUCTOR: op-gt ( left right -- obj ) ;
 
-TUPLE: op-gteq < fql-op ;
-CONSTRUCTOR: op-gteq ( left right -- obj ) ;
+TUPLE: op-gt-eq < fql-op ;
+CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
 
 TUPLE: fql-join < fql left-table left-column right-table right-column ;
 
@@ -167,9 +166,9 @@ M: and-sequence expand-fql* ( obj -- string )
 M: op-eq expand-fql* >op< " = " glue ;
 M: op-not-eq expand-fql* >op< " <> " glue ;
 M: op-lt expand-fql* >op< " < " glue ;
-M: op-lteq expand-fql* >op< " <= " glue ;
+M: op-lt-eq expand-fql* >op< " <= " glue ;
 M: op-gt expand-fql* >op< " > " glue ;
-M: op-gteq expand-fql* >op< " >= " glue ;
+M: op-gt-eq expand-fql* >op< " >= " glue ;
 
 M: string expand-fql* ( string -- string ) ;
 
@@ -215,7 +214,7 @@ M: select expand-fql*
     [ statement new ] dip
     [
         {
-            [ "select " % names>> ", " join % ]
+            [ "select " % names>> [ expand-fql* ] map ", " join % ]
             [ names-out>> >>out ]
             [ " from " % from>> ", " join % ]
             [ where>> [ " where " % expand-fql* % ] when* ]
@@ -246,17 +245,47 @@ TUPLE: nullif < fql a b ; ! if a == b, then null, else a
 ! Aggregate functions
 
 TUPLE: aggregate-function < fql column ;
+: new-aggregate-function ( column class -- obj )
+    new swap >>column ; inline
 
-TUPLE: avg < aggregate-function ;
+TUPLE: fql-avg < aggregate-function ;
+: <fql-avg> ( column -- count ) fql-avg new-aggregate-function ;
 
-TUPLE: sum < aggregate-function ;
+TUPLE: fql-sum < aggregate-function ;
+: <fql-sum> ( column -- count ) fql-sum new-aggregate-function ;
 
-TUPLE: count < aggregate-function ;
+TUPLE: fql-count < aggregate-function ;
+: <fql-count> ( column -- count ) fql-count new-aggregate-function ;
 
-TUPLE: min < aggregate-function ;
+TUPLE: fql-min < aggregate-function ;
+: <fql-min> ( column -- count ) fql-min new-aggregate-function ;
 
-TUPLE: max < aggregate-function ;
+TUPLE: fql-max < aggregate-function ;
+: <fql-max> ( column -- count ) fql-max new-aggregate-function ;
 
 TUPLE: fql-first < aggregate-function ;
+: <fql-first> ( column -- count ) fql-first new-aggregate-function ;
 
 TUPLE: fql-last < aggregate-function ;
+: <fql-last> ( column -- count ) fql-last new-aggregate-function ;
+
+M: fql-avg expand-fql* ( obj -- string )
+    column>> "avg(" ")" surround ;
+
+M: fql-sum expand-fql* ( obj -- string )
+    column>> "sum(" ")" surround ;
+
+M: fql-count expand-fql* ( obj -- string )
+    column>> "count(" ")" surround ;
+
+M: fql-min expand-fql* ( obj -- string )
+    column>> "min(" ")" surround ;
+
+M: fql-max expand-fql* ( obj -- string )
+    column>> "max(" ")" surround ;
+
+M: fql-first expand-fql* ( obj -- string )
+    column>> "first(" ")" surround ;
+
+M: fql-last expand-fql* ( obj -- string )
+    column>> "last(" ")" surround ;

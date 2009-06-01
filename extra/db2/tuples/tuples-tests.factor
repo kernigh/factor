@@ -266,6 +266,7 @@ PERSISTENT: test1
     [ ] [ T{ test1 { timestamp $[ 2010 1 4 <date> ] } } insert-tuple ] unit-test
     [ ] [ T{ test1 { timestamp $[ 2010 1 5 <date> ] } } insert-tuple ] unit-test
     [ 5 ] [ T{ test1 } select-tuples length ] unit-test
+    [ 5 ] [ T{ test1 } count-tuples ] unit-test
     [ t ] [ T{ test1 } select-tuples [ timestamp>> ] all? ] unit-test
 /*
     [ ] [
@@ -300,15 +301,14 @@ PERSISTENT: test2
     [ 9 ] [ T{ test2 } select-tuples length ] unit-test
     [ f ] [ T{ test2 } select-tuples [ score>> integer? ] all? ] unit-test
     [ 1 ] [
-        T{ test2 { score $[ 45 55 1 <range> ] } } select-tuples length
+        T{ test2 { score $[ 45 55 R:[a,b] ] } } select-tuples length
     ] unit-test
     [ 1 ] [
-        T{ test2 { score $[ 45 55 <interval> ] } } select-tuples length
+        T{ test2 { score $[ 45 55 I:[a,b] ] } } select-tuples length
     ] unit-test
 
     ! Double infinite interval should select any where the score is a number
     [ 8 ] [
-B
         T{ test2 { score $[ -1/0. 1/0. I:[a,b] ] } } select-tuples length
     ] unit-test
 

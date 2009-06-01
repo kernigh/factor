@@ -67,6 +67,23 @@ IN: db2.fql.tests
         expand-fql sql>>
     ] unit-test
 
+    [ "select count(name) from computer" ]
+    [
+        select new
+            "computer" >>from
+            "name" <fql-count> >>names
+        expand-fql sql>>
+    ] unit-test
+
+    ! nonsensical query
+    [ "select min(name) from computer" ]
+    [
+        select new
+            "computer" >>from
+            "name" <fql-min> >>names
+        expand-fql sql>>
+    ] unit-test
+
     ;
 
 [ test-fql ] test-dbs

@@ -6,7 +6,10 @@ db2.errors db2.fql db2.persistent db2.statements db2.types
 db2.utils fry kernel make math math.intervals sequences strings
 assocs multiline math.ranges sequences.deep ;
 FROM: db2.types => NULL ;
+FROM: db2.fql => update ;
 IN: db2.tuples
+
+ERROR: unimplemented ;
 
 HOOK: create-table-statement db-connection ( class -- statement )
 HOOK: drop-table-statement db-connection ( class -- statement )
@@ -18,98 +21,50 @@ HOOK: select-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuples-statement db-connection ( tuple -- statement )
 HOOK: count-tuples-statement db-connection ( tuple -- statement )
 
+GENERIC# where-object 1 ( obj spec -- )
 
-/*
-GENERIC# where 1 ( obj specs -- )
-
-: binder, ( spec obj -- )
-    [ type>> ] dip <simple-binder> , ;
-
-: interval-comparison ( ? str -- str )
-    "from" = " >" " <" ? swap [ "= " append ] when ;
-
-
-: where-interval ( spec obj from/to -- )
-    over first fp-infinity? [
-        3drop
-    ] [
-        pick column-name>> ,
-        [ first2 ] dip interval-comparison ,
-        binder,
-    ] if ;
-
-: (infinite-interval?) ( interval -- ?1 ?2 )
-    [ from>> ] [ to>> ] bi [ first fp-infinity? ] bi@ ;
-
-: double-infinite-interval? ( obj -- ? )
-    dup interval? [ (infinite-interval?) and ] [ drop f ] if ;
-
-: infinite-interval? ( obj -- ? )
-    dup interval? [ (infinite-interval?) or ] [ drop f ] if ;
-
-
-: parens, ( quot -- ) "(" , call ")" , ; inline
-
-M: interval where ( spec obj -- )
-    [
-        [ from>> "from" where-interval ]
-        [ nip infinite-interval? [ " and " , ] unless ]
-        [ to>> "to" where-interval ] 2tri
-    ] parens, ;
-
-M: sequence where ( spec obj -- )
-    [
-        [ " or " , ] [ dupd where ] interleave drop
-    ] parens, ;
-
-M: NULL where ( spec obj -- )
-    drop column-name>> , " is NULL" , ;
-
-: object-where ( spec obj -- )
-    [ swap column-name>> "?" <op-eq> , ]
-    [ drop binder, ] 2bi ;
-
-M: byte-array where ( spec obj -- ) object-where ;
-M: object where ( spec obj -- ) object-where ;
-M: integer where ( spec obj -- ) object-where ;
-M: string where ( spec obj -- ) object-where ;
-*/
-
-
-
-
-
-
-TUPLE: where op binder ;
-
-GENERIC# where-object 1 ( obj spec -- where )
-
-: (where-object) ( obj spec -- where )
+: (where-object) ( obj spec -- )
     swap [
         drop slot-name>> "?" <op-eq>
     ] [
-        [ type>> ] dip <simple-binder>
-    ] 2bi where boa ;
+        [ type>> ] dip <simple-binder> 1array
+    ] 2bi 2array , ;
 
 M: object where-object (where-object) ;
 M: integer where-object (where-object) ;
 M: byte-array where-object (where-object) ;
 M: string where-object (where-object) ;
+M: interval where-object
+    swap
+    [
+        from>> first2 [
+            [ slot-name>> "?" <op-gt-eq> ] dip
+        ] [
+            [ slot-name>> "?" <op-gt> ] dip
+        ] if
+        REAL swap <simple-binder> 1array 2array ,
+    ] [
+        to>> first2 [
+            [ slot-name>> "?" <op-lt-eq> ] dip
+        ] [
+            [ slot-name>> "?" <op-lt> ] dip
+        ] if
+        REAL swap <simple-binder> 1array 2array ,
+    ] 2bi ;
 
-! binders should be an <or-sequence>
 M: sequence where-object
     swap [
         [
             drop slot-name>> "?" <op-eq>
         ] [
             [ type>> ] dip <simple-binder>
-        ] 2bi where boa
-    ] with map ;
+        ] 2bi 2array
+    ] with map [ keys <or-sequence> ] [ values ] bi 2array , ;
 
-: many-where ( tuple seq -- wheres )
+: many-where ( tuple seq -- )
     [
         [ getter>> execute( obj -- obj ) ] keep where-object
-    ] with map ;
+    ] with each ;
 
 : filter-slots ( tuple specs -- specs' )
     [ slot-name>> swap get-slot-named ] with filter ;
@@ -118,14 +73,13 @@ M: sequence where-object
     [ drop ] [ filter-slots ] 2bi
     [ drop f f ]
     [
-B
-        many-where flatten
-        [ [ op>> ] map <and-sequence> ]
-        [ [ binder>> ] map ] bi
+        [ many-where ] { } make
+        [ keys <and-sequence> ] [ values concat ] bi
     ] if-empty ;
 
-
-
+: set-statement-where ( statement tuple specs -- statement )
+    columns>> where-clause
+    [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty ;
 
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
@@ -175,9 +129,30 @@ M: object insert-tuple-statement ( tuple -- statement )
     } 2cleave expand-fql ;
 
 M: object update-tuple-statement ( tuple -- statement )
-    ;
+    unimplemented
+    [ \ update new ] dip
+    dup lookup-persistent {
+        [ nip table-name>> >>tables ]
+        [
+            nip [ table-name>> ] [ columns>> ] bi
+            [ column-name>> "." glue ] with map >>keys
+        ]
+        [
+            nip
+            [ nip columns>> [ type>> ] map ]
+            [
+                columns>> [ getter>> ] map
+                [ execute( obj -- obj' ) ] with map
+            ] 2bi
+
+            [ <simple-binder> ] 2map >>values
+        ]
+        [ nip table-name>> >>from ]
+        ! [ set-statement-where ]
+    } 2cleave ;
 
 M: object delete-tuple-statement ( tuple -- statement )
+    unimplemented
     ;
 
 : (select-tuples-statement) ( tuple -- fql )
@@ -195,10 +170,7 @@ M: object delete-tuple-statement ( tuple -- statement )
             [ <return-binder> ] 2map <tuple-binder> >>names-out
         ]
         [ nip table-name>> >>from ]
-        [
-            columns>> where-clause
-            [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty
-        ]
+        [ set-statement-where ]
     } 2cleave ;
 
 M: object select-tuple-statement ( tuple -- statement )
@@ -212,7 +184,16 @@ M: object select-tuples-statement ( tuple -- statement )
     (select-tuples-statement) expand-fql ;
 
 M: object count-tuples-statement ( tuple -- statement )
-    ;
+    [ \ select new ] dip
+    dup lookup-persistent {
+        [
+            nip [ table-name>> ] [ columns>> ] bi
+            first column-name>> "." glue <fql-count> >>names
+            INTEGER f <simple-binder> >>names-out
+        ]
+        [ nip table-name>> >>from ]
+        [ set-statement-where ]
+    } 2cleave expand-fql ;
 
 : create-table ( class -- )
     create-table-statement sql-bind-command ;
@@ -244,4 +225,4 @@ M: object count-tuples-statement ( tuple -- statement )
     select-tuples-statement sql-bind-typed-query ;
 
 : count-tuples ( tuple -- n )
-    count-tuples-statement sql-bind-typed-query ;
+    count-tuples-statement sql-bind-typed-query first first ;

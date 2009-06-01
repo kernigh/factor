@@ -10,7 +10,9 @@ CONSTRUCTOR: table-schema ( table columns -- table-schema ) ;
 TUPLE: column name type modifiers ;
 CONSTRUCTOR: column ( name type modifiers -- column ) ;
 
+HOOK: query-table-names* db-connection ( -- table-schema )
 HOOK: query-table-schema* db-connection ( name -- table-schema )
+HOOK: parse-table-name db-connection ( name -- table-schema )
 HOOK: parse-create-statement db-connection ( name -- table-schema )
 
 : parse-column ( string -- column )
@@ -32,3 +34,6 @@ M: object parse-create-statement ( string -- table-schema )
 
 : query-table-schema ( name -- table-schema )
     query-table-schema* [ parse-create-statement ] map ;
+
+: query-table-names ( -- seq )
+    query-table-names* [ parse-table-name ] map ;

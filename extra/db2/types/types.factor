@@ -10,6 +10,7 @@ HOOK: sql-modifiers>string db-connection ( modifiers -- string )
 MIXIN: sql-type
 MIXIN: sql-modifier
 
+
 : define-sql-type ( word -- )
     [ define-singleton-class ]
     [ sql-type add-mixin-instance ] bi ;

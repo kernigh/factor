@@ -4,6 +4,10 @@ USING: arrays db2 db2.introspection db2.sqlite multiline
 sequences kernel db2.statements ;
 IN: db2.sqlite.introspection
 
+M: sqlite-db-connection query-table-names*
+    "SELECT type, name, tbl_name, rootpage, sql from sqlite_master"
+    f f <statement> sql-query ;
+
 M: sqlite-db-connection query-table-schema*
     1array [
         <"
@@ -14,3 +18,5 @@ M: sqlite-db-connection query-table-schema*
         ORDER BY tbl_name, type DESC, name
         ">
     ] dip f <statement> sql-bind-query first ;
+
+M: sqlite-db-connection parse-table-name third ;

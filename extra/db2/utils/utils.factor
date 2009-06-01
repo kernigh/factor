@@ -5,6 +5,8 @@ kernel math math.order math.parser sequences slots
 slots.private strings vectors words ;
 IN: db2.utils
 
+SLOT: slot-name
+
 : ?when ( object quot -- object' ) dupd when ; inline
 
 : ?1array ( obj -- array )

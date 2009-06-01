@@ -55,15 +55,8 @@ SQL-TYPES:
     FACTOR-BLOB
     URL ;
 
-SQL-MODIFIERS: +db-assigned-id+ +user-assigned-id+ +random-id+ ;
-UNION: +primary-key+ +db-assigned-id+ +user-assigned-id+ +random-id+ ;
-
-SQL-MODIFIERS: +autoincrement+ +serial+ +unique+ +default+ +null+ +not-null+
-+foreign-id+ +has-many+ +on-update+ +on-delete+ +restrict+ +cascade+
-+set-null+ +set-default+ ;
-
 SQL-MODIFIERS: PRIMARY-KEY SERIAL AUTOINCREMENT UNIQUE
-DEFAULT NOT-NULL NULL ;
+DEFAULT NOT-NULL NULL RANDOM-ID ;
 
 ERROR: no-sql-type name ;
 ERROR: no-sql-modifier name ;

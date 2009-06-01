@@ -25,8 +25,8 @@ IN: db2.sqlite.types
         { BLOB [ sqlite-bind-blob-by-name ] }
         { FACTOR-BLOB [ object>bytes sqlite-bind-blob-by-name ] }
         { URL [ present sqlite-bind-text-by-name ] }
-        { +db-assigned-id+ [ sqlite-bind-int-by-name ] }
-        { +random-id+ [ sqlite-bind-int64-by-name ] }
+        ! { +db-assigned-id+ [ sqlite-bind-int-by-name ] }
+        ! { +random-id+ [ sqlite-bind-int64-by-name ] }
         { NULL [ sqlite-bind-null-by-name ] }
         [ no-sql-type ]
     } case ;
@@ -49,8 +49,8 @@ IN: db2.sqlite.types
         { BLOB [ sqlite-bind-blob ] }
         { FACTOR-BLOB [ object>bytes sqlite-bind-blob ] }
         { URL [ present sqlite-bind-text ] }
-        { +db-assigned-id+ [ sqlite-bind-int ] }
-        { +random-id+ [ sqlite-bind-int64 ] }
+        ! { +db-assigned-id+ [ sqlite-bind-int ] }
+        ! { +random-id+ [ sqlite-bind-int64 ] }
         { NULL [ drop sqlite-bind-null ] }
         [ no-sql-type ]
     } case ;
@@ -73,8 +73,8 @@ IN: db2.sqlite.types
 
 : sql-type-unsafe ( handle index type -- obj )
     {
-        { +db-assigned-id+ [ sqlite3_column_int64  ] }
-        { +random-id+ [ sqlite3-column-uint64 ] }
+        ! { +db-assigned-id+ [ sqlite3_column_int64  ] }
+        ! { +random-id+ [ sqlite3-column-uint64 ] }
         { INTEGER [ sqlite3_column_int ] }
         { BIG-INTEGER [ sqlite3_column_int64 ] }
         { SIGNED-BIG-INTEGER [ sqlite3_column_int64 ] }
@@ -146,7 +146,7 @@ M: sqlite-db-connection sql-type>string
         { FACTOR-BLOB [ "BLOB" ] }
         { URL [ "TEXT" ] }
         ! { +db-assigned-id+ [ "INTEGER" ] }
-        ! { +random-id+ [ "INTEGER" ] }
+        { RANDOM-ID [ "INTEGER" ] }
         [ no-sql-type ]
     } case ;
 
@@ -159,6 +159,7 @@ ERROR: no-sql-modifier modifier ;
         { SERIAL [ "SERIAL" ] }
         { AUTOINCREMENT [ "AUTOINCREMENT" ] }
         { PRIMARY-KEY [ "PRIMARY KEY" ] }
+        { RANDOM-ID [ "PRIMARY KEY" ] }
         [ no-sql-modifier ]
     } case ;
 

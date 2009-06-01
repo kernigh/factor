@@ -215,7 +215,7 @@ M: object count-tuples-statement ( tuple -- statement )
 : update-tuple ( tuple -- )
     update-tuple-statement sql-bind-typed-command ;
 
-: delete-tuple ( tuple -- )
+: delete-tuples ( tuple -- )
     delete-tuple-statement sql-bind-typed-command ;
 
 : select-tuple ( tuple -- tuple' )

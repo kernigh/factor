@@ -3,7 +3,8 @@ USING: tools.test http furnace.sessions furnace.actions
 http.server http.server.responses math namespaces make kernel
 accessors io.sockets io.servers.connection prettyprint
 io.streams.string io.files io.files.temp io.directories
-splitting destructors sequences db db.tuples db.sqlite
+splitting destructors sequences db2 db2.tuples db2.sqlite
+db2.connections
 continuations urls math.parser furnace furnace.utilities ;
 
 : with-session ( session quot -- )
@@ -54,7 +55,8 @@ M: foo call-responder*
 "auth-test.db" temp-file <sqlite-db> [
 
     <request> init-request
-    session ensure-table
+    [ session drop-table ] ignore-errors
+    session create-table
 
     "127.0.0.1" 1234 <inet4> remote-address set
 

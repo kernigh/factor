@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel accessors assocs destructors
-db.tuples db.types furnace.cache ;
+USING: accessors assocs db2.persistent db2.tuples db2.types
+destructors furnace.cache kernel ;
 IN: furnace.scopes
 
 TUPLE: scope < server-state namespace changed? ;
@@ -10,10 +10,8 @@ TUPLE: scope < server-state namespace changed? ;
     f swap new-server-state
         H{ } clone >>namespace ; inline
 
-scope f
-{
-    { "namespace" "NAMESPACE" FACTOR-BLOB +not-null+ }
-} define-persistent
+PERSISTENT: scope
+    { "namespace" FACTOR-BLOB NOT-NULL } ;
 
 : scope-changed ( scope -- )
     t >>changed? drop ;

@@ -1,5 +1,5 @@
+USING: help.markup help.syntax db2.connections multiline ;
 IN: furnace.alloy
-USING: help.markup help.syntax db multiline ;
 
 HELP: init-furnace-tables
 { $description "Initializes database tables used by asides, conversations and session management. This word must be invoked inside a " { $link with-db } " scope." } ;

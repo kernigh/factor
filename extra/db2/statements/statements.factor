@@ -51,9 +51,11 @@ HOOK: bind-typed-sequence db-connection ( statement -- )
 
 M: statement dispose dispose-statement ;
 
+: with-sql-error-handler ( quot -- )
+    [ dup sql-error? [ parse-sql-error ] when rethrow ] recover ; inline
+
 : statement>result-set ( statement -- result-set )
-    [ statement>result-set* ]
-    [ dup sql-error? [ parse-sql-error ] when rethrow ] recover ;
+    [ statement>result-set* ] with-sql-error-handler ;
 
 M: object execute-statement* ( statement type -- )
     drop statement>result-set dispose ;
@@ -67,7 +69,7 @@ M: object execute-statement* ( statement type -- )
     [ execute-one-statement ] if ;
 
 : prepare-statement ( statement -- statement )
-    dup handle>> [ prepare-statement* ] unless ;
+    [ dup handle>> [ prepare-statement* ] unless ] with-sql-error-handler ;
 
 : result-set-each ( statement quot: ( statement -- ) -- )
     over more-rows?

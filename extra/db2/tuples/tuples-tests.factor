@@ -365,6 +365,8 @@ PERSISTENT: test3
 : test-test3 ( -- )
     [ test3 drop-table ] ignore-errors
     [ ] [ test3 create-table ] unit-test
+    [ ] [ test3 ensure-table ] unit-test
+    [ ] [ test3 ensure-table ] unit-test
     [ ] [ T{ test3 } insert-tuple ] unit-test
     [ t ] [ T{ test3 } select-tuple >boolean ] unit-test
     [ t ] [ T{ test3 } select-tuple id>> 1 = not ] unit-test

@@ -7,6 +7,7 @@ db2.utils fry kernel make math math.intervals sequences strings
 assocs multiline math.ranges sequences.deep ;
 FROM: db2.types => NULL ;
 FROM: db2.fql => update ;
+FROM: db2.fql => delete ;
 IN: db2.tuples
 
 ERROR: unimplemented ;
@@ -137,7 +138,6 @@ M: object insert-tuple-statement ( tuple -- statement )
     [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty ;
 
 M: object update-tuple-statement ( tuple -- statement )
-    ! unimplemented
     [ \ update new ] dip
     dup lookup-persistent {
         [ nip table-name>> >>tables ]
@@ -158,8 +158,11 @@ M: object update-tuple-statement ( tuple -- statement )
     } 2cleave expand-fql ;
 
 M: object delete-tuple-statement ( tuple -- statement )
-    unimplemented
-    ;
+    [ \ delete new ] dip
+    dup lookup-persistent {
+        [ nip table-name>> >>tables ]
+        [ set-statement-where ]
+    } 2cleave expand-fql ;
 
 : (select-tuples-statement) ( tuple -- fql )
     [ \ select new ] dip

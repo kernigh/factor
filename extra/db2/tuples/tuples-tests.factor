@@ -368,6 +368,8 @@ PERSISTENT: test3
     [ ] [ T{ test3 } insert-tuple ] unit-test
     [ t ] [ T{ test3 } select-tuple >boolean ] unit-test
     [ t ] [ T{ test3 } select-tuple id>> 1 = not ] unit-test
+    [ ] [ T{ test3 } delete-tuples ] unit-test
+    [ f ] [ T{ test3 } select-tuple ] unit-test
     ;
 
 [ test-test3 ] test-dbs

@@ -27,7 +27,7 @@ M: update normalize-fql ( update -- update )
     [ ??1array ] change-values
     [ ??1array ] change-order-by ;
 
-TUPLE: delete < fql tables where order-by limit ;
+TUPLE: delete < fql tables where where-in order-by limit ;
 CONSTRUCTOR: delete ( tables keys values where -- obj ) ;
 M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
@@ -189,10 +189,12 @@ M: update expand-fql*
         {
 
             [ "update " % tables>> ", " join % ]
-            [ " set " % keys>> [ " = ? " append ] map ", " join % ]
+            [ " set " % keys>> [ " = ?" append ] map ", " join % ]
             [ values>> >>in ]
             [ where>> [ " where " % expand-fql* % ] when* ]
             [ where-in>> over in>> push-all ]
+            [ order-by>> [ " order by " % ", " join % ] when* ]
+            [ limit>> [ " limit " % # ] when* ]
         } cleave
     ] "" make >>sql normalize-statement ;
 
@@ -202,7 +204,8 @@ M: delete expand-fql*
         {
             [ "delete from " % tables>> ", " join % ]
             [ where>> [ " where " % expand-fql* % ] when* ]
-                [ order-by>> [ " order by " % ", " join % ] when* ]
+            [ where-in>> >>in ]
+            [ order-by>> [ " order by " % ", " join % ] when* ]
             [ limit>> [ " limit " % # ] when* ]
         } cleave
     ] "" make >>sql normalize-statement ;

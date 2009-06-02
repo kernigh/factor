@@ -373,3 +373,22 @@ PERSISTENT: test3
     ;
 
 [ test-test3 ] test-dbs
+
+
+TUPLE: test4 id ;
+
+PERSISTENT: test4
+    { "id" +db-assigned-key+ } ;
+
+: test-test4 ( --  )
+    [ test4 drop-table ] ignore-errors
+    [ ] [ test4 create-table ] unit-test
+    [ t ] [ T{ test4 } [ insert-tuple ] keep id>> integer? ] unit-test ;
+
+[ test-test4 ] test-dbs
+
+
+
+
+
+

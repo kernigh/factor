@@ -70,6 +70,15 @@ M: db-column db-assigned-id? ( db-column -- ? )
 : find-primary-key ( persistent -- seq )
     columns>> [ column-primary-key? ] filter ;
 
+ERROR: bad-primary-key key ;
+
+: >primary-key ( value tuple -- )
+    [
+        lookup-persistent find-primary-key
+        dup length 1 = not [ bad-primary-key ] when
+        first column-name>>
+    ] keep set-slot-named ;
+
 : remove-primary-key ( persistent -- seq )
     columns>> [ column-primary-key? not ] filter ;
 

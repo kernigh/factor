@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Chris Double, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types arrays calendar.format
-combinators db2.sqlite.errors
+combinators db2.sqlite.errors db2.connections
 io.backend io.encodings.string io.encodings.utf8 kernel math
 namespaces present sequences serialize urls db2.sqlite.ffi ;
 IN: db2.sqlite.lib
@@ -108,3 +108,8 @@ IN: db2.sqlite.lib
 : sqlite-next ( prepared -- ? )
     sqlite3_step sqlite-step-has-more-rows? ;
 
+ERROR: sqlite-last-id-fail ;
+
+: last-insert-id ( -- id )
+    db-connection get handle>> sqlite3_last_insert_rowid
+    dup zero? [ sqlite-last-id-fail ] when ;

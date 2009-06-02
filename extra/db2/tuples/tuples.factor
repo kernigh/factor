@@ -16,6 +16,7 @@ HOOK: create-table-statement db-connection ( class -- statement )
 HOOK: drop-table-statement db-connection ( class -- statement )
 
 HOOK: insert-tuple-statement db-connection ( tuple -- statement )
+HOOK: post-insert-tuple db-connection ( tuple -- )
 HOOK: update-tuple-statement db-connection ( tuple -- statement )
 HOOK: delete-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuple-statement db-connection ( tuple -- statement )
@@ -215,8 +216,17 @@ M: object count-tuples-statement ( tuple -- statement )
 : recreate-table ( class -- )
     [ drop-table ] [ create-table ] bi ;
 
+M: object post-insert-tuple drop ;
+
 : insert-tuple ( tuple -- )
-    insert-tuple-statement sql-bind-typed-command ;
+    dup class lookup-persistent find-primary-key
+    [ type>> +db-assigned-key+ = ] any?
+    [
+        [ insert-tuple-statement sql-bind-typed-command ]
+        [ post-insert-tuple ] bi
+    ] [
+        insert-tuple-statement sql-bind-typed-command
+    ] if ;
 
 : update-tuple ( tuple -- )
     update-tuple-statement sql-bind-typed-command ;

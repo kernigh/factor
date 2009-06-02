@@ -145,8 +145,8 @@ M: sqlite-db-connection sql-type>string
         { BLOB [ "BLOB" ] }
         { FACTOR-BLOB [ "BLOB" ] }
         { URL [ "TEXT" ] }
-        { +db-assigned-key+ [ "INTEGER PRIMARY KEY AUTOINCREMENT" ] }
-        { +random-key+ [ "INTEGER PRIMARY KEY" ] }
+        { +db-assigned-key+ [ "INTEGER" ] }
+        { +random-key+ [ "INTEGER" ] }
         [ no-sql-type ]
     } case ;
 
@@ -158,7 +158,7 @@ ERROR: no-sql-modifier modifier ;
         { NOT-NULL [ "NOT NULL" ] }
         { SERIAL [ "SERIAL" ] }
         { AUTOINCREMENT [ "AUTOINCREMENT" ] }
-        ! { PRIMARY-KEY [ "PRIMARY KEY" ] }
+        { PRIMARY-KEY [ "PRIMARY KEY" ] }
         [ no-sql-modifier ]
     } case ;
 

@@ -38,7 +38,7 @@ SYNTAX: PRIMARY-KEY-TYPE:
 
 SYNTAX: PRIMARY-KEY-TYPES:
     ";" parse-tokens
-    [ create-class-in define-sql-type ] each ;
+    [ create-class-in define-primary-key ] each ;
 
 SYNTAX: SQL-MODIFIER:
     CREATE-CLASS define-sql-modifier ;
@@ -67,9 +67,10 @@ SQL-TYPES:
     FACTOR-BLOB
     URL ;
 
-SQL-MODIFIERS: SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL ;
+SQL-MODIFIERS: PRIMARY-KEY
+SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL ;
 
-PRIMARY-KEY-TYPES: +db-assigned-key+ +user-assigned-key+ +random-key+ ;
+PRIMARY-KEY-TYPES: +db-assigned-key+ +random-key+ ;
 
 ERROR: no-sql-type name ;
 ERROR: no-sql-modifier name ;

@@ -3,7 +3,8 @@
 USING: accessors arrays assocs classes combinators.smart
 constructors db2.types db2.utils fry kernel lexer math
 namespaces parser sequences sets strings words combinators
-quotations make multiline classes.tuple ;
+quotations make multiline classes.tuple
+combinators.short-circuit ;
 IN: db2.persistent
 
 : sanitize-sql-name ( string -- string' )
@@ -56,26 +57,24 @@ ERROR: duplicate-persistent-columns persistent ;
     [ duplicate-persistent-columns ] unless ;
 
 GENERIC: db-assigned-id? ( object -- ? )
-: user-assigned-id? ( db-column -- ? )
-    db-assigned-id? not ;
 
 M: db-column db-assigned-id? ( db-column -- ? )
     modifiers>> AUTOINCREMENT swap member? ;
 
-: primary-key? ( db-column -- ? )
-    modifiers>> [ primary-key? ] any? ;
+: column-primary-key? ( column -- ? )
+    {
+        [ type>> sql-primary-key? ]
+        [ modifiers>> [ PRIMARY-KEY? ] member? ]
+    } 1|| ;
 
 : find-primary-key ( persistent -- seq )
-    columns>> [ primary-key? ] filter ;
+    columns>> [ column-primary-key? ] filter ;
 
 M: persistent db-assigned-id? ( persistent -- ? )
     find-primary-key [ db-assigned-id? ] any? ;
 
 : remove-db-assigned-id ( persistent -- seq )
     columns>> [ db-assigned-id? not ] filter ;
-
-: remove-user-assigned-id ( persistent -- seq )
-    columns>> [ user-assigned-id? not ] filter ;
 
 : set-column-persistent-slots ( persistent -- persistent )
     dup [ [ clone swap >>persistent ] with map ] change-columns ;

@@ -91,10 +91,8 @@ M: object create-table-statement ( class -- statement )
                 [ column-name>> % " " % ]
                 [ type>> sql-type>string % ]
                 [
-                    modifiers>> [
-                        [ primary-key? ] any? not
-                    ] filter
-                    [ " " % sql-modifiers>string % ] when*
+                    dup sql-primary-key? not
+                    [ " " % modifiers>> sql-modifiers>string % ] [ drop ] if
                 ] tri
             ] interleave
         ] [ 

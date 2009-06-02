@@ -22,8 +22,11 @@ IN: db2.tuples.tests
     [ V{ T{ default-person { id 1 } { name "omg" } } } ]
     [ person1 select-tuples ] unit-test
 
+
     [ ]
     [ T{ default-person { id 1 } { name "foobar" } } update-tuple ] unit-test
+    [ "foobar" ]
+    [ T{ default-person { id 1 } } select-tuple name>> ] unit-test
     ;
 
 : test-computer ( -- )

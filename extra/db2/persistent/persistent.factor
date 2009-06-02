@@ -70,11 +70,11 @@ M: db-column db-assigned-id? ( db-column -- ? )
 : find-primary-key ( persistent -- seq )
     columns>> [ column-primary-key? ] filter ;
 
+: remove-primary-key ( persistent -- seq )
+    columns>> [ column-primary-key? not ] filter ;
+
 M: persistent db-assigned-id? ( persistent -- ? )
     find-primary-key [ db-assigned-id? ] any? ;
-
-: remove-db-assigned-id ( persistent -- seq )
-    columns>> [ db-assigned-id? not ] filter ;
 
 : set-column-persistent-slots ( persistent -- persistent )
     dup [ [ clone swap >>persistent ] with map ] change-columns ;

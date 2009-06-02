@@ -126,28 +126,36 @@ M: object insert-tuple-statement ( tuple -- statement )
         ]
     } 2cleave expand-fql ;
 
+: qualified-names ( table-name columns -- string )
+    [ column-name>> "." glue ] with map ;
+
+: persistent>qualified-names ( persistent -- string )
+    [ table-name>> ] [ columns>> ] bi qualified-names ;
+
+: where-primary-key ( statement tuple specs -- statement )
+    find-primary-key where-clause
+    [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty ;
+
 M: object update-tuple-statement ( tuple -- statement )
-    unimplemented
+    ! unimplemented
     [ \ update new ] dip
     dup lookup-persistent {
         [ nip table-name>> >>tables ]
         [
-            nip [ table-name>> ] [ columns>> ] bi
-            [ column-name>> "." glue ] with map >>keys
+            nip
+            remove-primary-key [ column-name>> ] map >>keys
         ]
         [
-            nip
-            [ nip columns>> [ type>> ] map ]
+            [ nip remove-primary-key [ type>> ] map ]
             [
-                columns>> [ getter>> ] map
+                remove-primary-key [ getter>> ] map
                 [ execute( obj -- obj' ) ] with map
             ] 2bi
 
             [ <simple-binder> ] 2map >>values
         ]
-        [ nip table-name>> >>from ]
-        ! [ set-statement-where ]
-    } 2cleave ;
+        [ where-primary-key ]
+    } 2cleave expand-fql ;
 
 M: object delete-tuple-statement ( tuple -- statement )
     unimplemented
@@ -156,10 +164,7 @@ M: object delete-tuple-statement ( tuple -- statement )
 : (select-tuples-statement) ( tuple -- fql )
     [ \ select new ] dip
     dup lookup-persistent {
-        [
-            nip [ table-name>> ] [ columns>> ] bi
-            [ column-name>> "." glue ] with map >>names
-        ]
+        [ nip persistent>qualified-names >>names ]
         [
             nip
             [ class>> ]

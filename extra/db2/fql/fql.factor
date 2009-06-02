@@ -19,7 +19,7 @@ CONSTRUCTOR: insert ( into names values -- obj ) ;
 M: insert normalize-fql ( insert -- insert )
     [ ??1array ] change-names ;
 
-TUPLE: update < fql tables keys values where order-by limit ;
+TUPLE: update < fql tables keys values where where-in order-by limit ;
 CONSTRUCTOR: update ( tables keys values where -- obj ) ;
 M: update normalize-fql ( update -- update )
     [ ??1array ] change-tables
@@ -187,15 +187,12 @@ M: update expand-fql*
     [ statement new ] dip
     [
         {
+
             [ "update " % tables>> ", " join % ]
-            [
-                " set " % [ keys>> ] [ values>> ] bi 
-                zip [ ", " % ] [ first2 [ % ] dip " = " % % ] interleave
-            ]
-            ! [ "  " % from>> ", " join % ]
+            [ " set " % keys>> [ " = ? " append ] map ", " join % ]
+            [ values>> >>in ]
             [ where>> [ " where " % expand-fql* % ] when* ]
-            [ order-by>> [ " order by " % ", " join % ] when* ]
-            [ limit>> [ " limit " % # ] when* ]
+            [ where-in>> over in>> push-all ]
         } cleave
     ] "" make >>sql normalize-statement ;
 

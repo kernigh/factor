@@ -22,7 +22,8 @@ MIXIN: sql-primary-key
     sql-modifier define-sql-instance ;
 
 : define-primary-key ( word -- )
-    sql-primary-key define-sql-instance ;
+    [ define-sql-type ]
+    [ sql-primary-key add-mixin-instance ] bi ;
 
 <<
 
@@ -69,7 +70,6 @@ SQL-TYPES:
 
 SQL-MODIFIERS: PRIMARY-KEY
 SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL ;
-
 PRIMARY-KEY-TYPES: +db-assigned-key+ +random-key+ ;
 
 ERROR: no-sql-type name ;

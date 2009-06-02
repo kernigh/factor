@@ -218,8 +218,9 @@ M: object count-tuples-statement ( tuple -- statement )
 : delete-tuples ( tuple -- )
     delete-tuple-statement sql-bind-typed-command ;
 
-: select-tuple ( tuple -- tuple' )
-    select-tuple-statement sql-bind-typed-query first ;
+: select-tuple ( tuple -- tuple'/f )
+    select-tuple-statement sql-bind-typed-query
+    [ f ] [ first ] if-empty ;
 
 : select-tuples ( tuple -- seq )
     select-tuples-statement sql-bind-typed-query ;

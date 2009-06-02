@@ -158,7 +158,8 @@ ERROR: no-sql-modifier modifier ;
         { NOT-NULL [ "NOT NULL" ] }
         { SERIAL [ "SERIAL" ] }
         { AUTOINCREMENT [ "AUTOINCREMENT" ] }
-        { PRIMARY-KEY [ "PRIMARY KEY" ] }
+        ! { PRIMARY-KEY [ "PRIMARY KEY" ] }
+        { PRIMARY-KEY [ "" ] }
         [ no-sql-modifier ]
     } case ;
 

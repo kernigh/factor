@@ -388,3 +388,18 @@ PERSISTENT: test4
     [ t ] [ T{ test4 } [ insert-tuple ] keep id>> integer? ] unit-test ;
 
 [ test-test4 ] test-dbs
+
+
+TUPLE: test5 pk1 pk2 ;
+
+PERSISTENT: test5
+    { "pk1" INTEGER PRIMARY-KEY }
+    { "pk2" INTEGER PRIMARY-KEY } ;
+
+: test-test5 ( --  )
+    [ test5 drop-table ] ignore-errors
+    [ ] [ test5 create-table ] unit-test
+    [ ] [ T{ test5 f 1 2 } insert-tuple ] unit-test
+    [ T{ test5 f 1 2 } ] [ T{ test5 f 1 2 } select-tuple ] unit-test ;
+    
+[ test-test5 ] test-dbs

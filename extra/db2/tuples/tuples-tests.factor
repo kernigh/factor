@@ -386,9 +386,3 @@ PERSISTENT: test4
     [ t ] [ T{ test4 } [ insert-tuple ] keep id>> integer? ] unit-test ;
 
 [ test-test4 ] test-dbs
-
-
-
-
-
-

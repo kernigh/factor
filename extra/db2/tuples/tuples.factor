@@ -1,10 +1,10 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays byte-arrays classes combinators
+USING: accessors arrays assocs byte-arrays classes combinators
 combinators.short-circuit db2 db2.binders db2.connections
 db2.errors db2.fql db2.persistent db2.statements db2.types
-db2.utils fry kernel make math math.intervals sequences strings
-assocs multiline math.ranges sequences.deep ;
+db2.utils fry kernel make math math.intervals math.ranges
+multiline random sequences sequences.deep strings ;
 FROM: db2.types => NULL ;
 FROM: db2.fql => update ;
 FROM: db2.fql => delete ;
@@ -112,6 +112,12 @@ M: object drop-table-statement ( class -- statement )
     lookup-persistent table-name>> sanitize-sql-name
     "drop table " prepend ;
 
+: make-binder ( type obj -- binder )
+    over {
+        { +random-key+ [ drop 64 random-bits <simple-binder> ] }
+        [ drop <simple-binder> ]
+    } case ;
+
 M: object insert-tuple-statement ( tuple -- statement )
     [ \ insert new ] dip
     dup lookup-persistent {
@@ -124,7 +130,7 @@ M: object insert-tuple-statement ( tuple -- statement )
                 columns>> [ getter>> ] map
                 [ execute( obj -- obj' ) ] with map
             ] 2bi
-            [ <simple-binder> ] 2map >>values
+            [ make-binder ] 2map >>values
         ]
     } 2cleave expand-fql ;
 

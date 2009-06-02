@@ -92,7 +92,7 @@ M: object create-table-statement ( class -- statement )
                 [ type>> sql-type>string % ]
                 [
                     modifiers>> [
-                        { [ PRIMARY-KEY? ] [ AUTOINCREMENT? ] } 1|| not
+                        [ primary-key? ] any? not
                     ] filter
                     [ " " % sql-modifiers>string % ] when*
                 ] tri

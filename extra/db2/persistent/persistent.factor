@@ -55,9 +55,6 @@ ERROR: duplicate-persistent-columns persistent ;
     [ column-name>> ] map all-unique?
     [ duplicate-persistent-columns ] unless ;
 
-: primary-key-modifiers ( -- seq )
-    { PRIMARY-KEY } ;
-
 GENERIC: db-assigned-id? ( object -- ? )
 : user-assigned-id? ( db-column -- ? )
     db-assigned-id? not ;
@@ -66,7 +63,7 @@ M: db-column db-assigned-id? ( db-column -- ? )
     modifiers>> AUTOINCREMENT swap member? ;
 
 : primary-key? ( db-column -- ? )
-    modifiers>> primary-key-modifiers intersect empty? not ;
+    modifiers>> [ primary-key? ] any? ;
 
 : find-primary-key ( persistent -- seq )
     columns>> [ primary-key? ] filter ;

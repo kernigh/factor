@@ -101,11 +101,11 @@ TUPLE: pet-store id name pets ;
 TUPLE: pet id pet-store-id name type ;
 
 PERSISTENT: pet-store
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "name" VARCHAR } ;
 
 PERSISTENT: pet
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "pet-store-id" INTEGER }
     { "name" VARCHAR }
     { "type" VARCHAR } ;
@@ -254,7 +254,7 @@ PERSISTENT: pet
 TUPLE: test1 id timestamp ;
 
 PERSISTENT: test1
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { { "timestamp" "ts" } TIMESTAMP } ;
 
 : test-test1 ( -- )
@@ -282,9 +282,8 @@ PERSISTENT: test1
 TUPLE: test2 id score ;
 
 PERSISTENT: test2
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "score" INTEGER } ;
-
 
 : test-test2 ( -- )
     [ test2 drop-table ] ignore-errors
@@ -353,3 +352,19 @@ PERSISTENT: test2
     ;
 
 [ test-test2 ] test-dbs
+
+
+TUPLE: test3 id ;
+
+PERSISTENT: test3
+    { "id" +random-key+ } ;
+
+: test-test3 ( -- )
+    [ test3 drop-table ] ignore-errors
+    [ ] [ test3 create-table ] unit-test
+    [ ] [ T{ test3 } insert-tuple ] unit-test
+    [ t ] [ T{ test3 } select-tuple >boolean ] unit-test
+    [ t ] [ T{ test3 } select-tuple id>> 1 = not ] unit-test
+    ;
+
+[ test-test3 ] test-dbs

@@ -102,7 +102,7 @@ M: tuple lookup-persistent class lookup-persistent ;
 
 : join-persistents ( class -- persistent )
     [ superclass-persistent-columns ] 
-    [ ?lookup-persistent ] bi
+    [ ?lookup-persistent clone ] bi
     [ (>>columns) ] keep ;
 
 M: class lookup-persistent ( class -- persistent )

@@ -226,7 +226,7 @@ M: object post-insert-tuple drop ;
 
 : insert-tuple ( tuple -- )
     dup class lookup-persistent find-primary-key
-    [ type>> +db-assigned-key+ = ] any?
+    [ type>> { +db-assigned-key+ +random-key+ } member? ] any?
     [
         [ insert-tuple-statement sql-bind-typed-command ]
         [ post-insert-tuple ] bi

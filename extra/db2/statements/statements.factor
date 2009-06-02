@@ -42,7 +42,7 @@ PRIVATE>
 : <empty-statement> ( -- statement )
     f f f <statement> ;
 
-HOOK: statement>result-set* db-connection ( statement -- result-set )
+HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: execute-statement* db-connection ( statement type -- )
 HOOK: prepare-statement* db-connection ( statement -- statement' )
 HOOK: dispose-statement db-connection ( statement -- )
@@ -53,9 +53,6 @@ M: statement dispose dispose-statement ;
 
 : with-sql-error-handler ( quot -- )
     [ dup sql-error? [ parse-sql-error ] when rethrow ] recover ; inline
-
-: statement>result-set ( statement -- result-set )
-    [ statement>result-set* ] with-sql-error-handler ;
 
 M: object execute-statement* ( statement type -- )
     drop statement>result-set dispose ;

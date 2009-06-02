@@ -10,7 +10,7 @@ TUPLE: sqlite-result-set < result-set has-more? ;
 M: sqlite-result-set dispose
     f >>handle drop ;
 
-M: sqlite-db-connection statement>result-set*
+M: sqlite-db-connection statement>result-set
     prepare-statement
     sqlite-result-set new-result-set dup advance-row ;
 

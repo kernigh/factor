@@ -30,7 +30,7 @@ M: counter-app init-session* drop 0 count sset ;
         <display-action> "" add-responder ;
 
 ! Deployment example
-USING: db.sqlite furnace.alloy namespaces ;
+USING: db2.sqlite furnace.alloy namespaces ;
 
 : counter-db ( -- db ) "counter.db" <sqlite-db> ;
 

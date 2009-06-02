@@ -1,8 +1,9 @@
 ! Copyright (C) 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors combinators combinators.smart command-line db
-db.sqlite db.tuples db.types io io.encodings.utf8 io.files
-present kernel namespaces sequences calendar ;
+USING: accessors combinators combinators.smart command-line db2
+db2.sqlite db2.tuples db2.types io io.encodings.utf8 io.files
+present kernel namespaces sequences calendar db2.connections
+db2.persistent ;
 IN: mason.notify.server
 
 CONSTANT: +starting+ "starting"
@@ -21,26 +22,24 @@ last-git-id last-timestamp last-report
 current-git-id current-timestamp
 status ;
 
-builder "BUILDERS" {
-    { "host-name" "HOST_NAME" TEXT +user-assigned-id+ }
-    { "os" "OS" TEXT +user-assigned-id+ }
-    { "cpu" "CPU" TEXT +user-assigned-id+ }
+PERSISTENT: builder
+    { "host-name" TEXT PRIMARY-KEY }
+    { "os" TEXT PRIMARY-KEY }
+    { "cpu" TEXT PRIMARY-KEY }
     
-    { "clean-git-id" "CLEAN_GIT_ID" TEXT }
-    { "clean-timestamp" "CLEAN_TIMESTAMP" TIMESTAMP }
+    { "clean-git-id" TEXT }
+    { "clean-timestamp" TIMESTAMP }
 
-    { "last-release" "LAST_RELEASE" TEXT }
-    { "release-git-id" "RELEASE_GIT_ID" TEXT }
+    { "last-release" TEXT }
+    { "release-git-id" TEXT }
     
-    { "last-git-id" "LAST_GIT_ID" TEXT }
-    { "last-timestamp" "LAST_TIMESTAMP" TIMESTAMP }
-    { "last-report" "LAST_REPORT" TEXT }
+    { "last-git-id" TEXT }
+    { "last-timestamp" TIMESTAMP }
+    { "last-report" TEXT }
 
-    { "current-git-id" "CURRENT_GIT_ID" TEXT }
-    ! Can't name it CURRENT_TIMESTAMP because of bug in db library
-    { "current-timestamp" "CURR_TIMESTAMP" TIMESTAMP }
-    { "status" "STATUS" TEXT }
-} define-persistent
+    { "current-git-id" TEXT }
+    { "current-timestamp" TIMESTAMP }
+    { "status" TEXT } ;
 
 SYMBOLS: host-name target-os target-cpu message message-arg ;
 

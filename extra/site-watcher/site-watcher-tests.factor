@@ -1,8 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: db.tuples locals site-watcher site-watcher.db
-site-watcher.private kernel db io.directories io.files.temp
-continuations db.sqlite
+USING: db2.tuples locals site-watcher site-watcher.db
+site-watcher.private kernel db2 io.directories io.files.temp
+continuations db2.sqlite db2.connections
 sequences tools.test ;
 IN: site-watcher.tests
 

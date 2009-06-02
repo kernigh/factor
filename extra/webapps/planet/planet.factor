@@ -2,7 +2,10 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel accessors sequences sorting math math.order
 calendar alarms logging concurrency.combinators namespaces
-db.types db.tuples db fry locals hashtables
+db2.types db2.tuples db2 fry locals hashtables
+db2.connections
+db2.persistent
+db2.transactions
 syndication urls xml.writer validators
 html.forms
 html.components
@@ -31,24 +34,20 @@ M: blog link-title name>> ;
 
 M: blog link-href www-url>> ;
 
-blog "BLOGS"
-{
-    { "id" "ID" INTEGER +db-assigned-id+ }
-    { "name" "NAME" { VARCHAR 256 } +not-null+ }
-    { "www-url" "WWWURL" URL +not-null+ }
-    { "feed-url" "FEEDURL" URL +not-null+ }
-} define-persistent
+PERSISTENT: blog
+    { "id" +db-assigned-key+ }
+    { "name" { VARCHAR 256 } NOT-NULL }
+    { "www-url" URL NOT-NULL }
+    { "feed-url" URL NOT-NULL } ;
 
 TUPLE: posting < entry id ;
 
-posting "POSTINGS"
-{
-    { "id" "ID" INTEGER +db-assigned-id+ }
-    { "title" "TITLE" { VARCHAR 256 } +not-null+ }
-    { "url" "LINK" URL +not-null+ }
-    { "description" "DESCRIPTION" TEXT +not-null+ }
-    { "date" "DATE" TIMESTAMP +not-null+ }
-} define-persistent
+PERSISTENT: posting
+    { "id" +db-assigned-key+ }
+    { "title" { VARCHAR 256 } NOT-NULL }
+    { "url" URL NOT-NULL }
+    { "description" TEXT NOT-NULL }
+    { "date" TIMESTAMP NOT-NULL } ;
 
 : <blog> ( id -- todo )
     blog new

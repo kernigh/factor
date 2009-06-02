@@ -1,7 +1,9 @@
 ! Copyright (C) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel accessors sequences sorting math.order math.parser
-urls validators db db.types db.tuples calendar present namespaces
+urls validators db2 db2.types db2.tuples calendar present namespaces
+db2.persistent
+db2.transactions
 html.forms
 html.components
 http.server.dispatchers
@@ -38,12 +40,11 @@ GENERIC: entity-url ( entity -- url )
 
 M: entity feed-entry-url entity-url ;
 
-entity f {
-    { "id" "ID" INTEGER +db-assigned-id+ }
-    { "author" "AUTHOR" { VARCHAR 256 } +not-null+ } ! uid
-    { "date" "DATE" TIMESTAMP +not-null+ }
-    { "content" "CONTENT" TEXT +not-null+ }
-} define-persistent
+PERSISTENT: entity 
+    { "id" +db-assigned-key+ }
+    { "author" { VARCHAR 256 } NOT-NULL } ! uid
+    { "date" TIMESTAMP NOT-NULL }
+    { "content" TEXT NOT-NULL } ;
 
 M: entity feed-entry-date date>> ;
 
@@ -55,17 +56,15 @@ M: post feed-entry-title
 M: post entity-url
     id>> view-post-url ;
 
-\ post "BLOG_POSTS" {
-    { "title" "TITLE" { VARCHAR 256 } +not-null+ }
-} define-persistent
+PERSISTENT: post
+    { "title" { VARCHAR 256 } NOT-NULL } ;
 
 : <post> ( id -- post ) \ post new swap >>id ;
 
 TUPLE: comment < entity parent ;
 
-comment "COMMENTS" {
-    { "parent" "PARENT" INTEGER +not-null+ } ! post id
-} define-persistent
+PERSISTENT: comment
+    { "parent" INTEGER NOT-NULL } ; ! post id
 
 M: comment feed-entry-title
     author>> "Comment by " prepend ;

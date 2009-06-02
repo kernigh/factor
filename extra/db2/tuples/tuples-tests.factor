@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db2 db2.persistent db2.tester
 db2.tuples db2.types kernel tools.test db2.binders
-db2.statements multiline db2.fql db2.persistent.tests
+db2.statements multiline db2.fql db2.persistent.tests urls
 calendar literals sequences math math.ranges math.intervals ;
 QUALIFIED-WITH: math.intervals I
 QUALIFIED-WITH: math.ranges R
@@ -403,3 +403,17 @@ PERSISTENT: test5
     [ T{ test5 f 1 2 } ] [ T{ test5 f 1 2 } select-tuple ] unit-test ;
     
 [ test-test5 ] test-dbs
+
+TUPLE: test6 url ;
+
+PERSISTENT: test6
+    { "url" URL } ;
+
+: test-test6 ( --  )
+    [ test6 drop-table ] ignore-errors
+    [ ] [ test6 create-table ] unit-test
+    [ ] [ T{ test6 f "http://factorcode.org" } insert-tuple ] unit-test
+    [ URL" http://factorcode.org" ]
+    [ T{ test6 f "http://factorcode.org" } select-tuple url>> ] unit-test ;
+
+[ test-test6 ] test-dbs

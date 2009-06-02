@@ -56,7 +56,7 @@ IN: db2.fql.tests
         expand-fql sql>>
     ] unit-test
 
-    [ "update computer set name = oscar order by omg limit 3" ]
+    [ "update computer set name = ? order by omg limit 3" ]
     [
         update new
             "computer" >>tables

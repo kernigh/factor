@@ -3,11 +3,25 @@
 USING: accessors arrays assocs classes combinators.smart
 constructors db2.types db2.utils fry kernel lexer math
 namespaces parser sequences sets strings words combinators
-quotations make multiline classes.tuple ;
+quotations make multiline classes.tuple
+combinators.short-circuit ;
 IN: db2.persistent
 
-SYMBOL: persistent-table
-persistent-table [ H{ } clone ] initialize
+: sanitize-sql-name ( string -- string' )
+    H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
+
+GENERIC: parse-table-name ( object -- class table )
+GENERIC: parse-column-name ( object -- accessor column )
+GENERIC: parse-column-type ( object -- string )
+GENERIC: parse-column-modifiers ( object -- string )
+
+ERROR: bad-table-name name ;
+
+SYMBOL: raw-persistent-table
+raw-persistent-table [ H{ } clone ] initialize
+
+SYMBOL: inherited-persistent-table
+inherited-persistent-table [ H{ } clone ] initialize
 
 TUPLE: db-column persistent slot-name getter setter column-name type modifiers ;
 : <db-column> ( slot-name column-name type modifiers -- obj )
@@ -20,24 +34,7 @@ TUPLE: db-column persistent slot-name getter setter column-name type modifiers ;
              [ lookup-setter >>setter ] tri ;
 
 TUPLE: persistent class table-name columns relations
-accessor-quot column-names no-id-column-names
-all-column-types all-column-setters
-column-types
-insert-string update-string
-primary-key primary-key-names primary-key-quot db-assigned-id? ;
-
-: sanitize-sql-name ( string -- string' )
-    H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
-
-GENERIC: parse-table-name ( object -- class table )
-GENERIC: parse-column-name ( object -- accessor column )
-GENERIC: parse-column-type ( object -- string )
-GENERIC: parse-column-modifiers ( object -- string )
-
-ERROR: bad-table-name name ;
-
-: check-sanitized-name ( string -- string )
-    dup dup sanitize-sql-name = [ bad-table-name ] unless ;
+primary-key primary-key-names ;
 
 ERROR: not-persistent class ;
 
@@ -45,6 +42,102 @@ GENERIC: lookup-persistent ( obj -- persistent )
 
 : ensure-persistent ( obj -- obj )
     dup lookup-persistent [ ] unless ;
+
+: ?lookup-persistent ( class -- persistent/f )
+    raw-persistent-table get ?at [ drop f ] unless ;
+
+: tuple>persistent ( tuple -- persistent )
+    class lookup-persistent ;
+
+ERROR: duplicate-persistent-columns persistent ;
+
+: check-columns ( persistent -- persistent )
+    dup columns>>
+    [ column-name>> ] map all-unique?
+    [ duplicate-persistent-columns ] unless ;
+
+GENERIC: db-assigned-id? ( object -- ? )
+
+M: db-column db-assigned-id? ( db-column -- ? )
+    modifiers>> AUTOINCREMENT swap member? ;
+
+: column-primary-key? ( column -- ? )
+    {
+        [ type>> sql-primary-key? ]
+        [ modifiers>> [ PRIMARY-KEY? ] member? ]
+    } 1|| ;
+
+: find-primary-key ( persistent -- seq )
+    columns>> [ column-primary-key? ] filter ;
+
+ERROR: bad-primary-key key ;
+
+: >primary-key ( value tuple -- )
+    [
+        lookup-persistent find-primary-key
+        dup length 1 = not [ bad-primary-key ] when
+        first column-name>>
+    ] keep set-slot-named ;
+
+: remove-primary-key ( persistent -- seq )
+    columns>> [ column-primary-key? not ] filter ;
+
+M: persistent db-assigned-id? ( persistent -- ? )
+    find-primary-key [ db-assigned-id? ] any? ;
+
+: set-column-persistent-slots ( persistent -- persistent )
+    dup [ [ clone swap >>persistent ] with map ] change-columns ;
+
+: set-primary-key ( persistent -- persistent )
+    dup find-primary-key >>primary-key ;
+
+: set-primary-key-names ( persistent -- persistent )
+    dup find-primary-key [ column-name>> ] map >>primary-key-names ;
+
+: analyze-persistent ( persistent -- persistent )
+    set-column-persistent-slots
+    set-primary-key 
+    set-primary-key-names ;
+
+M: tuple lookup-persistent class lookup-persistent ;
+
+: superclass-persistent-columns ( class -- columns )
+    superclasses [ ?lookup-persistent ] map sift
+    [ columns>> ] map concat ;
+
+: join-persistents ( class -- persistent )
+    [ superclass-persistent-columns ] 
+    [ ?lookup-persistent clone ] bi
+    [ (>>columns) ] keep ;
+
+M: class lookup-persistent ( class -- persistent )
+    inherited-persistent-table get
+    [
+        join-persistents
+        analyze-persistent
+        check-columns
+    ] cache ;
+
+CONSTRUCTOR: persistent ( class table-name columns -- obj )
+    H{ } clone >>relations ;
+
+: check-sanitized-name ( string -- string )
+    dup dup sanitize-sql-name = [ bad-table-name ] unless ;
+
+: make-persistent ( class name columns -- )
+    inherited-persistent-table get clear-assoc
+    <persistent> dup class>> raw-persistent-table get set-at ;
+
+: parse-column ( seq -- db-column )
+    ?first3
+    [ parse-column-name ]
+    [ parse-column-type ]
+    [ parse-column-modifiers ] tri* <db-column> ;
+
+SYNTAX: PERSISTENT:
+    scan-object parse-table-name check-sanitized-name
+    \ ; parse-until
+    [ parse-column ] map make-persistent ;
 
 M: integer parse-table-name throw ;
 
@@ -84,133 +177,6 @@ M: sequence parse-column-modifiers
 
 M: word parse-column-modifiers
     ensure-sql-modifier ;
-
-: parse-column ( seq -- db-column )
-    ?first3
-    [ parse-column-name ]
-    [ parse-column-type ]
-    [ parse-column-modifiers ] tri* <db-column> ;
-
-: ?lookup-persistent ( class -- persistent/f )
-    persistent-table get ?at [ drop f ] unless ;
-
-M: tuple lookup-persistent class lookup-persistent ;
-
-M: class lookup-persistent ( class -- persistent )
-    persistent-table get ?at [ not-persistent ] unless ;
-
-: tuple>persistent ( tuple -- persistent )
-    class lookup-persistent ;
-
-: primary-key-modifiers ( -- seq )
-    { PRIMARY-KEY } ;
-
-GENERIC: db-assigned-id? ( object -- ? )
-: user-assigned-id? ( db-column -- ? )
-    db-assigned-id? not ;
-
-M: db-column db-assigned-id? ( db-column -- ? )
-    modifiers>> AUTOINCREMENT swap member? ;
-
-: primary-key? ( db-column -- ? )
-    modifiers>> primary-key-modifiers intersect empty? not ;
-
-: find-primary-key ( persistent -- seq )
-    columns>> [ primary-key? ] filter ;
-
-M: persistent db-assigned-id? ( persistent -- ? )
-    find-primary-key [ db-assigned-id? ] any? ;
-
-: remove-db-assigned-id ( persistent -- seq )
-    columns>> [ db-assigned-id? not ] filter ;
-
-: remove-user-assigned-id ( persistent -- seq )
-    columns>> [ user-assigned-id? not ] filter ;
-
-
-: set-column-persistent-slots ( persistent -- persistent )
-    dup [ [ clone swap >>persistent ] with map ] change-columns ;
-
-: set-primary-key ( persistent -- persistent )
-    dup find-primary-key >>primary-key ;
-
-: set-primary-key-names ( persistent -- persistent )
-    dup find-primary-key [ column-name>> ] map >>primary-key-names ;
-
-/*
-
-: set-primary-key-quot ( persistent -- persistent )
-    dup find-primary-key
-    [ getter>> 1quotation ] { } map-as
-    '[ [ _ cleave ] curry { } output>sequence ] >>primary-key-quot ;
-
-: set-db-assigned-id? ( persistent -- persistent )
-    dup db-assigned-id? >>db-assigned-id? ;
-
-: set-all-column-names ( persistent -- persistent )
-    dup [ column-name>> ] map >>column-names ;
-
-: set-no-id-column-names ( persistent -- persistent )
-    dup remove-db-assigned-id [ column-name>> ] map
-    >>no-id-column-names ;
-
-: set-column-types ( persistent -- persistent )
-    dup remove-db-assigned-id [ type>> ] map
-    >>column-types ;
-
-: set-all-column-types ( persistent -- persistent )
-    dup columns>> [ type>> ] map >>all-column-types ;
-
-: set-all-column-setters ( persistent -- persistent )
-    dup columns>> [ setter>> ] map >>all-column-setters ;
-
-: set-insert-string ( persistent -- persistent )
-    dup column-names>> ", " join >>insert-string ;
-
-: set-update-string ( persistent -- persistent )
-    dup column-names>>
-    [ " = ?" append ] map ", " join >>update-string ;
-
-: set-accessor-quot ( persistent -- persistent )
-    dup remove-db-assigned-id [
-        getter>> 1quotation
-    ] { } map-as
-    '[ [ _ cleave ] curry { } output>sequence ] >>accessor-quot ;
-*/
-
-: analyze-persistent ( persistent -- persistent )
-    set-column-persistent-slots
-    set-primary-key 
-    set-primary-key-names
-    ! set-primary-key-quot
-    ! set-db-assigned-id?
-    ! set-all-column-names
-    ! set-no-id-column-names
-    ! set-all-column-types
-    ! set-all-column-setters
-    ! set-column-types
-    ! set-insert-string
-    ! set-update-string
-    ! set-accessor-quot ;
-    ;
-
-CONSTRUCTOR: persistent ( class table-name columns -- obj )
-    H{ } clone >>relations
-    analyze-persistent ;
-
-: superclass-persistent-columns ( class -- columns )
-    superclasses rest-slice but-last-slice
-    [ ?lookup-persistent ] map sift
-    [ columns>> ] map concat ;
-
-: make-persistent ( class name columns -- )
-    pick superclass-persistent-columns append
-    <persistent> dup class>> persistent-table get set-at ;
-
-SYNTAX: PERSISTENT:
-    scan-object parse-table-name check-sanitized-name
-    \ ; parse-until
-    [ parse-column ] map make-persistent ;
 
 : scan-relation ( -- class class )
     scan-word scan-word [ ensure-persistent ] bi@ ;

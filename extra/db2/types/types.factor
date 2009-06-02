@@ -9,14 +9,21 @@ HOOK: sql-modifiers>string db-connection ( modifiers -- string )
 
 MIXIN: sql-type
 MIXIN: sql-modifier
+MIXIN: sql-primary-key
+
+: define-sql-instance ( word mixin -- )
+    over define-singleton-class
+    add-mixin-instance ;
 
 : define-sql-type ( word -- )
-    [ define-singleton-class ]
-    [ sql-type add-mixin-instance ] bi ;
+    sql-type define-sql-instance ;
 
 : define-sql-modifier ( word -- )
-    [ define-singleton-class ]
-    [ sql-modifier add-mixin-instance ] bi ;
+    sql-modifier define-sql-instance ;
+
+: define-primary-key ( word -- )
+    [ define-sql-type ]
+    [ sql-primary-key add-mixin-instance ] bi ;
 
 <<
 
@@ -26,6 +33,13 @@ SYNTAX: SQL-TYPE:
 SYNTAX: SQL-TYPES:
     ";" parse-tokens
     [ create-class-in define-sql-type ] each ;
+
+SYNTAX: PRIMARY-KEY-TYPE:
+    CREATE-CLASS define-sql-type ;
+
+SYNTAX: PRIMARY-KEY-TYPES:
+    ";" parse-tokens
+    [ create-class-in define-primary-key ] each ;
 
 SYNTAX: SQL-MODIFIER:
     CREATE-CLASS define-sql-modifier ;
@@ -54,15 +68,9 @@ SQL-TYPES:
     FACTOR-BLOB
     URL ;
 
-SQL-MODIFIERS: +db-assigned-id+ +user-assigned-id+ +random-id+ ;
-UNION: +primary-key+ +db-assigned-id+ +user-assigned-id+ +random-id+ ;
-
-SQL-MODIFIERS: +autoincrement+ +serial+ +unique+ +default+ +null+ +not-null+
-+foreign-id+ +has-many+ +on-update+ +on-delete+ +restrict+ +cascade+
-+set-null+ +set-default+ ;
-
-SQL-MODIFIERS: PRIMARY-KEY SERIAL AUTOINCREMENT UNIQUE
-DEFAULT NOT-NULL NULL ;
+SQL-MODIFIERS: PRIMARY-KEY
+SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL ;
+PRIMARY-KEY-TYPES: +db-assigned-key+ +random-key+ ;
 
 ERROR: no-sql-type name ;
 ERROR: no-sql-modifier name ;

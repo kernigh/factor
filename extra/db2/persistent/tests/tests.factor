@@ -7,7 +7,7 @@ IN: db2.persistent.tests
 TUPLE: default-person id name birthdate email homepage ;
 
 PERSISTENT: default-person
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "name" VARCHAR }
     { "birthdate" TIMESTAMP }
     { "email" VARCHAR }
@@ -32,11 +32,11 @@ TUPLE: pet-store id name pets ;
 TUPLE: pet id pet-store-id name type ;
 
 PERSISTENT: pet-store
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "name" VARCHAR } ;
 
 PERSISTENT: pet
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "pet-store-id" INTEGER }
     { "name" VARCHAR }
     { "type" VARCHAR } ;
@@ -49,11 +49,11 @@ TUPLE: pet2 id name pet-type2-id ;
 TUPLE: pet-type2 id ;
 
 PERSISTENT: pet-store2
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "name" VARCHAR } ;
 
 PERSISTENT: pet2
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "pet-store-id" INTEGER }
     { "name" VARCHAR }
     { "type" VARCHAR } ;
@@ -63,13 +63,13 @@ PERSISTENT: pet2
 TUPLE: manufacturer id name ;
 
 PERSISTENT: manufacturer
-    { "id" INTEGER PRIMARY-KEY }
+    { "id" +db-assigned-key+ }
     { "name" VARCHAR } ;
 
 TUPLE: color id name ;
 
 PERSISTENT: color
-    { "id" INTEGER PRIMARY-KEY }
+    { "id" +db-assigned-key+ }
     { "name" VARCHAR } ;
 
 TUPLE: car id manufacturer-id year model ;
@@ -77,7 +77,7 @@ TUPLE: single-color-car < car color-id ;
 TUPLE: multi-color-car < car colors ;
 
 PERSISTENT: car
-    { { "id" "foooid" } { INTEGER } { NOT-NULL SERIAL PRIMARY-KEY } }
+    { { "id" "foooid" } +db-assigned-key+ }
     { "manufacturer-id" INTEGER }
     { "year" INTEGER }
     { "model" VARCHAR } ;

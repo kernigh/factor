@@ -1,12 +1,13 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays byte-arrays classes combinators
+USING: accessors arrays assocs byte-arrays classes combinators
 combinators.short-circuit db2 db2.binders db2.connections
 db2.errors db2.fql db2.persistent db2.statements db2.types
-db2.utils fry kernel make math math.intervals sequences strings
-assocs multiline math.ranges sequences.deep ;
+db2.utils fry kernel make math math.intervals math.ranges
+multiline random sequences sequences.deep strings ;
 FROM: db2.types => NULL ;
 FROM: db2.fql => update ;
+FROM: db2.fql => delete ;
 IN: db2.tuples
 
 ERROR: unimplemented ;
@@ -15,6 +16,7 @@ HOOK: create-table-statement db-connection ( class -- statement )
 HOOK: drop-table-statement db-connection ( class -- statement )
 
 HOOK: insert-tuple-statement db-connection ( tuple -- statement )
+HOOK: post-insert-tuple db-connection ( tuple -- )
 HOOK: update-tuple-statement db-connection ( tuple -- statement )
 HOOK: delete-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuple-statement db-connection ( tuple -- statement )
@@ -91,10 +93,8 @@ M: object create-table-statement ( class -- statement )
                 [ column-name>> % " " % ]
                 [ type>> sql-type>string % ]
                 [
-                    modifiers>> [
-                        { [ PRIMARY-KEY? ] [ AUTOINCREMENT? ] } 1|| not
-                    ] filter
-                    [ " " % sql-modifiers>string % ] when*
+                    dup sql-primary-key? not
+                    [ " " % modifiers>> sql-modifiers>string % ] [ drop ] if
                 ] tri
             ] interleave
         ] [ 
@@ -112,6 +112,12 @@ M: object drop-table-statement ( class -- statement )
     lookup-persistent table-name>> sanitize-sql-name
     "drop table " prepend ;
 
+: make-binder ( type obj -- binder )
+    over {
+        { +random-key+ [ drop 64 random-bits <simple-binder> ] }
+        [ drop <simple-binder> ]
+    } case ;
+
 M: object insert-tuple-statement ( tuple -- statement )
     [ \ insert new ] dip
     dup lookup-persistent {
@@ -124,44 +130,51 @@ M: object insert-tuple-statement ( tuple -- statement )
                 columns>> [ getter>> ] map
                 [ execute( obj -- obj' ) ] with map
             ] 2bi
-            [ <simple-binder> ] 2map >>values
+            [ make-binder ] 2map >>values
         ]
     } 2cleave expand-fql ;
 
+: qualified-names ( table-name columns -- string )
+    [ column-name>> "." glue ] with map ;
+
+: persistent>qualified-names ( persistent -- string )
+    [ table-name>> ] [ columns>> ] bi qualified-names ;
+
+: where-primary-key ( statement tuple specs -- statement )
+    find-primary-key where-clause
+    [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty ;
+
 M: object update-tuple-statement ( tuple -- statement )
-    unimplemented
     [ \ update new ] dip
     dup lookup-persistent {
         [ nip table-name>> >>tables ]
         [
-            nip [ table-name>> ] [ columns>> ] bi
-            [ column-name>> "." glue ] with map >>keys
+            nip
+            remove-primary-key [ column-name>> ] map >>keys
         ]
         [
-            nip
-            [ nip columns>> [ type>> ] map ]
+            [ nip remove-primary-key [ type>> ] map ]
             [
-                columns>> [ getter>> ] map
+                remove-primary-key [ getter>> ] map
                 [ execute( obj -- obj' ) ] with map
             ] 2bi
 
             [ <simple-binder> ] 2map >>values
         ]
-        [ nip table-name>> >>from ]
-        ! [ set-statement-where ]
-    } 2cleave ;
+        [ where-primary-key ]
+    } 2cleave expand-fql ;
 
 M: object delete-tuple-statement ( tuple -- statement )
-    unimplemented
-    ;
+    [ \ delete new ] dip
+    dup lookup-persistent {
+        [ nip table-name>> >>tables ]
+        [ set-statement-where ]
+    } 2cleave expand-fql ;
 
 : (select-tuples-statement) ( tuple -- fql )
     [ \ select new ] dip
     dup lookup-persistent {
-        [
-            nip [ table-name>> ] [ columns>> ] bi
-            [ column-name>> "." glue ] with map >>names
-        ]
+        [ nip persistent>qualified-names >>names ]
         [
             nip
             [ class>> ]
@@ -209,17 +222,27 @@ M: object count-tuples-statement ( tuple -- statement )
 : recreate-table ( class -- )
     [ drop-table ] [ create-table ] bi ;
 
+M: object post-insert-tuple drop ;
+
 : insert-tuple ( tuple -- )
-    insert-tuple-statement sql-bind-typed-command ;
+    dup class lookup-persistent find-primary-key
+    [ type>> { +db-assigned-key+ +random-key+ } member? ] any?
+    [
+        [ insert-tuple-statement sql-bind-typed-command ]
+        [ post-insert-tuple ] bi
+    ] [
+        insert-tuple-statement sql-bind-typed-command
+    ] if ;
 
 : update-tuple ( tuple -- )
     update-tuple-statement sql-bind-typed-command ;
 
-: delete-tuple ( tuple -- )
+: delete-tuples ( tuple -- )
     delete-tuple-statement sql-bind-typed-command ;
 
-: select-tuple ( tuple -- tuple' )
-    select-tuple-statement sql-bind-typed-query first ;
+: select-tuple ( tuple -- tuple'/f )
+    select-tuple-statement sql-bind-typed-query
+    [ f ] [ first ] if-empty ;
 
 : select-tuples ( tuple -- seq )
     select-tuples-statement sql-bind-typed-query ;

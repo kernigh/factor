@@ -22,8 +22,11 @@ IN: db2.tuples.tests
     [ V{ T{ default-person { id 1 } { name "omg" } } } ]
     [ person1 select-tuples ] unit-test
 
+
     [ ]
     [ T{ default-person { id 1 } { name "foobar" } } update-tuple ] unit-test
+    [ "foobar" ]
+    [ T{ default-person { id 1 } } select-tuple name>> ] unit-test
     ;
 
 : test-computer ( -- )
@@ -101,11 +104,11 @@ TUPLE: pet-store id name pets ;
 TUPLE: pet id pet-store-id name type ;
 
 PERSISTENT: pet-store
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "name" VARCHAR } ;
 
 PERSISTENT: pet
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "pet-store-id" INTEGER }
     { "name" VARCHAR }
     { "type" VARCHAR } ;
@@ -254,7 +257,7 @@ PERSISTENT: pet
 TUPLE: test1 id timestamp ;
 
 PERSISTENT: test1
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { { "timestamp" "ts" } TIMESTAMP } ;
 
 : test-test1 ( -- )
@@ -282,9 +285,8 @@ PERSISTENT: test1
 TUPLE: test2 id score ;
 
 PERSISTENT: test2
-    { "id" INTEGER { PRIMARY-KEY AUTOINCREMENT } }
+    { "id" +db-assigned-key+ }
     { "score" INTEGER } ;
-
 
 : test-test2 ( -- )
     [ test2 drop-table ] ignore-errors
@@ -353,3 +355,51 @@ PERSISTENT: test2
     ;
 
 [ test-test2 ] test-dbs
+
+
+TUPLE: test3 id ;
+
+PERSISTENT: test3
+    { "id" +random-key+ } ;
+
+: test-test3 ( -- )
+    [ test3 drop-table ] ignore-errors
+    [ ] [ test3 create-table ] unit-test
+    [ ] [ test3 ensure-table ] unit-test
+    [ ] [ test3 ensure-table ] unit-test
+    [ ] [ T{ test3 } insert-tuple ] unit-test
+    [ t ] [ T{ test3 } select-tuple >boolean ] unit-test
+    [ t ] [ T{ test3 } select-tuple id>> 1 = not ] unit-test
+    [ ] [ T{ test3 } delete-tuples ] unit-test
+    [ f ] [ T{ test3 } select-tuple ] unit-test
+    ;
+
+[ test-test3 ] test-dbs
+
+
+TUPLE: test4 id ;
+
+PERSISTENT: test4
+    { "id" +db-assigned-key+ } ;
+
+: test-test4 ( --  )
+    [ test4 drop-table ] ignore-errors
+    [ ] [ test4 create-table ] unit-test
+    [ t ] [ T{ test4 } [ insert-tuple ] keep id>> integer? ] unit-test ;
+
+[ test-test4 ] test-dbs
+
+
+TUPLE: test5 pk1 pk2 ;
+
+PERSISTENT: test5
+    { "pk1" INTEGER PRIMARY-KEY }
+    { "pk2" INTEGER PRIMARY-KEY } ;
+
+: test-test5 ( --  )
+    [ test5 drop-table ] ignore-errors
+    [ ] [ test5 create-table ] unit-test
+    [ ] [ T{ test5 f 1 2 } insert-tuple ] unit-test
+    [ T{ test5 f 1 2 } ] [ T{ test5 f 1 2 } select-tuple ] unit-test ;
+    
+[ test-test5 ] test-dbs

@@ -1,6 +1,7 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel sequences db.tuples alarms calendar db fry
+USING: kernel sequences db2.tuples alarms calendar
+db2.connections fry
 furnace.db
 furnace.cache
 furnace.asides

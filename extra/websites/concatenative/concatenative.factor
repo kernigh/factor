@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel sequences assocs io.files io.pathnames
 io.sockets io.sockets.secure io.servers.connection
-namespaces db db.tuples db.sqlite smtp urls
+namespaces db2 db2.tuples db2.sqlite db2.connections smtp urls
 logging.insomniac
 html.templates.chloe
 http.server

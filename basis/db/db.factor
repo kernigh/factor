@@ -1,9 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db.result-sets db.sqlite.lib
-db.sqlite.result-sets db.sqlite.statements db.sqlite.types
+USING: accessors continuations db.fql db.result-sets
 db.statements destructors fry kernel math namespaces sequences
-strings db.fql summary ;
+strings summary ;
 IN: db
 
 ERROR: no-in-types statement ;

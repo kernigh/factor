@@ -1,11 +1,12 @@
-! Copyright (C) 2008 Slava Pestov.
+! Copyright (C) 2008, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel math assocs namespaces sequences heaps
-fry make combinators
+fry make combinators sets
 cpu.architecture
 compiler.cfg.def-use
 compiler.cfg.registers
 compiler.cfg.instructions
+compiler.cfg.linear-scan.allocation
 compiler.cfg.linear-scan.live-intervals ;
 IN: compiler.cfg.linear-scan.assignment
 
@@ -25,50 +26,80 @@ TUPLE: active-intervals seq ;
 SYMBOL: unhandled-intervals
 
 : add-unhandled ( live-interval -- )
-    dup split-before>> [
-        [ split-before>> ] [ split-after>> ] bi
-        [ add-unhandled ] bi@
-    ] [
-        dup start>> unhandled-intervals get heap-push
-    ] if ;
+    dup start>> unhandled-intervals get heap-push ;
 
 : init-unhandled ( live-intervals -- )
     [ add-unhandled ] each ;
 
+! Mapping spill slots to vregs
+SYMBOL: spill-slots
+
+: spill-slots-for ( vreg -- assoc )
+    reg-class>> spill-slots get at ;
+
+: record-spill ( live-interval -- )
+    [ dup spill-to>> ] [ vreg>> spill-slots-for ] bi
+    2dup key? [ "BUG: Already spilled" throw ] [ set-at ] if ;
+
 : insert-spill ( live-interval -- )
-    [ reg>> ] [ vreg>> reg-class>> ] [ spill-to>> ] tri
-    dup [ _spill ] [ 3drop ] if ;
+    [ reg>> ] [ vreg>> reg-class>> ] [ spill-to>> ] tri _spill ;
+
+: handle-spill ( live-interval -- )
+    dup spill-to>> [ [ record-spill ] [ insert-spill ] bi ] [ drop ] if ;
 
 : expire-old-intervals ( n -- )
     active-intervals get
     [ swap '[ end>> _ = ] partition ] change-seq drop
-    [ insert-spill ] each ;
+    [ handle-spill ] each ;
+
+: record-reload ( live-interval -- )
+    [ reload-from>> ] [ vreg>> spill-slots-for ] bi
+    2dup key? [ delete-at ] [ "BUG: Already reloaded" throw ] if ;
 
 : insert-reload ( live-interval -- )
-    [ reg>> ] [ vreg>> reg-class>> ] [ reload-from>> ] tri
-    dup [ _reload ] [ 3drop ] if ;
+    [ reg>> ] [ vreg>> reg-class>> ] [ reload-from>> ] tri _reload ;
+
+: handle-reload ( live-interval -- )
+    dup reload-from>> [ [ record-reload ] [ insert-reload ] bi ] [ drop ] if ;
 
 : activate-new-intervals ( n -- )
     #! Any live intervals which start on the current instruction
     #! are added to the active set.
     unhandled-intervals get dup heap-empty? [ 2drop ] [
         2dup heap-peek drop start>> = [
-            heap-pop drop [ add-active ] [ insert-reload ] bi
+            heap-pop drop
+            [ add-active ] [ handle-reload ] bi
             activate-new-intervals
         ] [ 2drop ] if
     ] if ;
 
-GENERIC: assign-registers-in-insn ( insn -- )
+GENERIC: assign-before ( insn -- )
+
+GENERIC: assign-after ( insn -- )
 
 : all-vregs ( insn -- vregs )
     [ defs-vregs ] [ temp-vregs ] [ uses-vregs ] tri 3append ;
 
-M: vreg-insn assign-registers-in-insn
+M: vreg-insn assign-before
     active-intervals get seq>> over all-vregs '[ vreg>> _ member? ] filter
     [ [ vreg>> ] [ reg>> ] bi ] { } map>assoc
     >>regs drop ;
 
-M: insn assign-registers-in-insn drop ;
+M: insn assign-before drop ;
+
+: compute-live-registers ( -- regs )
+    active-intervals get seq>> [ [ vreg>> ] [ reg>> ] bi ] { } map>assoc ;
+
+: compute-live-spill-slots ( -- spill-slots )
+    spill-slots get values [ values ] map concat
+    [ [ vreg>> ] [ reload-from>> ] bi ] { } map>assoc ;
+
+M: ##gc assign-after
+    compute-live-registers >>live-registers
+    compute-live-spill-slots >>live-spill-slots
+    drop ;
+
+M: insn assign-after drop ;
 
 : <active-intervals> ( -- obj )
     V{ } clone active-intervals boa ;
@@ -76,16 +107,20 @@ M: insn assign-registers-in-insn drop ;
 : init-assignment ( live-intervals -- )
     <active-intervals> active-intervals set
     <min-heap> unhandled-intervals set
+    [ H{ } clone ] reg-class-assoc spill-slots set 
     init-unhandled ;
 
 : assign-registers-in-block ( bb -- )
     [
         [
             [
-                [ insn#>> activate-new-intervals ]
-                [ [ assign-registers-in-insn ] [ , ] bi ]
-                [ insn#>> expire-old-intervals ]
-                tri
+                {
+                    [ insn#>> activate-new-intervals ]
+                    [ assign-before ]
+                    [ , ]
+                    [ insn#>> expire-old-intervals ]
+                    [ assign-after ]
+                } cleave
             ] each
         ] V{ } make
     ] change-instructions drop ;

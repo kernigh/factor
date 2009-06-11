@@ -8,8 +8,10 @@ continuations.private fry cpu.architecture
 source-files.errors
 compiler.errors
 compiler.alien
+compiler.constants
 compiler.cfg
 compiler.cfg.instructions
+compiler.cfg.stack-frame
 compiler.cfg.registers
 compiler.cfg.builder
 compiler.codegen.fixup
@@ -93,7 +95,9 @@ M: _dispatch generate-insn
     [ src>> register ] [ temp>> register ] bi %dispatch ;
 
 M: _dispatch-label generate-insn
-    label>> lookup-label %dispatch-label ;
+    label>> lookup-label
+    cell 0 <repetition> %
+    rc-absolute-cell label-fixup ;
 
 : >slot< ( insn -- dst obj slot tag )
     {
@@ -234,7 +238,13 @@ M: ##write-barrier generate-insn
     [ table>> register ]
     tri %write-barrier ;
 
-M: ##gc generate-insn drop %gc ;
+M: _gc generate-insn
+    {
+        [ temp1>> register ]
+        [ temp2>> register ]
+        [ gc-roots>> ]
+        [ gc-root-count>> ]
+    } cleave %gc ;
 
 M: ##loop-entry generate-insn drop %loop-entry ;
 
@@ -243,16 +253,6 @@ M: ##alien-global generate-insn
     %alien-global ;
 
 ! ##alien-invoke
-GENERIC: reg-size ( register-class -- n )
-
-M: int-regs reg-size drop cell ;
-
-M: single-float-regs reg-size drop 4 ;
-
-M: double-float-regs reg-size drop 8 ;
-
-M: stack-params reg-size drop "void*" heap-size ;
-
 GENERIC: reg-class-variable ( register-class -- symbol )
 
 M: reg-class reg-class-variable ;

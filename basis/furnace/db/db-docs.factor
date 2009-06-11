@@ -1,4 +1,4 @@
-USING: help.markup help.syntax db2.connections http.server ;
+USING: help.markup help.syntax db.connections http.server ;
 IN: furnace.db
 
 HELP: <db-persistence>

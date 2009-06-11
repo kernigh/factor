@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alarms calendar db2 db2.persistent
-db2.tuples db2.types fry http.server.filters kernel
+USING: accessors alarms calendar db db.persistent
+db.tuples db.types fry http.server.filters kernel
 math.intervals random system ;
 IN: furnace.cache
 

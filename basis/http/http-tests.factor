@@ -1,8 +1,8 @@
 USING: http http.server http.client http.client.private tools.test
 multiline io.streams.string io.encodings.utf8 io.encodings.8-bit
 io.encodings.binary io.encodings.string io.encodings.ascii kernel
-arrays splitting sequences assocs io.sockets db2 db2.sqlite
-db2.connections
+arrays splitting sequences assocs io.sockets db db.sqlite
+db.connections
 continuations urls hashtables accessors namespaces xml.data ;
 IN: http.tests
 
@@ -179,7 +179,7 @@ furnace.actions furnace.auth furnace.auth.login furnace.db
 io.servers.connection io.files io.files.temp io.directories io
 threads
 http.server.responses http.server.redirection furnace.redirection
-http.server.dispatchers db2.tuples ;
+http.server.dispatchers db.tuples ;
 
 : add-quit-action ( responder -- responder )
     <action>

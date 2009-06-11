@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel accessors continuations namespaces destructors
-db2 db2.connections db2.pools io.pools http.server
+db db.connections db.pools io.pools http.server
 http.server.filters ;
 IN: furnace.db
 

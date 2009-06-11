@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs combinators db2.persistent db2.tuples
-db2.types fry furnace.cache furnace.redirection furnace.scopes
+USING: accessors assocs combinators db.persistent db.tuples
+db.types fry furnace.cache furnace.redirection furnace.scopes
 furnace.sessions furnace.utilities hashtables
 html.templates.chloe.syntax http http.server
 http.server.filters http.server.redirection kernel logging

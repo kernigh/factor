@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db2 db2.sqlite db2.tuples db2.types
-db2.connections db2.persistent
+USING: accessors continuations db db.sqlite db.tuples db.types
+db.connections db.persistent
 io.directories io.files.temp kernel io.streams.string calendar
 debugger combinators.smart sequences arrays ;
 IN: site-watcher.db

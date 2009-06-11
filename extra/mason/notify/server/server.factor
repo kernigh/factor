@@ -1,9 +1,9 @@
 ! Copyright (C) 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors combinators combinators.smart command-line db2
-db2.sqlite db2.tuples db2.types io io.encodings.utf8 io.files
-present kernel namespaces sequences calendar db2.connections
-db2.persistent ;
+USING: accessors combinators combinators.smart command-line db
+db.sqlite db.tuples db.types io io.encodings.utf8 io.files
+present kernel namespaces sequences calendar db.connections
+db.persistent ;
 IN: mason.notify.server
 
 CONSTANT: +starting+ "starting"

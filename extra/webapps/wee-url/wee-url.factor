@@ -1,8 +1,8 @@
 ! Copyright (C) 2007 Doug Coleman.
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db2.persistent db2.tuples
-db2.types fry furnace furnace.actions furnace.boilerplate
+USING: accessors continuations db.persistent db.tuples
+db.types fry furnace furnace.actions furnace.boilerplate
 furnace.redirection furnace.utilities html.components
 html.forms http http.server.dispatchers kernel literals
 math.ranges namespaces random sequences urls validators ;

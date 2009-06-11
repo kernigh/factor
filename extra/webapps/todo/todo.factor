@@ -1,9 +1,9 @@
 ! Copyright (c) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel sequences namespaces
-db2 db2.types db2.tuples validators hashtables urls
-db2.connections
-db2.persistent
+db db.types db.tuples validators hashtables urls
+db.connections
+db.persistent
 html.forms
 html.components
 html.templates.chloe
@@ -120,7 +120,7 @@ PERSISTENT: todo
 USING: furnace.auth.features.registration
 furnace.auth.features.edit-profile
 furnace.auth.features.deactivate-user
-db2.sqlite
+db.sqlite
 furnace.alloy
 io.servers.connection
 io.sockets.secure ;

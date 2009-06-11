@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors classes.singleton continuations db2.transactions
-db2 db2.persistent db2.tuples db2.types furnace.auth.providers
+USING: accessors classes.singleton continuations db.transactions
+db db.persistent db.tuples db.types furnace.auth.providers
 kernel ;
 IN: furnace.auth.providers.db
 

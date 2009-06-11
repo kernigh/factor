@@ -1,7 +1,7 @@
 ! Copyright (C) 2007, 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs calendar calendar.format combinators
-db2 db2.persistent db2.transactions db2.tuples db2.types
+db db.persistent db.transactions db.tuples db.types
 furnace furnace.actions furnace.auth furnace.auth.login
 furnace.boilerplate furnace.redirection furnace.syndication
 hashtables html.components html.forms html.templates.chloe

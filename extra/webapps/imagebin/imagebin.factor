@@ -1,9 +1,9 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel furnace.actions html.forms
-http.server.dispatchers db2 db2.tuples db2.types urls
+http.server.dispatchers db db.tuples db.types urls
 furnace.redirection multiline http namespaces
-db2.persistent ;
+db.persistent ;
 IN: webapps.imagebin
 
 TUPLE: imagebin < dispatcher ;

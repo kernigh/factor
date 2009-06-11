@@ -1,5 +1,5 @@
 USING: accessors combinators.short-circuit
-db2.persistent db2.tuples db2.types furnace.auth furnace.cache
+db.persistent db.tuples db.types furnace.auth furnace.cache
 furnace.sessions kernel namespaces ;
 IN: furnace.auth.login.permits
 

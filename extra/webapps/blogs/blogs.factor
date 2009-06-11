@@ -1,9 +1,9 @@
 ! Copyright (C) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel accessors sequences sorting math.order math.parser
-urls validators db2 db2.types db2.tuples calendar present namespaces
-db2.persistent
-db2.transactions
+urls validators db db.types db.tuples calendar present namespaces
+db.persistent
+db.transactions
 html.forms
 html.components
 http.server.dispatchers

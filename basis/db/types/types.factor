@@ -11,6 +11,8 @@ MIXIN: sql-type
 MIXIN: sql-modifier
 MIXIN: sql-primary-key
 
+<<
+
 : define-sql-instance ( word mixin -- )
     over define-singleton-class
     add-mixin-instance ;
@@ -24,8 +26,6 @@ MIXIN: sql-primary-key
 : define-primary-key ( word -- )
     [ define-sql-type ]
     [ sql-primary-key add-mixin-instance ] bi ;
-
-<<
 
 SYNTAX: SQL-TYPE:
     CREATE-CLASS define-sql-type ;

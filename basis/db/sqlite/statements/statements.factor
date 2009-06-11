@@ -1,0 +1,10 @@
+! Copyright (C) 2009 Doug Coleman.
+! See http://factorcode.org/license.txt for BSD license.
+USING: accessors db.connections db.sqlite.connections
+db.sqlite.ffi db.sqlite.lib db.statements destructors kernel
+namespaces db.sqlite ;
+IN: db.sqlite.statements
+
+M: sqlite-db-connection prepare-statement* ( statement -- statement )
+    db-connection get handle>> over sql>> sqlite-prepare
+    >>handle ;

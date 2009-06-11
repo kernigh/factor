@@ -15,17 +15,14 @@ IN: db.sqlite.introspection.tests
                     T{ column
                         { name "name" }
                         { type VARCHAR }
-                        { modifiers "" }
                     }
                     T{ column
                         { name "os" }
                         { type VARCHAR }
-                        { modifiers "" }
                     }
                     T{ column
                         { name "version" }
                         { type INTEGER }
-                        { modifiers "" }
                     }
                 }
             }

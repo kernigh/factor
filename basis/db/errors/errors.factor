@@ -1,42 +1,30 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors kernel continuations fry words ;
+USING: accessors kernel continuations fry words constructors
+db.connections ;
 IN: db.errors
 
 ERROR: db-error ;
 ERROR: sql-error location ;
-
-ERROR: bad-schema ;
+HOOK: parse-sql-error db-connection ( error -- error' )
 
 ERROR: sql-unknown-error < sql-error message ;
-: <sql-unknown-error> ( message -- error )
-    \ sql-unknown-error new
-        swap >>message ;
+CONSTRUCTOR: sql-unknown-error ( message -- error ) ;
 
 ERROR: sql-table-exists < sql-error table ;
-: <sql-table-exists> ( table -- error )
-    \ sql-table-exists new
-        swap >>table ;
+CONSTRUCTOR: sql-table-exists ( table -- error ) ;
 
 ERROR: sql-table-missing < sql-error table ;
-: <sql-table-missing> ( table -- error )
-    \ sql-table-missing new
-        swap >>table ;
+CONSTRUCTOR: sql-table-missing ( table -- error ) ;
 
 ERROR: sql-syntax-error < sql-error message ;
-: <sql-syntax-error> ( message -- error )
-    \ sql-syntax-error new
-        swap >>message ;
+CONSTRUCTOR: sql-syntax-error ( message -- error ) ;
 
 ERROR: sql-function-exists < sql-error message ;
-: <sql-function-exists> ( message -- error )
-    \ sql-function-exists new
-        swap >>message ;
+CONSTRUCTOR: sql-function-exists ( message -- error ) ;
 
 ERROR: sql-function-missing < sql-error message ;
-: <sql-function-missing> ( message -- error )
-    \ sql-function-missing new
-        swap >>message ;
+CONSTRUCTOR: sql-function-missing ( message -- error ) ;
 
 : ignore-error ( quot word -- )
     '[ dup _ execute [ drop ] [ rethrow ] if ] recover ; inline

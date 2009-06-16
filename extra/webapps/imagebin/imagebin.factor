@@ -2,17 +2,17 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel furnace.actions html.forms
 http.server.dispatchers db db.tuples db.types urls
-furnace.redirection multiline http namespaces ;
+furnace.redirection multiline http namespaces
+db.persistent ;
 IN: webapps.imagebin
 
 TUPLE: imagebin < dispatcher ;
 
 TUPLE: image id path ;
 
-image "IMAGE" {
-    { "id" "ID" INTEGER +db-assigned-id+ }
-    { "path" "PATH" { VARCHAR 256 } +not-null+ }
-} define-persistent
+PERSISTENT: image
+    { "id" +db-assigned-key+ }
+    { "path" { VARCHAR 256 } NOT-NULL } ;
 
 : <uploaded-image-action> ( -- action )
     <page-action>

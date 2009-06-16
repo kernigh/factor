@@ -2,6 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel sequences namespaces
 db db.types db.tuples validators hashtables urls
+db.connections
+db.persistent
 html.forms
 html.components
 html.templates.chloe
@@ -20,14 +22,12 @@ TUPLE: todo-list < dispatcher ;
 
 TUPLE: todo uid id priority summary description ;
 
-todo "TODO"
-{
-    { "uid" "UID" { VARCHAR 256 } +not-null+ }
-    { "id" "ID" +db-assigned-id+ }
-    { "priority" "PRIORITY" INTEGER +not-null+ }
-    { "summary" "SUMMARY" { VARCHAR 256 } +not-null+ }
-    { "description" "DESCRIPTION" { VARCHAR 256 } }
-} define-persistent
+PERSISTENT: todo
+    { "id" +db-assigned-key+ }
+    { "uid" { VARCHAR 256 } NOT-NULL }
+    { "priority" INTEGER NOT-NULL }
+    { "summary" { VARCHAR 256 } NOT-NULL }
+    { "description" { VARCHAR 256 } } ;
 
 : <todo> ( id -- todo )
     todo new

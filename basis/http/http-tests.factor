@@ -2,6 +2,7 @@ USING: http http.server http.client http.client.private tools.test
 multiline io.streams.string io.encodings.utf8 io.encodings.8-bit
 io.encodings.binary io.encodings.string io.encodings.ascii kernel
 arrays splitting sequences assocs io.sockets db db.sqlite
+db.connections
 continuations urls hashtables accessors namespaces xml.data ;
 IN: http.tests
 

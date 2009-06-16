@@ -40,23 +40,21 @@ can-delete-wiki-articles? define-capability
 
 TUPLE: article title revision ;
 
-article "ARTICLES" {
-    { "title" "TITLE" { VARCHAR 256 } +not-null+ +user-assigned-id+ }
-    { "revision" "REVISION" INTEGER +not-null+ } ! revision id
-} define-persistent
+PERSISTENT: article
+    { "title" { VARCHAR 256 } PRIMARY-KEY }
+    { "revision" INTEGER NOT-NULL } ; ! revision id
 
 : <article> ( title -- article ) article new swap >>title ;
 
 TUPLE: revision id title author date content description ;
 
-revision "REVISIONS" {
-    { "id" "ID" INTEGER +db-assigned-id+ }
-    { "title" "TITLE" { VARCHAR 256 } +not-null+ } ! article id
-    { "author" "AUTHOR" { VARCHAR 256 } +not-null+ } ! uid
-    { "date" "DATE" TIMESTAMP +not-null+ }
-    { "content" "CONTENT" TEXT +not-null+ }
-    { "description" "DESCRIPTION" TEXT }
-} define-persistent
+PERSISTENT: revision
+    { "id" +db-assigned-key+ }
+    { "title" { VARCHAR 256 } NOT-NULL } ! article id
+    { "author" { VARCHAR 256 } NOT-NULL } ! uid
+    { "date" TIMESTAMP NOT-NULL }
+    { "content" TEXT NOT-NULL }
+    { "description" TEXT } ;
 
 M: revision feed-entry-title
     [ title>> ] [ drop " by " ] [ author>> ] tri 3append ;

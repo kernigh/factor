@@ -1,6 +1,7 @@
 ! Copyright (C) 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs db.sqlite furnace furnace.actions
+db.connections
 furnace.alloy furnace.auth furnace.auth.features.deactivate-user
 furnace.auth.features.edit-profile
 furnace.auth.features.recover-password

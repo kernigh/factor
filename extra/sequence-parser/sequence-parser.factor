@@ -1,4 +1,5 @@
-! Copyright (C) 2005, 2009 Daniel Ehrenberg, Doug Coleman.
+! Copyright (C) 2005 Daniel Ehrenberg.
+! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: namespaces math kernel sequences accessors fry circular
 unicode.case unicode.categories locals combinators.short-circuit
@@ -259,3 +260,9 @@ CONSTANT: c-punctuators
 
 : write-full ( sequence-parser -- ) sequence>> write ;
 : write-rest ( sequence-parser -- ) take-rest write ;
+
+: take-until-whitespace ( sequence-parser -- string )
+    skip-whitespace [ current blank? ] take-until ;
+
+: take-until-eol ( sequence-parser -- string )
+    [ current CHAR: \n = ] take-until ;

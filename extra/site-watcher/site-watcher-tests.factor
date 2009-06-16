@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: db.tuples locals site-watcher site-watcher.db
 site-watcher.private kernel db io.directories io.files.temp
-continuations db.sqlite
+continuations db.sqlite db.connections
 sequences tools.test ;
 IN: site-watcher.tests
 

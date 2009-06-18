@@ -8,3 +8,7 @@ IN: db.sqlite.statements
 M: sqlite-db-connection prepare-statement* ( statement -- statement )
     db-connection get handle>> over sql>> sqlite-prepare
     >>handle ;
+
+M: sqlite-db-connection dispose-statement
+    handle>>
+    [ [ sqlite3_reset drop ] [ sqlite-finalize ] bi ] when* ;

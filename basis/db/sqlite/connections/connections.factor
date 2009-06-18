@@ -4,6 +4,15 @@ USING: accessors combinators db.connections db.sqlite
 db.sqlite.errors db.sqlite.lib kernel db.errors io.backend ;
 IN: db.sqlite.connections
 
+<PRIVATE
+
+TUPLE: sqlite-db-connection < db-connection ;
+
+: <sqlite-db-connection> ( handle -- db-connection )
+    sqlite-db-connection new-db-connection ;
+
+PRIVATE>
+
 M: sqlite-db db-open ( db -- db-connection )
     path>> normalize-path sqlite-open <sqlite-db-connection> ;
 

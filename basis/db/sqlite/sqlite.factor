@@ -7,15 +7,6 @@ IN: db.sqlite
 TUPLE: sqlite-db path ;
 CONSTRUCTOR: sqlite-db ( path -- sqlite-db ) ;
 
-TUPLE: sqlite-db-connection < db-connection ;
-
-: <sqlite-db-connection> ( handle -- db-connection )
-    sqlite-db-connection new-db-connection ;
-
-M: sqlite-db-connection dispose-statement
-    handle>>
-    [ [ sqlite3_reset drop ] [ sqlite-finalize ] bi ] when* ;
-
 {
     "db.sqlite.connections"
     "db.sqlite.errors"

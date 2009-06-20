@@ -1,9 +1,9 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays calendar.format combinators
-db.sqlite.ffi db.sqlite.lib db.sqlite.statements
-db.statements db.types db.utils fry kernel math present
-sequences serialize urls db.sqlite ;
+USING: accessors arrays calendar.format combinators db.sqlite
+db.sqlite.connections db.sqlite.ffi db.sqlite.lib
+db.sqlite.statements db.statements db.types db.utils fry kernel
+math present sequences serialize urls ;
 IN: db.sqlite.types
 
 : (bind-sqlite-type) ( handle key value type -- )
@@ -119,7 +119,7 @@ M: sqlite-db-connection bind-typed-sequence ( statement -- )
 
 ERROR: no-fql-type type ;
 
-: sqlite-type>fql-type ( string -- type )
+M: sqlite-db-connection db-type>fql-type ( string -- type )
     {
         { "varchar" [ VARCHAR ] }
         { "integer" [ INTEGER ] }

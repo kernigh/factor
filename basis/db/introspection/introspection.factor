@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: combinators constructors db.connections
-db.sqlite.types kernel sequence-parser sequences splitting ;
+USING: combinators constructors db.connections db.types
+kernel sequence-parser sequences splitting ;
 IN: db.introspection
 
 TUPLE: table-schema table columns ;
@@ -19,7 +19,7 @@ HOOK: parse-create-statement db-connection ( name -- table-schema )
 : parse-column ( string -- column )
     <sequence-parser> skip-whitespace
     [ " " take-until-sequence ]
-    [ take-token sqlite-type>fql-type ]
+    [ take-token db-type>fql-type ]
     [ take-rest ] tri <column> ;
 
 : parse-columns ( string -- seq )

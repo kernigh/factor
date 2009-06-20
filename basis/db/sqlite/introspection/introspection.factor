@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: arrays db db.introspection db.sqlite multiline
-sequences kernel db.statements fry ;
+db.sqlite.connections sequences kernel db.statements fry ;
 IN: db.sqlite.introspection
 
 M: sqlite-db-connection query-table-names*

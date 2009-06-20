@@ -1,9 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays combinators constructors
-db.sqlite.lib db.utils destructors db.statements
-kernel make math.parser sequences strings assocs
-splitting ;
+db.utils destructors db.statements kernel make math.parser
+sequences strings assocs splitting ;
 IN: db.fql
 
 TUPLE: fql ;

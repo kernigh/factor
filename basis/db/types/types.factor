@@ -6,6 +6,7 @@ IN: db.types
 
 HOOK: sql-type>string db-connection ( type -- string )
 HOOK: sql-modifiers>string db-connection ( modifiers -- string )
+HOOK: db-type>fql-type db-connection ( name -- table-schema )
 
 MIXIN: sql-type
 MIXIN: sql-modifier

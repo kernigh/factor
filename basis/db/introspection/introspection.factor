@@ -18,9 +18,13 @@ HOOK: parse-create-statement db-connection ( name -- table-schema )
 
 : parse-column ( string -- column )
     <sequence-parser> skip-whitespace
-    [ " " take-until-sequence ]
-    [ take-token db-type>fql-type ]
-    [ take-rest ] tri <column> ;
+    dup " " take-until-sequence [
+        swap
+        [ take-token db-type>fql-type ]
+        [ take-rest ] bi <column>
+    ] [
+        take-token f f <column>
+    ] if* ;
 
 : parse-columns ( string -- seq )
     "," split [ parse-column ] map ;

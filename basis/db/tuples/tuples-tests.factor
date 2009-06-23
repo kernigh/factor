@@ -416,3 +416,13 @@ PERSISTENT: test6
     [ T{ test6 f "http://factorcode.org" } select-tuple url>> ] unit-test ;
 
 [ test-test6 ] test-dbs
+
+
+TUPLE: complex-obj name-id int-id ;
+
+PERSISTENT: complex-obj
+    { "name-id" VARCHAR PRIMARY-KEY }
+    { "int-id" INTEGER PRIMARY-KEY } ;
+
+[ V{ "name-id" "int-id" } ]
+[ \ complex-obj find-primary-key [ slot-name>> ] map ] unit-test

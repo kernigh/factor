@@ -64,11 +64,16 @@ M: db-column db-assigned-id? ( db-column -- ? )
 : column-primary-key? ( column -- ? )
     {
         [ type>> sql-primary-key? ]
-        [ modifiers>> [ PRIMARY-KEY? ] member? ]
+        [ modifiers>> [ PRIMARY-KEY? ] any? ]
     } 1|| ;
 
-: find-primary-key ( persistent -- seq )
+GENERIC: find-primary-key ( obj -- seq )
+
+M: persistent find-primary-key ( persistent -- seq )
     columns>> [ column-primary-key? ] filter ;
+
+M: tuple-class find-primary-key ( class -- seq )
+    lookup-persistent primary-key>> ;
 
 ERROR: bad-primary-key key ;
 

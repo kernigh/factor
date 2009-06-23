@@ -33,7 +33,8 @@ TUPLE: db-column persistent slot-name getter setter column-name type modifiers ;
              [ lookup-getter >>getter ]
              [ lookup-setter >>setter ] tri ;
 
-TUPLE: persistent class table-name columns relations
+TUPLE: persistent class table-name columns
+relations?
 primary-key primary-key-names ;
 
 ERROR: not-persistent class ;
@@ -75,6 +76,16 @@ M: persistent find-primary-key ( persistent -- seq )
 M: tuple-class find-primary-key ( class -- seq )
     lookup-persistent primary-key>> ;
 
+M: tuple find-primary-key ( class -- seq )
+    class find-primary-key ;
+
+: primary-key-values ( tuple -- seq )
+    [ find-primary-key ] keep
+    '[ slot-name>> _ get-slot-named ] map ;
+
+: primary-key-set? ( tuple -- ? )
+    primary-key-values [ ] any? ;
+
 ERROR: bad-primary-key key ;
 
 : >primary-key ( value tuple -- )
@@ -96,11 +107,19 @@ M: persistent db-assigned-id? ( persistent -- ? )
 : set-primary-key ( persistent -- persistent )
     dup find-primary-key >>primary-key ;
 
+: set-relations? ( persistent -- persistent )
+    dup columns>> [ type>> tuple-class? ] any? >>relations? ;
+
 : set-primary-key-names ( persistent -- persistent )
     dup find-primary-key [ column-name>> ] map >>primary-key-names ;
 
+: special-primary-key? ( tuple -- ? )
+    lookup-persistent primary-key>>
+    [ type>> { +db-assigned-key+ +random-key+ } member? ] any? ;
+
 : analyze-persistent ( persistent -- persistent )
     set-column-persistent-slots
+    set-relations?
     set-primary-key 
     set-primary-key-names ;
 
@@ -123,8 +142,7 @@ M: class lookup-persistent ( class -- persistent )
         check-columns
     ] cache ;
 
-CONSTRUCTOR: persistent ( class table-name columns -- obj )
-    H{ } clone >>relations ;
+CONSTRUCTOR: persistent ( class table-name columns -- obj ) ;
 
 : check-sanitized-name ( string -- string )
     dup dup sanitize-sql-name = [ bad-table-name ] unless ;
@@ -182,70 +200,3 @@ M: sequence parse-column-modifiers
 
 M: word parse-column-modifiers
     ensure-sql-modifier ;
-
-: scan-relation ( -- class class )
-    scan-word scan-word [ ensure-persistent ] bi@ ;
-
-TUPLE: relation left right ;
-
-: normalize-relation ( relation -- relation )
-    [ lookup-persistent ] change-left
-    [ lookup-persistent ] change-right ;
-
-TUPLE: one-one < relation ;
-CONSTRUCTOR: one-one ( left right -- relation )
-    normalize-relation ;
-
-TUPLE: one-many < relation ;
-CONSTRUCTOR: one-many ( left right -- relation )
-    normalize-relation ;
-
-TUPLE: many-many < relation ;
-CONSTRUCTOR: many-many ( left right -- relation )
-    normalize-relation ;
-
-ERROR: relation-already-defined relation ;
-
-: lookup-relations ( class -- relations )
-    lookup-persistent relations>> ;
-
-: check-relation ( relation persistent persistent -- relation )
-    [ class>> ] [ relations>> ] bi* key? [ relation-already-defined ] when ;
-
-: check-left ( relation -- relation )
-    dup [ left>> ] [ right>> ] bi check-relation ;
-
-: check-right ( relation -- relation )
-    dup [ right>> ] [ left>> ] bi check-relation ;
-
-: check-relations ( relation -- relation )
-    check-left check-right ;
-
-: add-relation-left ( relation -- )
-    [ left>> ] [ right>> class>> ] [ left>> relations>> ] tri set-at ;
-
-: add-relation-right ( relation -- )
-    [ right>> ] [ left>> class>> ] [ right>> relations>> ] tri set-at ;
-
-: add-relations ( relation -- )
-    [ add-relation-left ] [ add-relation-right ] bi ;
-
-GENERIC: add-relation ( relation -- )
-
-M: one-one add-relation ( relation -- )
-    check-relations add-relations ;
-
-M: one-many add-relation ( relation -- )
-    check-left add-relation-left ;
-
-M: many-many add-relation ( relation -- )
-    check-relations add-relations ;
-
-SYNTAX: HAS-ONE:
-    scan-relation <one-one> add-relation ;
-
-SYNTAX: HAS-MANY:
-    scan-relation <one-many> add-relation ;
-
-SYNTAX: MANY-MANY:
-    scan-relation <many-many> add-relation ;

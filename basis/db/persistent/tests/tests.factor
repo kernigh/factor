@@ -87,13 +87,3 @@ PERSISTENT: single-color-car
 
 PERSISTENT: multi-color-car
     { "colors" color } ;
-
-HAS-ONE: single-color-car color
-HAS-MANY: multi-color-car color
-
-! HAS-MANY: manufacturer car
-! HAS-ONE: car manufacturer
-
-
-! [ V{ "manufacturer_id" "year" "model" } ]
-! [ car persistent-table get at column-names>> ] unit-test

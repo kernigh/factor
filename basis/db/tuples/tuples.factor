@@ -236,15 +236,13 @@ M: object count-tuples-statement ( tuple -- statement )
 
 M: object post-insert-tuple drop ;
 
+: (insert-tuple) ( tuple -- )
+    insert-tuple-statement sql-bind-typed-command ;
+
 : insert-tuple ( tuple -- )
-    dup class lookup-persistent find-primary-key
-    [ type>> { +db-assigned-key+ +random-key+ } member? ] any?
-    [
-        [ insert-tuple-statement sql-bind-typed-command ]
-        [ post-insert-tuple ] bi
-    ] [
-        insert-tuple-statement sql-bind-typed-command
-    ] if ;
+    dup special-primary-key?
+    [ [ (insert-tuple) ] [ post-insert-tuple ] bi ]
+    [ (insert-tuple) ] if ;
 
 : update-tuple ( tuple -- )
     update-tuple-statement sql-bind-typed-command ;

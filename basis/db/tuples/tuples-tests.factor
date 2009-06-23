@@ -243,8 +243,7 @@ PERSISTENT: pet
             }
         } >>out
         sql-bind-typed-query
-    ] unit-test
-
+    ] unit-test 
     ;
 
 

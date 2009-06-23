@@ -3,7 +3,7 @@
 USING: accessors arrays calendar.format combinators db.sqlite
 db.sqlite.connections db.sqlite.ffi db.sqlite.lib
 db.sqlite.statements db.statements db.types db.utils fry kernel
-math present sequences serialize urls ;
+math present sequences serialize urls unicode.case ;
 IN: db.sqlite.types
 
 : (bind-sqlite-type) ( handle key value type -- )
@@ -120,9 +120,10 @@ M: sqlite-db-connection bind-typed-sequence ( statement -- )
 ERROR: no-fql-type type ;
 
 M: sqlite-db-connection db-type>fql-type ( string -- type )
-    {
+    >lower {
         { "varchar" [ VARCHAR ] }
         { "integer" [ INTEGER ] }
+        { "text" [ TEXT ] }
         [ no-fql-type ]
     } case ;
 

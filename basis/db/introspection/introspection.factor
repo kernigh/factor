@@ -45,3 +45,6 @@ M: object parse-create-statement ( string -- table-schema )
 
 : query-index-names ( -- seq )
     query-table-names* parse-index-names ;
+
+: query-table-schemas ( -- seq )
+    query-table-names [ query-table-schema ] map ;

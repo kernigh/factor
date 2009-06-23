@@ -1,10 +1,11 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs byte-arrays classes combinators
-combinators.short-circuit db db.binders db.connections
-db.errors db.fql db.persistent db.statements db.types
-db.utils fry kernel make math math.intervals math.ranges
-multiline random sequences sequences.deep strings ;
+USING: accessors arrays assocs byte-arrays classes
+classes.tuple combinators combinators.short-circuit db
+db.binders db.connections db.errors db.fql db.persistent
+db.statements db.types db.utils fry kernel make math
+math.intervals math.ranges multiline random sequences
+sequences.deep strings ;
 FROM: db.types => NULL ;
 FROM: db.fql => update ;
 FROM: db.fql => delete ;
@@ -83,20 +84,31 @@ M: sequence where-object
     columns>> where-clause
     [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty ;
 
+: create-column, ( column -- )
+    dup type>> tuple-class? [
+        type>> find-primary-key
+        [
+            clone
+            dup persistent>> table-name>>
+            '[ [ _ "_" ] dip 3append ] change-column-name
+        ] map
+        [ ", " % ] [ create-column, ] interleave
+    ] [
+        [ column-name>> % " " % ]
+        [ type>> sql-type>string % ]
+        [
+            dup sql-primary-key?
+            [ drop ] [ " " % modifiers>> sql-modifiers>string % ] if
+        ] tri
+    ] if ;
+
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
     [
         "create table " %
         [ table-name>> % "(" % ]
         [
-            columns>> [ ", " % ] [
-                [ column-name>> % " " % ]
-                [ type>> sql-type>string % ]
-                [
-                    dup sql-primary-key? not
-                    [ " " % modifiers>> sql-modifiers>string % ] [ drop ] if
-                ] tri
-            ] interleave
+            columns>> [ ", " % ] [ create-column, ] interleave
         ] [ 
             find-primary-key [
                 ", " %

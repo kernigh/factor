@@ -426,3 +426,16 @@ PERSISTENT: complex-obj
 
 [ V{ "name-id" "int-id" } ]
 [ \ complex-obj find-primary-key [ slot-name>> ] map ] unit-test
+
+
+TUPLE: refers-to-complex-obj id complex-obj ;
+
+PERSISTENT: refers-to-complex-obj
+    { "id" +db-assigned-key+ }
+    { "complex-obj" complex-obj } ;
+
+: test-test7 ( -- )
+    [ refers-to-complex-obj drop-table ] ignore-errors
+    [ ] [ refers-to-complex-obj create-table ] unit-test ;
+
+[ test-test7 ] test-dbs

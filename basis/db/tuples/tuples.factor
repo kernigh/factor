@@ -137,11 +137,23 @@ M: object insert-tuple-statement ( tuple -- statement )
         ]
     } 2cleave expand-fql ;
 
-: qualified-names ( table-name columns -- string )
-    [ column-name>> "." glue ] with map ;
+: all-columns ( persistent -- seq )
+    columns>> [
+        dup type>> tuple-class? [
+            type>> lookup-persistent all-columns
+        ] [
+            1array
+        ] if
+    ] map concat ;
+
+: columns>qualified-names ( persistent -- string )
+    [
+        [ persistent>> table-name>> ]
+        [ column-name>> ] bi "." glue
+    ] map ;
 
 : persistent>qualified-names ( persistent -- string )
-    [ table-name>> ] [ columns>> ] bi qualified-names ;
+    columns>> columns>qualified-names ;
 
 : where-primary-key ( statement tuple specs -- statement )
     find-primary-key where-clause

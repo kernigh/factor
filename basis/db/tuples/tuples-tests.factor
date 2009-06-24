@@ -132,15 +132,15 @@ PERSISTENT: pet
     [ "drop table pet2" sql-command ] ignore-errors
 
     [ ] [ "create table pet_store2(id integer primary key autoincrement, name varchar);" sql-command ] unit-test
-    [ ] [ "create table pet2(id integer primary key autoincrement, pet_store_id integer, name varchar, type varchar);" sql-command ] unit-test
+    [ ] [ "create table pet2(id integer primary key autoincrement, pet_store2_id integer, name varchar, type varchar);" sql-command ] unit-test
     [ ] [ "insert into pet_store2(id, name) values('1', 'petstore1');" sql-command ] unit-test
     [ ] [ "insert into pet_store2(id, name) values('2', 'petstore2');" sql-command ] unit-test
-    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('1', '1', 'fido', 'dog');" sql-command ] unit-test
-    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('2', '1', 'fritz', 'dog');" sql-command ] unit-test
-    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('3', '1', 'sir higgins', 'dog');" sql-command ] unit-test
-    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('4', '2', 'button', 'cat');" sql-command ] unit-test
-    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('5', '2', 'mittens', 'cat');" sql-command ] unit-test
-    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('6', '2', 'fester', 'cat');" sql-command ] unit-test ;
+    [ ] [ "insert into pet2(id, pet_store2_id, name, type) values('1', '1', 'fido', 'dog');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store2_id, name, type) values('2', '1', 'fritz', 'dog');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store2_id, name, type) values('3', '1', 'sir higgins', 'dog');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store2_id, name, type) values('4', '2', 'button', 'cat');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store2_id, name, type) values('5', '2', 'mittens', 'cat');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store2_id, name, type) values('6', '2', 'fester', 'cat');" sql-command ] unit-test ;
 
 : test-pets ( -- )
     set-up-pet-store
@@ -279,55 +279,56 @@ PERSISTENT: pet2
 
     [
         V{
-            T{ pet-store { id 1 } { name "petstore1" } }
-            T{ pet-store { id 2 } { name "petstore2" } }
+            T{ pet-store2 { id 1 } { name "petstore1" } }
+            T{ pet-store2 { id 2 } { name "petstore2" } }
         }
     ] [
-        pet-store new select-tuples
+        pet-store2 new select-tuples
     ] unit-test
 
     [
         V{
             T{ pet
                 { id 1 }
-                { pet-store-id 1 }
+                { pet-store-id T{ pet-store2 { id 1 } { name "petstore1" } } }
                 { name "fido" }
                 { type "dog" }
             }
             T{ pet
                 { id 2 }
-                { pet-store-id 1 }
+                { pet-store-id T{ pet-store2 { id 1 } { name "petstore1" } } }
                 { name "fritz" }
                 { type "dog" }
             }
             T{ pet
                 { id 3 }
-                { pet-store-id 1 }
+                { pet-store-id T{ pet-store2 { id 1 } { name "petstore1" } } }
                 { name "sir higgins" }
                 { type "dog" }
             }
             T{ pet
                 { id 4 }
-                { pet-store-id 2 }
+                { pet-store-id T{ pet-store2 { id 2 } { name "petstore2" } } }
                 { name "button" }
                 { type "cat" }
             }
             T{ pet
                 { id 5 }
-                { pet-store-id 2 }
+                { pet-store-id T{ pet-store2 { id 2 } { name "petstore2" } } }
                 { name "mittens" }
                 { type "cat" }
             }
             T{ pet
                 { id 6 }
-                { pet-store-id 2 }
+                { pet-store-id T{ pet-store2 { id 2 } { name "petstore2" } } }
                 { name "fester" }
                 { type "cat" }
             }
         }
     ]
     [
-        pet new select-tuples
+B
+        pet2 new select-tuples
     ] unit-test
     ;
 

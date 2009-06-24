@@ -1,6 +1,6 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.utils kernel parser sequences ;
+USING: accessors db.utils kernel parser quotations sequences ;
 IN: db.binders
 
 TUPLE: binder table-name column-name slot-name type value getter setter ;
@@ -11,7 +11,8 @@ TUPLE: tuple-binder class binders ;
 
 : set-binder-accessors ( binder -- binder )
     dup slot-name>>
-    [ lookup-getter >>getter ] [ lookup-setter >>setter ] bi ;
+        [ lookup-getter 1quotation >>getter ]
+        [ lookup-setter 1quotation >>setter ] bi ;
 
 : <simple-binder> ( type value -- binder )
     binder new

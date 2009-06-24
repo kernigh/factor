@@ -90,8 +90,7 @@ M: object execute-statement* ( statement type -- )
 
 : return-sequence ( result-set -- seq ) sql-row-typed ;
 
-: return-tuples? ( result-set -- ? )
-    [ tuple-binder? ] all? ;
+: return-tuples? ( result-set -- ? ) [ tuple-binder? ] all? ;
 
 : statement>typed-result-sequence ( statement -- sequence )
     normalize-statement

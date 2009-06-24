@@ -112,7 +112,7 @@ PERSISTENT: pet
     { "name" VARCHAR }
     { "type" VARCHAR } ;
 
-: test-pets ( -- )
+: set-up-pet-store ( -- )
     [ "drop table pet_store" sql-command ] ignore-errors
     [ "drop table pet" sql-command ] ignore-errors
 
@@ -125,8 +125,25 @@ PERSISTENT: pet
     [ ] [ "insert into pet(id, pet_store_id, name, type) values('3', '1', 'sir higgins', 'dog');" sql-command ] unit-test
     [ ] [ "insert into pet(id, pet_store_id, name, type) values('4', '2', 'button', 'cat');" sql-command ] unit-test
     [ ] [ "insert into pet(id, pet_store_id, name, type) values('5', '2', 'mittens', 'cat');" sql-command ] unit-test
-    [ ] [ "insert into pet(id, pet_store_id, name, type) values('6', '2', 'fester', 'cat');" sql-command ] unit-test
+    [ ] [ "insert into pet(id, pet_store_id, name, type) values('6', '2', 'fester', 'cat');" sql-command ] unit-test ;
 
+: set-up-pet-store2 ( -- )
+    [ "drop table pet_store2" sql-command ] ignore-errors
+    [ "drop table pet2" sql-command ] ignore-errors
+
+    [ ] [ "create table pet_store2(id integer primary key autoincrement, name varchar);" sql-command ] unit-test
+    [ ] [ "create table pet2(id integer primary key autoincrement, pet_store_id integer, name varchar, type varchar);" sql-command ] unit-test
+    [ ] [ "insert into pet_store2(id, name) values('1', 'petstore1');" sql-command ] unit-test
+    [ ] [ "insert into pet_store2(id, name) values('2', 'petstore2');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('1', '1', 'fido', 'dog');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('2', '1', 'fritz', 'dog');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('3', '1', 'sir higgins', 'dog');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('4', '2', 'button', 'cat');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('5', '2', 'mittens', 'cat');" sql-command ] unit-test
+    [ ] [ "insert into pet2(id, pet_store_id, name, type) values('6', '2', 'fester', 'cat');" sql-command ] unit-test ;
+
+: test-pets ( -- )
+    set-up-pet-store
     [
         V{
             T{ pet-store { id 1 } { name "petstore1" } }
@@ -242,13 +259,82 @@ PERSISTENT: pet
             }
         } >>out
         sql-bind-typed-query
-    ] unit-test 
-    ;
+    ] unit-test ;
 
+TUPLE: pet-store2 id name pets ;
+TUPLE: pet2 id pet-store2 name type ;
+
+PERSISTENT: pet-store2
+    { "id" +db-assigned-key+ }
+    { "name" VARCHAR } ;
+
+PERSISTENT: pet2
+    { "id" +db-assigned-key+ }
+    { "pet-store2" pet-store2 }
+    { "name" VARCHAR }
+    { "type" VARCHAR } ;
+
+: test-pets2 ( -- )
+    set-up-pet-store2
+
+    [
+        V{
+            T{ pet-store { id 1 } { name "petstore1" } }
+            T{ pet-store { id 2 } { name "petstore2" } }
+        }
+    ] [
+        pet-store new select-tuples
+    ] unit-test
+
+    [
+        V{
+            T{ pet
+                { id 1 }
+                { pet-store-id 1 }
+                { name "fido" }
+                { type "dog" }
+            }
+            T{ pet
+                { id 2 }
+                { pet-store-id 1 }
+                { name "fritz" }
+                { type "dog" }
+            }
+            T{ pet
+                { id 3 }
+                { pet-store-id 1 }
+                { name "sir higgins" }
+                { type "dog" }
+            }
+            T{ pet
+                { id 4 }
+                { pet-store-id 2 }
+                { name "button" }
+                { type "cat" }
+            }
+            T{ pet
+                { id 5 }
+                { pet-store-id 2 }
+                { name "mittens" }
+                { type "cat" }
+            }
+            T{ pet
+                { id 6 }
+                { pet-store-id 2 }
+                { name "fester" }
+                { type "cat" }
+            }
+        }
+    ]
+    [
+        pet new select-tuples
+    ] unit-test
+    ;
 
 [ test-default-person ] test-dbs
 [ test-computer ] test-dbs
 [ test-pets ] test-dbs
+[ test-pets2 ] test-dbs
 
 
 

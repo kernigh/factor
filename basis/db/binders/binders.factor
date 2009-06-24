@@ -39,4 +39,3 @@ SYNTAX: TB{
     \ } [
         unclip swap [ first2 <return-binder> ] map <tuple-binder>
     ] parse-literal ;
-

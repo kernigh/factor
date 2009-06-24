@@ -181,8 +181,8 @@ M: object delete-tuple-statement ( tuple -- statement )
         [
             nip
             [ class>> ]
-            [ columns>> [ slot-name>> ] map ]
-            [ columns>> [ type>> ] map ] tri
+            [ columns [ slot-name>> ] map ]
+            [ columns [ type>> ] map ] tri
             [ <return-binder> ] 2map <tuple-binder> >>names-out
         ]
         [ nip table-name>> >>from ]

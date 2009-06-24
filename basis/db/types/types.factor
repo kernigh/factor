@@ -1,7 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: assocs classes.parser classes.singleton db.connections
-kernel lexer namespaces parser sequences classes.mixin ;
+kernel lexer namespaces parser sequences classes.mixin
+arrays combinators ;
 IN: db.types
 
 HOOK: sql-type>string db-connection ( type -- string )
@@ -81,3 +82,11 @@ ERROR: no-sql-modifier name ;
 
 : ensure-sql-modifier ( object -- object )
     dup sql-modifier? [ no-sql-modifier ] unless ;
+
+: persistent-type>sql-type ( type -- type' )
+    dup array? [ first ] when
+    {
+        { +db-assigned-key+ [ INTEGER ] }
+        { +random-key+ [ INTEGER ] }
+        [ ]
+    } case ;

@@ -17,7 +17,6 @@ HOOK: create-table-statement db-connection ( class -- statement )
 HOOK: drop-table-statement db-connection ( class -- statement )
 
 HOOK: insert-tuple-statement db-connection ( tuple -- statement )
-HOOK: insert-relation-statement db-connection ( tuple -- statement )
 HOOK: post-insert-tuple db-connection ( tuple -- )
 HOOK: update-tuple-statement db-connection ( tuple -- statement )
 HOOK: delete-tuple-statement db-connection ( tuple -- statement )
@@ -67,7 +66,7 @@ M: sequence where-object
 
 : many-where ( tuple seq -- )
     [
-        [ getter>> execute( obj -- obj ) ] keep where-object
+        [ getter>> call( obj -- obj ) ] keep where-object
     ] with each ;
 
 : filter-slots ( tuple specs -- specs' )
@@ -126,28 +125,13 @@ M: object insert-tuple-statement ( tuple -- statement )
     [ \ insert new ] dip
     dup lookup-persistent {
         [ nip table-name>> >>into ]
-        [ nip columns>> [ column-name>> ] map >>names ]
+        [ nip columns [ column-name>> ] map >>names ]
         [
             [
-                nip columns>> [ type>> ] map
+                nip columns [ type>> ] map
             ] [
-                columns>> [ getter>> ] map
-                [ execute( obj -- obj' ) ] with map
-            ] 2bi
-            [ make-binder ] 2map >>values
-        ]
-    } 2cleave expand-fql ;
-
-M: object insert-relation-statement ( tuple -- statement )
-    [ \ insert new ] dip
-    dup lookup-persistent {
-        [ nip table-name>> >>into ]
-        [ nip relation-columns>> [ column-name>> ] map >>names ]
-        [
-            [ nip columns>> [ type>> ] map ]
-            [
-                columns>> [ getter>> ] map
-                [ execute( obj -- obj' ) ] with map
+                columns [ getter>> ] map
+                [ call( obj -- obj' ) ] with map
             ] 2bi
             [ make-binder ] 2map >>values
         ]
@@ -175,7 +159,7 @@ M: object update-tuple-statement ( tuple -- statement )
             [ nip remove-primary-key [ type>> ] map ]
             [
                 remove-primary-key [ getter>> ] map
-                [ execute( obj -- obj' ) ] with map
+                [ call( obj -- obj' ) ] with map
             ] 2bi
 
             [ <simple-binder> ] 2map >>values
@@ -261,7 +245,7 @@ M: object post-insert-tuple drop ;
     ] [ ] tri ;
 
 : insert-relation-tuple ( tuple -- )
-    select-relations drop ;
+    select-relations insert-tuple-statement sql-bind-typed-command ;
 
 : insert-tuple ( tuple -- )
     dup db-relations? [

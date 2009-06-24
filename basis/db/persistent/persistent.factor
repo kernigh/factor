@@ -30,8 +30,8 @@ TUPLE: db-column persistent slot-name getter setter column-name type modifiers ;
         swap >>type
         swap >>column-name
         swap [ >>slot-name ]
-             [ lookup-getter >>getter ]
-             [ lookup-setter >>setter ] tri ;
+             [ lookup-getter 1quotation >>getter ]
+             [ lookup-setter 1quotation >>setter ] tri ;
 
 TUPLE: persistent class table-name
 columns
@@ -114,18 +114,32 @@ M: persistent db-assigned-id? ( persistent -- ? )
     dup columns>> [ type>> tuple-class? ] any? [
         dup columns>> [
             dup type>> tuple-class? [
-                type>> find-primary-key
+                dup type>> find-primary-key
                 [
                     clone
+                    over getter>>
+                    '[ _ prepose ] change-getter
+                    swap getter>>
+                    '[
+                        _ swap '[
+                            [ _ execute( obj -- obj ) ] dip
+                            _ execute( obj obj -- obj )
+                        ]
+                    ] change-setter
+
+                    
                     dup persistent>> table-name>>
                     '[ [ _ "_" ] dip 3append ] change-column-name
-                    INTEGER >>type
-                ] map
+                    [ persistent-type>sql-type ] change-type
+                ] with map
             ] [
                 1array
             ] if
         ] map concat >>relation-columns
     ] when ;
+
+: columns ( persistent -- seq )
+    { [ relation-columns>> ] [ columns>> ] } 1|| ;
 
 : find-relation-columns ( tuple -- seq )
     lookup-persistent columns>> [ type>> tuple-class? ] filter ;

@@ -17,6 +17,7 @@ HOOK: create-table-statement db-connection ( class -- statement )
 HOOK: drop-table-statement db-connection ( class -- statement )
 
 HOOK: insert-tuple-statement db-connection ( tuple -- statement )
+HOOK: insert-relation-statement db-connection ( tuple -- statement )
 HOOK: post-insert-tuple db-connection ( tuple -- )
 HOOK: update-tuple-statement db-connection ( tuple -- statement )
 HOOK: delete-tuple-statement db-connection ( tuple -- statement )
@@ -85,22 +86,12 @@ M: sequence where-object
     [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty ;
 
 : create-column, ( column -- )
-    dup type>> tuple-class? [
-        type>> find-primary-key
-        [
-            clone
-            dup persistent>> table-name>>
-            '[ [ _ "_" ] dip 3append ] change-column-name
-        ] map
-        [ ", " % ] [ create-column, ] interleave
-    ] [
-        [ column-name>> % " " % ]
-        [ type>> sql-type>string % ]
-        [
-            dup sql-primary-key?
-            [ drop ] [ " " % modifiers>> sql-modifiers>string % ] if
-        ] tri
-    ] if ;
+    [ column-name>> % " " % ]
+    [ type>> sql-type>string % ]
+    [
+        dup sql-primary-key?
+        [ drop ] [ " " % modifiers>> sql-modifiers>string % ] if
+    ] tri ;
 
 M: object create-table-statement ( class -- statement )
     [ statement new ] dip lookup-persistent
@@ -108,7 +99,8 @@ M: object create-table-statement ( class -- statement )
         "create table " %
         [ table-name>> % "(" % ]
         [
-            columns>> [ ", " % ] [ create-column, ] interleave
+            { [ relation-columns>> ] [ columns>> ] } 1||
+            [ ", " % ] [ create-column, ] interleave
         ] [ 
             find-primary-key [
                 ", " %
@@ -139,6 +131,21 @@ M: object insert-tuple-statement ( tuple -- statement )
             [
                 nip columns>> [ type>> ] map
             ] [
+                columns>> [ getter>> ] map
+                [ execute( obj -- obj' ) ] with map
+            ] 2bi
+            [ make-binder ] 2map >>values
+        ]
+    } 2cleave expand-fql ;
+
+M: object insert-relation-statement ( tuple -- statement )
+    [ \ insert new ] dip
+    dup lookup-persistent {
+        [ nip table-name>> >>into ]
+        [ nip relation-columns>> [ column-name>> ] map >>names ]
+        [
+            [ nip columns>> [ type>> ] map ]
+            [
                 columns>> [ getter>> ] map
                 [ execute( obj -- obj' ) ] with map
             ] 2bi
@@ -234,22 +241,6 @@ M: object count-tuples-statement ( tuple -- statement )
 : recreate-table ( class -- )
     [ drop-table ] [ create-table ] bi ;
 
-M: object post-insert-tuple drop ;
-
-: (insert-tuple) ( tuple -- )
-    insert-tuple-statement sql-bind-typed-command ;
-
-: insert-tuple ( tuple -- )
-    dup special-primary-key?
-    [ [ (insert-tuple) ] [ post-insert-tuple ] bi ]
-    [ (insert-tuple) ] if ;
-
-: update-tuple ( tuple -- )
-    update-tuple-statement sql-bind-typed-command ;
-
-: delete-tuples ( tuple -- )
-    delete-tuple-statement sql-bind-typed-command ;
-
 : select-tuple ( tuple -- tuple'/f )
     select-tuple-statement sql-bind-typed-query
     [ f ] [ first ] if-empty ;
@@ -259,3 +250,29 @@ M: object post-insert-tuple drop ;
 
 : count-tuples ( tuple -- n )
     count-tuples-statement sql-bind-typed-query first first ;
+
+M: object post-insert-tuple drop ;
+
+: select-relations ( tuple -- tuple' )
+    [ find-relations ] [
+        '[
+            [ slot-name>> ] dip drop _ [ select-tuple ] change-slot-named drop
+        ] assoc-each
+    ] [ ] tri ;
+
+: insert-relation-tuple ( tuple -- )
+    select-relations drop ;
+
+: insert-tuple ( tuple -- )
+    dup db-relations? [
+        insert-relation-tuple
+    ] [
+        [ insert-tuple-statement sql-bind-typed-command ]
+        [ dup special-primary-key? [ post-insert-tuple ] [ drop ] if ] bi
+    ] if ;
+
+: update-tuple ( tuple -- )
+    update-tuple-statement sql-bind-typed-command ;
+
+: delete-tuples ( tuple -- )
+    delete-tuple-statement sql-bind-typed-command ;

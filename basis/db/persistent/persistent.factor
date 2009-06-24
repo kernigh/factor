@@ -33,8 +33,9 @@ TUPLE: db-column persistent slot-name getter setter column-name type modifiers ;
              [ lookup-getter >>getter ]
              [ lookup-setter >>setter ] tri ;
 
-TUPLE: persistent class table-name columns
-relations?
+TUPLE: persistent class table-name
+columns
+relation-columns
 primary-key primary-key-names ;
 
 ERROR: not-persistent class ;
@@ -79,9 +80,11 @@ M: tuple-class find-primary-key ( class -- seq )
 M: tuple find-primary-key ( class -- seq )
     class find-primary-key ;
 
-: primary-key-values ( tuple -- seq )
-    [ find-primary-key ] keep
+: get-tuple-slots ( seq tuple -- seq' )
     '[ slot-name>> _ get-slot-named ] map ;
+
+: primary-key-values ( tuple -- seq )
+    [ find-primary-key ] keep get-tuple-slots ;
 
 : primary-key-set? ( tuple -- ? )
     primary-key-values [ ] any? ;
@@ -107,8 +110,50 @@ M: persistent db-assigned-id? ( persistent -- ? )
 : set-primary-key ( persistent -- persistent )
     dup find-primary-key >>primary-key ;
 
-: set-relations? ( persistent -- persistent )
-    dup columns>> [ type>> tuple-class? ] any? >>relations? ;
+: set-relation-columns ( persistent -- persistent )
+    dup columns>> [ type>> tuple-class? ] any? [
+        dup columns>> [
+            dup type>> tuple-class? [
+                type>> find-primary-key
+                [
+                    clone
+                    dup persistent>> table-name>>
+                    '[ [ _ "_" ] dip 3append ] change-column-name
+                    INTEGER >>type
+                ] map
+            ] [
+                1array
+            ] if
+        ] map concat >>relation-columns
+    ] when ;
+
+: find-relation-columns ( tuple -- seq )
+    lookup-persistent columns>> [ type>> tuple-class? ] filter ;
+
+: find-relations ( tuple -- assoc )
+    #! column/tuple pairs
+    [ find-relation-columns ] keep
+    '[ dup slot-name>> _ get-slot-named ] { } map>assoc ;
+
+: unset-relations? ( assoc -- ? )
+    [ nip primary-key-set? not ] assoc-any? ;
+
+: find-unset-relations ( tuple -- seq )
+    find-relations unset-relations? ;
+
+: all-relations-primary-keys-set? ( tuple -- ? )
+    find-relations [ nip primary-key-set? ] assoc-all? ;
+
+GENERIC: db-relations? ( obj -- seq )
+
+M: persistent db-relations? ( persistent -- seq )
+    relation-columns>> ;
+
+M: tuple-class db-relations? ( class -- seq )
+    lookup-persistent relation-columns>> ;
+
+M: tuple db-relations? ( class -- seq )
+    class lookup-persistent relation-columns>> ;
 
 : set-primary-key-names ( persistent -- persistent )
     dup find-primary-key [ column-name>> ] map >>primary-key-names ;
@@ -119,7 +164,7 @@ M: persistent db-assigned-id? ( persistent -- ? )
 
 : analyze-persistent ( persistent -- persistent )
     set-column-persistent-slots
-    set-relations?
+    set-relation-columns
     set-primary-key 
     set-primary-key-names ;
 

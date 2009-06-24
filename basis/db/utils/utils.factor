@@ -74,8 +74,12 @@ ERROR: no-slot ;
 : get-slot-named ( name tuple -- value )
     [ nip ] [ offset-of-slot ] 2bi slot ;
 
-: set-slot-named ( value name obj -- )
+: set-slot-named ( value name tuple -- )
     [ nip ] [ offset-of-slot ] 2bi set-slot ;
+
+: change-slot-named ( name tuple quot -- tuple )
+    [ [ get-slot-named ] dip call( obj -- obj' ) ]
+    [ drop [ set-slot-named ] keep ] 3bi ;
 
 : filter-slots ( tuple specs -- specs' )
     [

@@ -240,20 +240,18 @@ M: object post-insert-tuple drop ;
 : select-relations ( tuple -- tuple' )
     [ find-relations ] [
         '[
-            [ slot-name>> ] dip drop _ [ select-tuple ] change-slot-named drop
+            drop
+            slot-name>> _ [ select-tuple ] change-slot-named drop
         ] assoc-each
     ] [ ] tri ;
 
-: insert-relation-tuple ( tuple -- )
-    select-relations insert-tuple-statement sql-bind-typed-command ;
-
 : insert-tuple ( tuple -- )
     dup db-relations? [
-        insert-relation-tuple
-    ] [
-        [ insert-tuple-statement sql-bind-typed-command ]
-        [ dup special-primary-key? [ post-insert-tuple ] [ drop ] if ] bi
-    ] if ;
+        select-relations
+    ] when
+
+    [ insert-tuple-statement sql-bind-typed-command ]
+    [ dup special-primary-key? [ post-insert-tuple ] [ drop ] if ] bi ;
 
 : update-tuple ( tuple -- )
     update-tuple-statement sql-bind-typed-command ;

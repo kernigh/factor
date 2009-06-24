@@ -44,7 +44,6 @@ M: statement sql-bind-query ( statement -- sequence )
 
 M: statement sql-bind-typed-command ( statement -- )
     [
-        ! dup in>> empty? [ no-in-types ] when
         prepare-statement
         [ bind-typed-sequence ] [ statement>result-set drop ] bi
     ] with-disposal ;

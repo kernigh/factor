@@ -58,14 +58,14 @@ IN: db.statements.tests
 
     [ { { "windows" 7 } } ] [
         "select os, version from computer where name = ?;"
-        { TV{ VARCHAR "clubber" } }
+        { SB{ VARCHAR "clubber" } }
         { VARCHAR INTEGER }
         <statement> sql-bind-typed-query
     ] unit-test
 
     [ { { "windows" 7 } } ] [
         "select os, version from computer where name = ?;"
-        { TV{ VARCHAR "clubber" } }
+        { SB{ VARCHAR "clubber" } }
         { VARCHAR INTEGER }
         <statement> sql-bind-typed-query
     ] unit-test
@@ -73,9 +73,9 @@ IN: db.statements.tests
     [ ] [
         "insert into computer (name, os, version) values(?, ?, ?);"
         {
-            TV{ VARCHAR "paulie" }
-            TV{ VARCHAR "netbsd" }
-            TV{ INTEGER 7 }
+            SB{ VARCHAR "paulie" }
+            SB{ VARCHAR "netbsd" }
+            SB{ INTEGER 7 }
         } f <statement>
         sql-bind-typed-command
     ] unit-test

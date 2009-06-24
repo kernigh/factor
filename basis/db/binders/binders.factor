@@ -7,6 +7,8 @@ TUPLE: binder table-name column-name slot-name type value getter setter ;
 
 TUPLE: tuple-binder class binders ;
 
+! TUPLE: sequence-binder binder ; ! ???
+
 : set-binder-accessors ( binder -- binder )
     dup slot-name>>
     [ lookup-getter >>getter ] [ lookup-setter >>setter ] bi ;
@@ -22,7 +24,7 @@ TUPLE: tuple-binder class binders ;
         swap >>slot-name
         set-binder-accessors ;
 
-SYNTAX: TV{
+SYNTAX: SB{
     \ } [
         2 ensure-length first2 <simple-binder>
     ] parse-literal ;
@@ -32,8 +34,8 @@ SYNTAX: TV{
         swap >>binders
         swap >>class ;
 
-SYNTAX: RT{
+SYNTAX: TB{
     \ } [
-        unclip [ [ first2 <return-binder> ] map ] dip <tuple-binder>
+        unclip swap [ first2 <return-binder> ] map <tuple-binder>
     ] parse-literal ;
 

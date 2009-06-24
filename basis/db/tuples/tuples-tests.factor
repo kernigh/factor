@@ -53,8 +53,8 @@ IN: db.tuples.tests
         }
     ] [
         "select os, version from computer where name = ?;"
-        { TV{ VARCHAR "rocky" } }
-        { RT{ computer { "os" VARCHAR } { "version" INTEGER } } }
+        { SB{ VARCHAR "rocky" } }
+        { TB{ computer { "os" VARCHAR } { "version" INTEGER } } }
         <statement> sql-bind-typed-query
     ] unit-test
 
@@ -64,8 +64,8 @@ IN: db.tuples.tests
         }
     ] [
         "select name, os, version from computer where name = ?;"
-        { TV{ VARCHAR "bullwinkle" } }
-        { RT{ computer { "name" VARCHAR } { "os" VARCHAR } { "version" INTEGER } } }
+        { SB{ VARCHAR "bullwinkle" } }
+        { TB{ computer { "name" VARCHAR } { "os" VARCHAR } { "version" INTEGER } } }
         <statement> sql-bind-typed-query
     ] unit-test
 
@@ -76,7 +76,7 @@ IN: db.tuples.tests
         }
     ] [
         "select name, os, version from computer where name = ?;"
-        { TV{ VARCHAR "rocky" } }
+        { SB{ VARCHAR "rocky" } }
         { VARCHAR VARCHAR INTEGER }
         <statement> sql-bind-typed-query
     ] unit-test
@@ -88,17 +88,16 @@ IN: db.tuples.tests
         }
     ] [
         "select name, os, version from computer where name = ?;"
-        { TV{ VARCHAR "rocky" } }
+        { SB{ VARCHAR "rocky" } }
         {
-            RT{ computer
+            TB{ computer
                 { "name" VARCHAR }
                 { "os" VARCHAR }
                 { "version" INTEGER }
             }
         }
         <statement> sql-bind-typed-query
-    ] unit-test
-    ;
+    ] unit-test ;
 
 TUPLE: pet-store id name pets ;
 TUPLE: pet id pet-store-id name type ;
@@ -182,8 +181,8 @@ PERSISTENT: pet
         ">
         f
         {
-            RT{ pet-store { "id" INTEGER } { "name" VARCHAR } }
-            RT{ pet
+            TB{ pet-store { "id" INTEGER } { "name" VARCHAR } }
+            TB{ pet
                 { "id" INTEGER } { "pet-store-id" INTEGER }
                 { "name" VARCHAR } { "type" VARCHAR }
             }
@@ -192,7 +191,7 @@ PERSISTENT: pet
     ] unit-test
 
     [
-        {
+        V{
             T{ pet
                 { id 1 }
                 { pet-store-id 1 }
@@ -237,7 +236,7 @@ PERSISTENT: pet
             "pet" >>from
         expand-fql
         {
-            RT{ pet
+            TB{ pet
                 { "id" INTEGER } { "pet-store-id" INTEGER }
                 { "name" VARCHAR } { "type" VARCHAR }
             }
@@ -248,8 +247,8 @@ PERSISTENT: pet
 
 
 [ test-default-person ] test-dbs
-! [ test-computer ] test-dbs
-! [ test-pets ] test-dbs
+[ test-computer ] test-dbs
+[ test-pets ] test-dbs
 
 
 

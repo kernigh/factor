@@ -91,13 +91,13 @@ M: object execute-statement* ( statement type -- )
 : return-sequence ( result-set -- seq ) sql-row-typed ;
 
 : return-tuples? ( result-set -- ? )
-    out>> [ tuple-binder? ] all? ;
+    [ tuple-binder? ] all? ;
 
 : statement>typed-result-sequence ( statement -- sequence )
     normalize-statement
     statement>result-set
     [
-        dup return-tuples? [
+        dup out>> return-tuples? [
             [ return-tuple ] result-set-map concat
         ] [
             [ return-sequence ] result-set-map

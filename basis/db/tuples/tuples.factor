@@ -5,7 +5,7 @@ classes.tuple combinators combinators.short-circuit db
 db.binders db.connections db.errors db.fql db.persistent
 db.statements db.types db.utils fry kernel make math
 math.intervals math.ranges multiline random sequences
-sequences.deep strings ;
+sequences.deep strings sets ;
 FROM: db.types => NULL ;
 FROM: db.fql => update ;
 FROM: db.fql => delete ;
@@ -146,14 +146,17 @@ M: object insert-tuple-statement ( tuple -- statement )
         ] if
     ] map concat ;
 
+: all-tables ( persistent -- seq )
+    all-columns [ persistent>> table-name>> ] map prune ;
+
 : columns>qualified-names ( persistent -- string )
     [
         [ persistent>> table-name>> ]
         [ column-name>> ] bi "." glue
     ] map ;
 
-: persistent>qualified-names ( persistent -- string )
-    columns>> columns>qualified-names ;
+: all-qualified-names ( persistent -- string )
+    all-columns columns>qualified-names ;
 
 : where-primary-key ( statement tuple specs -- statement )
     find-primary-key where-clause
@@ -189,15 +192,16 @@ M: object delete-tuple-statement ( tuple -- statement )
 : (select-tuples-statement) ( tuple -- fql )
     [ \ select new ] dip
     dup lookup-persistent {
-        [ nip persistent>qualified-names >>names ]
+        [ nip all-qualified-names >>names ]
         [
             nip
             [ class>> ]
-            [ columns [ slot-name>> ] map ]
-            [ columns [ type>> ] map ] tri
+            [ all-columns [ slot-name>> ] map ]
+            [ all-columns [ type>> ] map ] tri
             [ <return-binder> ] 2map <tuple-binder> >>names-out
         ]
-        [ nip table-name>> >>from ]
+        ! [ nip table-name>> >>from ]
+        [ nip all-tables >>from ]
         [ set-statement-where ]
     } 2cleave ;
 

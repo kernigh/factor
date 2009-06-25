@@ -65,9 +65,6 @@ ERROR: length-expected seq length ;
 : new-filled-tuple ( class values setters -- tuple )
     [ new ] 2dip [ call( tuple obj -- tuple ) ] 2each ;
 
-: new-filled-tuple2 ( class values setters -- tuple )
-    [ new ] 2dip [ call( tuple obj -- tuple ) ] 2each ;
-
 ERROR: no-slot ;
 
 : offset-of-slot ( string tuple -- n )

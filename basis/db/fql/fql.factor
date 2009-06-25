@@ -34,7 +34,7 @@ M: delete normalize-fql ( delete -- delete )
 
 TUPLE: select < fql names names-out from where where-in group-by
 having order-by offset limit ;
-CONSTRUCTOR: select ( names from -- obj ) ;
+CONSTRUCTOR: select ( -- obj ) ;
 M: select normalize-fql ( select -- select )
     [ ??1array ] change-names
     [ ??1array ] change-from
@@ -215,7 +215,7 @@ M: select expand-fql*
         {
             [ "select " % names>> [ expand-fql* ] map ", " join % ]
             [ names-out>> >>out ]
-            [ " from " % from>> ", " join % ]
+            [ " from " % from>> [ ", " % ] [ expand-fql* % ] interleave ]
             [ where>> [ " where " % expand-fql* % ] when* ]
             [ where-in>> >>in ]
             [ group-by>> [ " group by " % ", " join % ] when* ]

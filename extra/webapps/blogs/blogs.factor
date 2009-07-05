@@ -1,20 +1,18 @@
 ! Copyright (C) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel accessors sequences sorting math.order math.parser
-urls validators db db.types db.tuples calendar present namespaces
-db.persistent
-db.transactions
-html.forms
-html.components
-http.server.dispatchers
-furnace
-furnace.actions
-furnace.redirection
-furnace.auth
-furnace.auth.login
-furnace.boilerplate
-furnace.syndication ;
+USING: accessors calendar db db.connections db.persistent
+db.sqlite db.transactions db.tuples db.types furnace
+furnace.actions furnace.alloy furnace.auth
+furnace.auth.features.deactivate-user
+furnace.auth.features.edit-profile
+furnace.auth.features.registration furnace.auth.login
+furnace.boilerplate furnace.redirection furnace.syndication
+html.components html.forms http.server http.server.dispatchers
+io.sockets.secure kernel literals math.order math.parser
+namespaces present sequences sorting urls validators ;
 IN: webapps.blogs
+
+CONSTANT: blogs-db $[ "resource:blogs.db" <sqlite-db> ]
 
 TUPLE: blogs < dispatcher ;
 
@@ -288,6 +286,21 @@ M: comment entity-url
         <protected>
             "delete a comment" >>description ;
 
+
+: <login-secure-config> ( -- config )
+    ! This is only suitable for testing!
+    <secure-config>
+        "vocab:openssl/test/dh1024.pem" >>dh-file
+        "vocab:openssl/test/server.pem" >>key-file
+        "password" >>password ;
+
+: <login-config> ( responder -- responder' )
+    "Todo list" <login-realm>
+        "Todo list" >>name
+        allow-registration
+        allow-edit-profile
+        allow-deactivation ;
+
 : <blogs> ( -- dispatcher )
     blogs new-dispatcher
         <list-posts-action> "" add-responder
@@ -302,4 +315,20 @@ M: comment entity-url
         <new-comment-action> "new-comment" add-responder
         <delete-comment-action> "delete-comment" add-responder
     <boilerplate>
-        { blogs "blogs-common" } >>template ;
+        [ username "author" set-value ] >>init
+        { blogs "blogs-common" } >>template
+        <login-config>
+        blogs-db <alloy> ;
+
+: <login-website-server> ( -- threaded-server )
+    <http-server>
+        <login-secure-config> >>secure-config
+        8080 >>insecure
+        8431 >>secure ;
+
+: setup-blogs-db ( -- )
+    blogs-db [
+        { entity post comment } [ ensure-table ] each
+    ] with-db ;
+
+<blogs> main-responder set-global

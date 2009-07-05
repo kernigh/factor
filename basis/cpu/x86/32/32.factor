@@ -1,6 +1,6 @@
-! Copyright (C) 2005, 2008 Slava Pestov.
+! Copyright (C) 2005, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: locals alien.c-types alien.syntax arrays kernel
+USING: locals alien.c-types alien.syntax arrays kernel fry
 math namespaces sequences system layouts io vocabs.loader
 accessors init combinators command-line cpu.x86.assembler
 cpu.x86 cpu.architecture make compiler compiler.units
@@ -29,13 +29,15 @@ M: x86.32 temp-reg-2 EDX ;
 
 M:: x86.32 %dispatch ( src temp -- )
     ! Load jump table base.
-    src HEX: ffffffff ADD
+    temp src HEX: ffffffff [+] LEA
+    building get length cell - :> start
     0 rc-absolute-cell rel-here
     ! Go
-    src HEX: 7f [+] JMP
+    temp HEX: 7f [+] JMP
+    building get length :> end
     ! Fix up the displacement above
     cell code-alignment
-    [ 7 + building get dup pop* push ]
+    [ end start - + building get dup pop* push ]
     [ align-code ]
     bi ;
 
@@ -95,13 +97,12 @@ M: float-regs store-return-reg
     align-stack incr-stack-reg ;
 
 : with-aligned-stack ( n quot -- )
-    [ [ align-sub ] [ call ] bi* ]
-    [ [ align-add ] [ drop ] bi* ] 2bi ; inline
+    '[ align-sub @ ] [ align-add ] bi ; inline
 
 M: x86.32 %prologue ( n -- )
     dup PUSH
     0 PUSH rc-absolute-cell rel-this
-    stack-reg swap 3 cells - SUB ;
+    3 cells - decr-stack-reg ;
 
 M: object %load-param-reg 3drop ;
 

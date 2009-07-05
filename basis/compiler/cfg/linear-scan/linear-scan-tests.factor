@@ -18,10 +18,12 @@ compiler.cfg.linear-scan.allocation
 compiler.cfg.linear-scan.allocation.state
 compiler.cfg.linear-scan.allocation.splitting
 compiler.cfg.linear-scan.allocation.spilling
-compiler.cfg.linear-scan.assignment
 compiler.cfg.linear-scan.debugger ;
 
+FROM: compiler.cfg.linear-scan.assignment => check-assignment? ;
+
 check-allocation? on
+check-assignment? on
 
 [
     { T{ live-range f 1 10 } T{ live-range f 15 15 } }
@@ -152,6 +154,31 @@ check-allocation? on
        { uses V{ 0 1 5 } }
        { ranges V{ T{ live-range f 0 5 } } }
     } 0 split-for-spill [ f >>split-next ] bi@
+] unit-test
+
+[
+    T{ live-interval
+       { vreg T{ vreg { reg-class int-regs } { n 1 } } }
+       { start 0 }
+       { end 0 }
+       { uses V{ 0 } }
+       { ranges V{ T{ live-range f 0 0 } } }
+    }
+    T{ live-interval
+       { vreg T{ vreg { reg-class int-regs } { n 1 } } }
+       { start 20 }
+       { end 30 }
+       { uses V{ 20 30 } }
+       { ranges V{ T{ live-range f 20 30 } } }
+    }
+] [
+    T{ live-interval
+       { vreg T{ vreg { reg-class int-regs } { n 1 } } }
+       { start 0 }
+       { end 30 }
+       { uses V{ 0 20 30 } }
+       { ranges V{ T{ live-range f 0 8 } T{ live-range f 10 18 } T{ live-range f 20 30 } } }
+    } 10 split-for-spill [ f >>split-next ] bi@
 ] unit-test
 
 [
@@ -1326,7 +1353,7 @@ USING: math.private ;
 
 ! Spill slot liveness was computed incorrectly, leading to a FEP
 ! early in bootstrap on x86-32
-[ t t ] [
+[ t ] [
     [
         H{ } clone live-ins set
         H{ } clone live-outs set
@@ -1352,8 +1379,7 @@ USING: math.private ;
            }
         } dup 1array { { int-regs V{ 0 1 2 3 } } } (linear-scan)
         instructions>> first
-        [ live-spill-slots>> empty? ]
-        [ live-registers>> empty? ] bi
+        live-values>> assoc-empty?
     ] with-scope
 ] unit-test
 
@@ -1417,6 +1443,58 @@ USING: math.private ;
     relevant-ranges intersect-live-ranges
 ] unit-test
 
+! register-status had problems because it used map>assoc where the sequence
+! had multiple keys
+[ { 0 10 } ] [
+    H{ { int-regs { 0 1 } } } registers set
+    H{
+        { int-regs
+          {
+              T{ live-interval
+                 { vreg V int-regs 1 }
+                 { start 0 }
+                 { end 20 }
+                 { reg 0 }
+                 { ranges V{ T{ live-range f 0 2 } T{ live-range f 10 20 } } }
+                 { uses V{ 0 2 10 20 } }
+              }
+
+              T{ live-interval
+                 { vreg V int-regs 2 }
+                 { start 4 }
+                 { end 40 }
+                 { reg 0 }
+                 { ranges V{ T{ live-range f 4 6 } T{ live-range f 30 40 } } }
+                 { uses V{ 4 6 30 40 } }
+              }
+          }
+        }
+    } inactive-intervals set
+    H{
+        { int-regs
+          {
+              T{ live-interval
+                 { vreg V int-regs 3 }
+                 { start 0 }
+                 { end 40 }
+                 { reg 1 }
+                 { ranges V{ T{ live-range f 0 40 } } }
+                 { uses V{ 0 40 } }
+              }
+          }
+        }
+    } active-intervals set
+
+    T{ live-interval
+       { vreg V int-regs 4 }
+        { start 8 }
+        { end 10 }
+        { ranges V{ T{ live-range f 8 10 } } }
+        { uses V{ 8 10 } }
+    }
+    register-status
+] unit-test
+
 ! Bug in live spill slots calculation
 
 V{ T{ ##prologue } T{ ##branch } } 0 test-bb
@@ -1477,18 +1555,16 @@ V{
 SYMBOL: linear-scan-result
 
 :: test-linear-scan-on-cfg ( regs -- )
-    [ ] [
-        cfg new 0 get >>entry
-        compute-predecessors
-        compute-liveness
-        dup reverse-post-order
-        { { int-regs regs } } (linear-scan)
-        flatten-cfg 1array mr.
-    ] unit-test ;
+    cfg new 0 get >>entry
+    compute-predecessors
+    compute-liveness
+    dup reverse-post-order
+    { { int-regs regs } } (linear-scan)
+    flatten-cfg 1array mr. ;
 
 ! This test has a critical edge -- do we care about these?
 
-! { 1 2 } test-linear-scan-on-cfg
+! [ { 1 2 } test-linear-scan-on-cfg ] unit-test
 
 ! Bug in inactive interval handling
 ! [ rot dup [ -rot ] when ]
@@ -1565,7 +1641,7 @@ V{
 
 test-diamond
 
-{ 1 2 3 4 } test-linear-scan-on-cfg
+[ ] [ { 1 2 3 4 } test-linear-scan-on-cfg ] unit-test
 
 ! Similar to the above
 ! [ swap dup [ rot ] when ]
@@ -1651,7 +1727,7 @@ V{
 
 test-diamond
 
-{ 1 2 3 4 } test-linear-scan-on-cfg
+[ ] [ { 1 2 3 4 } test-linear-scan-on-cfg ] unit-test
 
 ! compute-live-registers was inaccurate since it didn't take
 ! lifetime holes into account
@@ -1704,7 +1780,7 @@ V{
 
 test-diamond
 
-{ 1 2 3 4 } test-linear-scan-on-cfg
+[ ] [ { 1 2 3 4 } test-linear-scan-on-cfg ] unit-test
 
 ! Inactive interval handling: splitting active interval
 ! if it fits in lifetime hole only partially
@@ -1737,7 +1813,7 @@ V{
 
 test-diamond
 
-{ 1 2 } test-linear-scan-on-cfg
+[ ] [ { 1 2 } test-linear-scan-on-cfg ] unit-test
 
 USING: classes ;
 
@@ -1776,10 +1852,127 @@ V{
 
 test-diamond
 
-{ 1 2 } test-linear-scan-on-cfg
+[ ] [ { 1 2 } test-linear-scan-on-cfg ] unit-test
 
 [ _spill ] [ 2 get instructions>> first class ] unit-test
 
 [ _spill ] [ 3 get instructions>> second class ] unit-test
 
 [ _reload ] [ 4 get instructions>> first class ] unit-test
+
+! Resolve pass
+V{
+    T{ ##branch }
+} 0 test-bb
+
+V{
+    T{ ##peek f V int-regs 0 D 0 }
+    T{ ##compare-imm-branch f V int-regs 0 5 cc= }
+} 1 test-bb
+
+V{
+    T{ ##replace f V int-regs 0 D 0 }
+    T{ ##peek f V int-regs 1 D 0 }
+    T{ ##peek f V int-regs 2 D 0 }
+    T{ ##replace f V int-regs 1 D 0 }
+    T{ ##replace f V int-regs 2 D 0 }
+    T{ ##branch }
+} 2 test-bb
+
+V{
+    T{ ##branch }
+} 3 test-bb
+
+V{
+    T{ ##peek f V int-regs 1 D 0 }
+    T{ ##compare-imm-branch f V int-regs 1 5 cc= }
+} 4 test-bb
+
+V{
+    T{ ##replace f V int-regs 0 D 0 }
+    T{ ##return }
+} 5 test-bb
+
+V{
+    T{ ##replace f V int-regs 0 D 0 }
+    T{ ##return }
+} 6 test-bb
+
+0 get 1 get V{ } 1sequence >>successors drop
+1 get 2 get 3 get V{ } 2sequence >>successors drop
+2 get 4 get V{ } 1sequence >>successors drop
+3 get 4 get V{ } 1sequence >>successors drop
+4 get 5 get 6 get V{ } 2sequence >>successors drop
+
+[ ] [ { 1 2 } test-linear-scan-on-cfg ] unit-test
+
+[ t ] [ 2 get instructions>> [ _spill? ] any? ] unit-test
+
+[ t ] [ 3 get instructions>> [ _spill? ] any? ] unit-test
+
+[ t ] [ 5 get instructions>> [ _reload? ] any? ] unit-test
+
+! A more complicated failure case with resolve that came up after the above
+! got fixed
+V{ T{ ##branch } } 0 test-bb
+V{
+    T{ ##peek f V int-regs 0 D 0 }
+    T{ ##peek f V int-regs 1 D 1 }
+    T{ ##peek f V int-regs 2 D 2 }
+    T{ ##peek f V int-regs 3 D 3 }
+    T{ ##peek f V int-regs 4 D 0 }
+    T{ ##branch }
+} 1 test-bb
+V{ T{ ##branch } } 2 test-bb
+V{ T{ ##branch } } 3 test-bb
+V{
+    
+    T{ ##replace f V int-regs 1 D 1 }
+    T{ ##replace f V int-regs 2 D 2 }
+    T{ ##replace f V int-regs 3 D 3 }
+    T{ ##replace f V int-regs 4 D 4 }
+    T{ ##replace f V int-regs 0 D 0 }
+    T{ ##branch }
+} 4 test-bb
+V{ T{ ##replace f V int-regs 0 D 0 } T{ ##branch } } 5 test-bb
+V{ T{ ##return } } 6 test-bb
+V{ T{ ##branch } } 7 test-bb
+V{
+    T{ ##replace f V int-regs 1 D 1 }
+    T{ ##replace f V int-regs 2 D 2 }
+    T{ ##replace f V int-regs 3 D 3 }
+    T{ ##peek f V int-regs 5 D 1 }
+    T{ ##peek f V int-regs 6 D 2 }
+    T{ ##peek f V int-regs 7 D 3 }
+    T{ ##peek f V int-regs 8 D 4 }
+    T{ ##replace f V int-regs 5 D 1 }
+    T{ ##replace f V int-regs 6 D 2 }
+    T{ ##replace f V int-regs 7 D 3 }
+    T{ ##replace f V int-regs 8 D 4 }
+    T{ ##branch }
+} 8 test-bb
+V{
+    T{ ##replace f V int-regs 1 D 1 }
+    T{ ##replace f V int-regs 2 D 2 }
+    T{ ##replace f V int-regs 3 D 3 }
+    T{ ##return }
+} 9 test-bb
+
+0 get 1 get 1vector >>successors drop
+1 get 2 get 7 get V{ } 2sequence >>successors drop
+7 get 8 get 1vector >>successors drop
+8 get 9 get 1vector >>successors drop
+2 get 3 get 5 get V{ } 2sequence >>successors drop
+3 get 4 get 1vector >>successors drop
+4 get 9 get 1vector >>successors drop
+5 get 6 get 1vector >>successors drop
+
+[ ] [ { 1 2 3 4 } test-linear-scan-on-cfg ] unit-test
+
+[ _spill ] [ 1 get instructions>> second class ] unit-test
+[ _reload ] [ 4 get instructions>> 4 swap nth class ] unit-test
+[ V{ 3 2 1 } ] [ 8 get instructions>> [ _spill? ] filter [ n>> ] map ] unit-test
+[ V{ 3 2 1 } ] [ 9 get instructions>> [ _reload? ] filter [ n>> ] map ] unit-test
+
+! Resolve pass should insert this
+[ _reload ] [ 5 get instructions>> first class ] unit-test

@@ -24,19 +24,8 @@ M: insn linearize-insn , drop ;
     #! don't need to branch.
     [ number>> ] bi@ 1 - = ; inline
 
-: branch-to-branch? ( successor -- ? )
-    #! A branch to a block containing just a jump return is cloned.
-    instructions>> dup length 2 = [
-        [ first ##epilogue? ]
-        [ second [ ##return? ] [ ##jump? ] bi or ] bi and
-    ] [ drop f ] if ;
-
 : emit-branch ( basic-block successor -- )
-    {
-        { [ 2dup useless-branch? ] [ 2drop ] }
-        { [ dup branch-to-branch? ] [ nip linearize-basic-block ] }
-        [ nip number>> _branch ]
-    } cond ;
+    2dup useless-branch? [ 2drop ] [ nip number>> _branch ] if ;
 
 M: ##branch linearize-insn
     drop dup successors>> first emit-branch ;
@@ -68,41 +57,31 @@ M: ##dispatch linearize-insn
     [ successors>> [ number>> _dispatch-label ] each ]
     bi* ;
 
-: gc-root-registers ( n live-registers -- n )
+: (compute-gc-roots) ( n live-values -- n )
     [
-        [ second 2array , ]
-        [ first reg-class>> reg-size + ]
-        2bi
-    ] each ;
+        [ nip 2array , ]
+        [ drop reg-class>> reg-size + ]
+        3bi
+    ] assoc-each ;
 
-: gc-root-spill-slots ( n live-spill-slots -- n )
+: oop-values ( regs -- regs' )
+    [ drop reg-class>> int-regs eq? ] assoc-filter ;
+
+: data-values ( regs -- regs' )
+    [ drop reg-class>> double-float-regs eq? ] assoc-filter ;
+
+: compute-gc-roots ( live-values -- alist )
     [
-        dup first reg-class>> int-regs eq? [
-            [ second <spill-slot> 2array , ]
-            [ first reg-class>> reg-size + ]
-            2bi
-        ] [ drop ] if
-    ] each ;
-
-: oop-registers ( regs -- regs' )
-    [ first reg-class>> int-regs eq? ] filter ;
-
-: data-registers ( regs -- regs' )
-    [ first reg-class>> double-float-regs eq? ] filter ;
-
-:: compute-gc-roots ( live-registers live-spill-slots -- alist )
-    [
-        0
+        [ 0 ] dip
         ! we put float registers last; the GC doesn't actually scan them
-        live-registers oop-registers gc-root-registers
-        live-spill-slots gc-root-spill-slots
-        live-registers data-registers gc-root-registers
+        [ oop-values (compute-gc-roots) ]
+        [ data-values (compute-gc-roots) ] bi
         drop
     ] { } make ;
 
-: count-gc-roots ( live-registers live-spill-slots -- n )
+: count-gc-roots ( live-values -- n )
     ! Size of GC root area, minus the float registers
-    [ oop-registers length ] bi@ + ;
+    oop-values assoc-size ;
 
 M: ##gc linearize-insn
     nip
@@ -110,11 +89,11 @@ M: ##gc linearize-insn
         [ temp1>> ]
         [ temp2>> ]
         [
-            [ live-registers>> ] [ live-spill-slots>> ] bi
+            live-values>>
             [ compute-gc-roots ]
             [ count-gc-roots ]
             [ gc-roots-size ]
-            2tri
+            tri
         ] tri
         _gc
     ] with-regs ;

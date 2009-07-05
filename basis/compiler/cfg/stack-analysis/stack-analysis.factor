@@ -18,10 +18,10 @@ IN: compiler.cfg.stack-analysis
     [ 2drop t ] [ state get actual-locs>vregs>> at = ] if ;
 
 : save-changed-locs ( state -- )
-    [ changed-locs>> ] [ locs>vregs>> ] bi '[
-        _ at swap 2dup redundant-replace?
+    [ changed-locs>> keys ] [ locs>vregs>> ] bi '[
+        dup _ at swap 2dup redundant-replace?
         [ 2drop ] [ state get untranslate-loc ##replace ] if
-    ] assoc-each ;
+    ] each ;
 
 ERROR: poisoned-state state ;
 
@@ -48,7 +48,8 @@ M: ##inc-r visit
 ! Instructions which don't have any effect on the stack
 UNION: neutral-insn
     ##effect
-    ##flushable ;
+    ##flushable
+    ##no-tco ;
 
 M: neutral-insn visit , ;
 
@@ -59,17 +60,12 @@ UNION: sync-if-back-edge
     ##dispatch
     ##loop-entry ;
 
-SYMBOL: local-only?
-
-t local-only? set-global
-
 : back-edge? ( from to -- ? )
     [ number>> ] bi@ > ;
 
 : sync-state? ( -- ? )
     basic-block get successors>>
-    [ [ predecessors>> ] keep '[ _ back-edge? ] any? ] any?
-    local-only? get or ;
+    [ [ predecessors>> ] keep '[ _ back-edge? ] any? ] any? ;
 
 M: sync-if-back-edge visit
     sync-state? [ sync-state ] when , ;

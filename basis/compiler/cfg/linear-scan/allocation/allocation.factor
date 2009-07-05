@@ -1,7 +1,7 @@
 ! Copyright (C) 2008, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs heaps kernel namespaces sequences fry math
-combinators arrays sorting compiler.utilities
+math.order combinators arrays sorting compiler.utilities
 compiler.cfg.linear-scan.live-intervals
 compiler.cfg.linear-scan.allocation.coalescing
 compiler.cfg.linear-scan.allocation.spilling
@@ -12,17 +12,23 @@ IN: compiler.cfg.linear-scan.allocation
 : free-positions ( new -- assoc )
     vreg>> reg-class>> registers get at [ 1/0. ] H{ } map>assoc ;
 
-: active-positions ( new -- assoc )
-    vreg>> active-intervals-for [ reg>> 0 ] H{ } map>assoc ;
+: add-use-position ( n reg assoc -- ) [ [ min ] when* ] change-at ;
 
-: inactive-positions ( new -- assoc )
-    dup vreg>> inactive-intervals-for
-    [ [ reg>> swap ] keep relevant-ranges intersect-live-ranges ]
-    with H{ } map>assoc ;
+: active-positions ( new assoc -- )
+    [ vreg>> active-intervals-for ] dip
+    '[ [ 0 ] dip reg>> _ add-use-position ] each ;
 
-: compute-free-pos ( new -- free-pos )
-    [ free-positions ] [ inactive-positions ] [ active-positions ] tri
-    3array assoc-combine >alist alist-max ;
+: inactive-positions ( new assoc -- )
+    [ [ vreg>> inactive-intervals-for ] keep ] dip
+    '[
+        [ _ relevant-ranges intersect-live-ranges ] [ reg>> ] bi
+        _ add-use-position
+    ] each ;
+
+: register-status ( new -- free-pos )
+    dup free-positions
+    [ inactive-positions ] [ active-positions ] [ nip ] 2tri
+    >alist alist-max ;
 
 : no-free-registers? ( result -- ? )
     second 0 = ; inline
@@ -39,7 +45,7 @@ IN: compiler.cfg.linear-scan.allocation
 
 : assign-register ( new -- )
     dup coalesce? [ coalesce ] [
-        dup compute-free-pos {
+        dup register-status {
             { [ dup no-free-registers? ] [ drop assign-blocked-register ] }
             { [ 2dup register-available? ] [ register-available ] }
             [ register-partially-available ]

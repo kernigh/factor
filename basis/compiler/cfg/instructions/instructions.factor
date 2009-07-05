@@ -53,9 +53,12 @@ INSN: ##inc-r { n integer } ;
 
 ! Subroutine calls
 INSN: ##stack-frame stack-frame ;
-INSN: ##call word { height integer } ;
+INSN: ##call word ;
 INSN: ##jump word ;
 INSN: ##return ;
+
+! Dummy instruction that simply inhibits TCO
+INSN: ##no-tco ;
 
 ! Jump tables
 INSN: ##dispatch src temp ;
@@ -196,6 +199,16 @@ SYMBOL: cc/=
         { cc/= cc= }
     } at ;
 
+: swap-cc ( cc -- cc' )
+    H{
+        { cc< cc> }
+        { cc<= cc>= }
+        { cc> cc< }
+        { cc>= cc<= }
+        { cc= cc= }
+        { cc/= cc/= }
+    } at ;
+
 : evaluate-cc ( result cc -- ? )
     H{
         { cc<  { +lt+           } }
@@ -217,7 +230,7 @@ INSN: ##compare-imm < ##binary-imm cc temp ;
 INSN: ##compare-float-branch < ##conditional-branch ;
 INSN: ##compare-float < ##binary cc temp ;
 
-INSN: ##gc { temp1 vreg } { temp2 vreg } live-registers live-spill-slots ;
+INSN: ##gc { temp1 vreg } { temp2 vreg } live-values ;
 
 ! Instructions used by machine IR only.
 INSN: _prologue stack-frame ;
@@ -248,4 +261,4 @@ INSN: _reload dst class n ;
 INSN: _copy dst src class ;
 INSN: _spill-counts counts ;
 
-SYMBOL: temp-spill
+SYMBOL: spill-temp

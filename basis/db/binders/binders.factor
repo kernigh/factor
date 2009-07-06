@@ -1,6 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.utils kernel parser quotations sequences ;
+USING: accessors db.utils kernel parser quotations sequences
+classes.tuple ;
 IN: db.binders
 
 TUPLE: binder table-name column-name slot-name type value getter setter ;
@@ -30,10 +31,15 @@ SYNTAX: SB{
         2 ensure-length first2 <simple-binder>
     ] parse-literal ;
 
+ERROR: tuple-class-expected object ;
+
+: ensure-class ( object -- tuple-class )
+    dup tuple-class? [ tuple-class-expected ] unless ;
+
 : <tuple-binder> ( class binders -- binder )
     tuple-binder new
         swap >>binders
-        swap >>class ;
+        swap ensure-class >>class ;
 
 SYNTAX: TB{
     \ } [

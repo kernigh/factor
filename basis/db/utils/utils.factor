@@ -65,11 +65,11 @@ ERROR: length-expected seq length ;
 : new-filled-tuple ( class values setters -- tuple )
     [ new ] 2dip [ call( tuple obj -- tuple ) ] 2each ;
 
-ERROR: no-slot ;
+ERROR: no-slot name specs ;
 
 : offset-of-slot ( string tuple -- n )
     class superclasses [ "slots" word-prop ] map concat
-    slot-named dup [ no-slot ] unless offset>> ;
+    2dup slot-named [ 2nip offset>> ] [ no-slot ] if* ;
 
 : get-slot-named ( name tuple -- value )
     [ nip ] [ offset-of-slot ] 2bi slot ;

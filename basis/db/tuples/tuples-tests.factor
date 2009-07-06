@@ -145,50 +145,62 @@ PERSISTENT: pet
 : test-pets ( -- )
     set-up-pet-store
     [
-        V{
-            T{ pet-store { id 1 } { name "petstore1" } }
-            T{ pet
-                { id 1 }
-                { pet-store-id 1 }
-                { name "fido" }
-                { type "dog" }
-            }
-            T{ pet-store { id 1 } { name "petstore1" } }
-            T{ pet
-                { id 2 }
-                { pet-store-id 1 }
-                { name "fritz" }
-                { type "dog" }
-            }
-            T{ pet-store { id 1 } { name "petstore1" } }
-            T{ pet
-                { id 3 }
-                { pet-store-id 1 }
-                { name "sir higgins" }
-                { type "dog" }
-            }
-            T{ pet-store { id 2 } { name "petstore2" } }
-            T{ pet
-                { id 4 }
-                { pet-store-id 2 }
-                { name "button" }
-                { type "cat" }
-            }
-            T{ pet-store { id 2 } { name "petstore2" } }
-            T{ pet
-                { id 5 }
-                { pet-store-id 2 }
-                { name "mittens" }
-                { type "cat" }
-            }
-            T{ pet-store { id 2 } { name "petstore2" } }
-            T{ pet
-                { id 6 }
-                { pet-store-id 2 }
-                { name "fester" }
-                { type "cat" }
-            }
+{
+    V{
+        T{ pet-store { id 1 } { name "petstore1" } }
+        T{ pet
+            { id 1 }
+            { pet-store-id 1 }
+            { name "fido" }
+            { type "dog" }
         }
+    }
+    V{
+        T{ pet-store { id 1 } { name "petstore1" } }
+        T{ pet
+            { id 2 }
+            { pet-store-id 1 }
+            { name "fritz" }
+            { type "dog" }
+        }
+    }
+    V{
+        T{ pet-store { id 1 } { name "petstore1" } }
+        T{ pet
+            { id 3 }
+            { pet-store-id 1 }
+            { name "sir higgins" }
+            { type "dog" }
+        }
+    }
+    V{
+        T{ pet-store { id 2 } { name "petstore2" } }
+        T{ pet
+            { id 4 }
+            { pet-store-id 2 }
+            { name "button" }
+            { type "cat" }
+        }
+    }
+    V{
+        T{ pet-store { id 2 } { name "petstore2" } }
+        T{ pet
+            { id 5 }
+            { pet-store-id 2 }
+            { name "mittens" }
+            { type "cat" }
+        }
+    }
+    V{
+        T{ pet-store { id 2 } { name "petstore2" } }
+        T{ pet
+            { id 6 }
+            { pet-store-id 2 }
+            { name "fester" }
+            { type "cat" }
+        }
+    }
+}
     ] [
         <"
         select pet_store_1.id, pet_store_1.name,

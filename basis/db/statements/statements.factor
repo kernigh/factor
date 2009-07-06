@@ -97,7 +97,11 @@ M: object execute-statement* ( statement type -- )
     statement>result-set
     [
         dup out>> return-tuples? [
-            [ return-tuple ] result-set-map concat
+            [ return-tuple ] result-set-map
+            dup {
+                [ length 0 > ]
+                [ first length 1 = ]
+            } 1&& [ concat ] when
         ] [
             [ return-sequence ] result-set-map
         ] if

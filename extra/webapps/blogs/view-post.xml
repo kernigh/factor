@@ -51,7 +51,7 @@
 		<div class="post-form">
 			<t:form t:action="$blogs/new-comment" t:for="parent">
 				<p><t:textarea t:name="content" t:rows="20" t:cols="60" /></p>
-				<p><input type="SUBMIT" value="Done" /></p>
+				<p><input type="SUBMIT" value="Submit" /></p>
 			</t:form>
 		</div>
 

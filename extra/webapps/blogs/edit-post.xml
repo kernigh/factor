@@ -9,7 +9,7 @@
 
 			<p>Title: <t:field t:name="title" t:size="60" /></p>
 			<p><t:textarea t:name="content" t:rows="30" t:cols="80" /></p>
-			<input type="SUBMIT" value="Done" />
+			<input type="SUBMIT" value="Submit" />
 		</t:form>
 	</div>
 

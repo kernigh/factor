@@ -103,7 +103,6 @@ M: comment entity-url
 
 : <posts-by-action> ( -- action )
     <page-action>
-
         "author" >>rest
 
         [
@@ -315,7 +314,7 @@ M: comment entity-url
         <new-comment-action> "new-comment" add-responder
         <delete-comment-action> "delete-comment" add-responder
     <boilerplate>
-        [ username "author" set-value ] >>init
+        [ username "me" set-value ] >>init
         { blogs "blogs-common" } >>template
         <login-config>
         blogs-db <alloy> ;

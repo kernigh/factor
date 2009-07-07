@@ -81,10 +81,10 @@ IN: validators
     [ "must be a single word" throw ] unless ;
 
 : v-username ( str -- str )
-    2 v-min-length 16 v-max-length v-one-word ;
+    2 v-min-length 40 v-max-length v-one-word ;
 
 : v-password ( str -- str )
-    6 v-min-length 40 v-max-length v-one-line ;
+    1 v-min-length 1024 v-max-length v-one-line ;
 
 : v-mode ( str -- str )
     dup mode-names member? [

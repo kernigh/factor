@@ -5,9 +5,9 @@ db db.persistent db.tuples db.types furnace.auth.providers
 kernel ;
 IN: furnace.auth.providers.db
 
-    ! { "id" INTEGER { AUTOINCREMENT PRIMARY-KEY }
 PERSISTENT: user
-    { "username" { VARCHAR 256 } PRIMARY-KEY }
+    { "id" +db-assigned-key+ }
+    { "username" { VARCHAR 256 } }
     { "realname" { VARCHAR 256 } }
     { "password" BLOB NOT-NULL }
     { "salt" INTEGER NOT-NULL }

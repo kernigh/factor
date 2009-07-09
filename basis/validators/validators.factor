@@ -2,7 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel continuations sequences math namespaces make sets
 math.parser math.ranges assocs regexp unicode.categories arrays
-hashtables words classes quotations xmode.catalog unicode.case ;
+hashtables words classes quotations xmode.catalog unicode.case
+combinators.short-circuit ;
 IN: validators
 
 : v-checkbox ( str -- ? )
@@ -79,6 +80,11 @@ IN: validators
     v-required
     dup [ alpha? ] all?
     [ "must be a single word" throw ] unless ;
+
+: v-one-token ( str -- str )
+    v-required
+    dup [ blank? not ] all?
+    [ "must be a single token" throw ] unless ;
 
 : v-username ( str -- str )
     2 v-min-length 40 v-max-length v-one-word ;

@@ -44,6 +44,6 @@ M: out-tuple-slot-binder get-type type>> ;
 
 : sql-row-typed-count ( result-set binder -- seq )
     [
-        [ sql-column-counter counter ] dip
+        [ sql-column-counter [ inc ] [ get ] bi ] dip
         get-type column-typed
     ] with map ;

@@ -134,3 +134,23 @@ PERSISTENT: thing
     { "thing-container" thing-container }
     { "whatsit" VARCHAR } ;
 
+
+TUPLE: author id name ;
+
+TUPLE: thread id topic author ;
+
+TUPLE: comment id thread author ;
+
+PERSISTENT: author
+    { "id" +db-assigned-key+ }
+    { "name" VARCHAR } ;
+
+PERSISTENT: thread
+    { "id" +db-assigned-key+ }
+    { "topic" VARCHAR }
+    { "author" author } ;
+
+PERSISTENT: comment
+    { "id" +db-assigned-key+ }
+    { "thread" thread }
+    { "author" author } ;

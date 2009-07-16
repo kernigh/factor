@@ -1,8 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays classes combinators.short-circuit
-kernel math math.order math.parser sequences slots
-slots.private strings vectors words ;
+kernel locals math math.order math.parser sequences
+sequences.private slots slots.private strings vectors words ;
 IN: db.utils
 
 SLOT: slot-name

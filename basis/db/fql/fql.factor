@@ -235,8 +235,13 @@ SYMBOL: tables
 GENERIC: expand-out ( obj -- names binders )
 
 M: out-tuple-binder expand-out ( obj -- names binders )
-    [ table>> ] [ binders>> ] bi
-    [ [ first "." glue ] with map ] [ [ first3 <out-tuple-slot-binder> ] map ] bi ;
+    [
+        [ table>> ] [ binders>> ] bi
+        [ name>> "." glue ] with map
+    ] keep 1array ;
+
+    ! [ table>> ] [ binders>> ] bi
+    ! [ [ first "." glue ] with map ] [ [ first3 <out-tuple-slot-binder> ] map ] bi ;
 
 
 : select-out ( statement tuple -- statement )
@@ -256,7 +261,7 @@ M:: select expand-fql* ( statement obj -- statement )
         {
             [ [ "SELECT " add-sql ] dip select-out ]
             [ [ " FROM " add-sql ] dip from>> ", " join add-sql ]
-            [ join>> B [ dupd [ expand-fql* drop ] with each ] when* ]
+            [ join>> [ [ expand-fql* ] each ] when* ]
             [ expand-where ]
             [ group-by>> [ [ " GROUP BY " add-sql ] dip ", " join add-sql ] when* ]
             [ order-by>> [ [ " ORDER BY " add-sql ] dip ", " join add-sql ] when* ]

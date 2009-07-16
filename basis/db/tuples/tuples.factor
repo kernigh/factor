@@ -133,7 +133,7 @@ M: sequence where-object
         [
             [ nip column-name>> ]
             [ nip type>> ]
-            [ nip setter>> ] 2tri 3array
+            [ nip setter>> ] 2tri <out-tuple-slot-binder>
         ] with map
     ] 2bi <out-tuple-binder> ;
 
@@ -182,7 +182,7 @@ M: object select-tuples-statement ( tuple -- statement )
     ] if ;
 
 M: object select-tuple-statement ( tuple -- statement )
-    select-tuples-statement 1 >>limit expand-fql ;
+    select-tuples-statement 1 >>limit ;
 
 
 

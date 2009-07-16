@@ -34,7 +34,9 @@ GENERIC# column-typed 2 ( result-set column type -- sql )
 GENERIC: get-type ( obj -- type )
 
 M: sql-type get-type ;
-M: binder get-type type>> ;
+M: out-string-binder get-type drop VARCHAR ;
+M: out-typed-binder get-type type>> ;
+M: out-tuple-slot-binder get-type type>> ;
 
 : sql-row-typed ( result-set -- seq )
     [ #columns ] [ out>> ] [ ] tri
@@ -42,6 +44,6 @@ M: binder get-type type>> ;
 
 : sql-row-typed-count ( result-set binder -- seq )
     [
-        [ sql-column-counter [ inc ] [ get ] bi ] dip
+        [ sql-column-counter counter ] dip
         get-type column-typed
     ] with map ;

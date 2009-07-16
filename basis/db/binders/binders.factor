@@ -1,12 +1,50 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.utils kernel parser quotations sequences
-classes.tuple ;
+USING: accessors classes.tuple constructors db.utils kernel
+multiline parser quotations sequences ;
 IN: db.binders
+
+TUPLE: in-binder table column type value ;
+TUPLE: param-in-binder type value ;
+
+TUPLE: out-string-binder table column ;
+TUPLE: out-typed-binder table column type ;
+TUPLE: out-tuple-slot-binder name type setter ; ! 3-tuple
+TUPLE: out-tuple-binder class table binders ;
+
+CONSTRUCTOR: in-binder ( table column type value -- obj ) ;
+CONSTRUCTOR: param-in-binder ( type value -- obj ) ;
+! CONSTRUCTOR: out-string-binder ( table column -- obj ) ;
+CONSTRUCTOR: out-tuple-slot-binder ( name type setter -- obj ) ;
+CONSTRUCTOR: out-tuple-binder ( class table binders -- obj ) ;
+
+
+
+
+/*
+TUPLE: typed obj type ;
+
+: <typed> ( obj type -- typed )
+    typed new
+        swap >>type
+        swap >>obj ;
+
+SYNTAX: TYPED{
+    \ } [ 2 ensure-length first2 <typed> ] parse-literal ;
 
 TUPLE: binder table-name column-name slot-name type value getter setter ;
 
 TUPLE: tuple-binder class binders ;
+
+TUPLE: tuple-out table class slots ;
+TUPLE: tuples-out tuples ;
+
+TUPLE: slot-binder slot binder ;
+
+: <slot-binder> ( slot binder -- slot-binder )
+    slot-binder new
+        swap >>binder
+        swap >>slot ;
 
 ! TUPLE: sequence-binder binder ; ! ???
 
@@ -15,10 +53,10 @@ TUPLE: tuple-binder class binders ;
         [ lookup-getter 1quotation >>getter ]
         [ lookup-setter 1quotation >>setter ] bi ;
 
-: <simple-binder> ( type value -- binder )
+: <simple-binder> ( value type -- binder )
     binder new
-        swap >>value
-        swap >>type ;
+        swap >>type
+        swap >>value ;
 
 : <return-binder> ( slot-name type -- binder )
     binder new
@@ -45,3 +83,4 @@ SYNTAX: TB{
     \ } [
         unclip swap [ first2 <return-binder> ] map <tuple-binder>
     ] parse-literal ;
+*/

@@ -259,3 +259,32 @@ M: sequence parse-column-modifiers
 
 M: word parse-column-modifiers
     ensure-sql-modifier ;
+
+
+: persistent-columns ( persistent -- columns )
+    { [ relation-columns>> ] [ columns>> ] } 1|| ;
+
+: all-columns ( persistent -- seq )
+    columns>> [
+        dup type>> tuple-class? [
+            type>> lookup-persistent all-columns
+        ] [
+            1array
+        ] if
+    ] map concat ;
+
+: all-tables ( persistent -- seq )
+    all-columns [ persistent>> table-name>> ] map prune ;
+
+: columns>qualified-names ( persistent -- string )
+    [
+        [ persistent>> table-name>> ]
+        [ column-name>> ] bi "." glue
+    ] map ;
+
+: all-qualified-names ( persistent -- string )
+    all-columns columns>qualified-names ;
+
+: full-column-names ( persistent -- seq )
+    [ table-name>> ] [ columns>> [ column-name>> ] map ] bi
+    [ "." glue ] with map ;

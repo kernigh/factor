@@ -1,10 +1,10 @@
 ! Copyright (C) 2008 Slava Pestov, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: concurrency.combinators db.connections
-db.pools db.sqlite db.types fry io.files.temp kernel math
-namespaces random threads tools.test combinators ;
+USING: combinators concurrency.combinators db.connections
+db.persistent db.pools db.sqlite db.types fry io.files.temp
+kernel literals math multiline namespaces random threads
+tools.test ;
 IN: db.tester
-USE: multiline
 
 : sqlite-test-db ( -- sqlite-db )
     "tuples-test.db" temp-file <sqlite-db> ;
@@ -93,3 +93,44 @@ PERSISTENT: test-2
         ] with-pooled-db
     ] bi ;
 */
+
+
+
+TUPLE: user id name age ;
+TUPLE: score id user score ;
+
+PERSISTENT: user
+    { "id" +db-assigned-key+ }
+    { "name" VARCHAR }
+    { "age" INTEGER } ;
+
+PERSISTENT: score
+    { "id" +db-assigned-key+ }
+    { "user" user }
+    { "score" INTEGER } ;
+
+<<
+: user1 ( -- obj ) T{ user f 1 "erg" 27 } clone ;
+>>
+
+: score1 ( -- obj )
+    T{ score
+        { id 1 }
+        { user $[ user1 ] }
+        { score 100 }
+    } clone ;
+
+
+TUPLE: thing-container id1 id2 name ;
+TUPLE: thing id thing-container whatsit ;
+
+PERSISTENT: thing-container
+    { "id1" INTEGER PRIMARY-KEY }
+    { "id2" INTEGER PRIMARY-KEY }
+    { "name" VARCHAR } ;
+
+PERSISTENT: thing
+    { "id" +db-assigned-key+ }
+    { "thing-container" thing-container }
+    { "whatsit" VARCHAR } ;
+

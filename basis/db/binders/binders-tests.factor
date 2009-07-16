@@ -3,4 +3,4 @@
 USING: accessors db.binders db.types kernel tools.test ;
 IN: db.binders.tests
 
-[ VARCHAR "a" ] [ SB{ VARCHAR "a" } [ type>> ] [ value>> ] bi ] unit-test
+! [ VARCHAR "a" ] [ SB{ "a" VARCHAR } [ type>> ] [ value>> ] bi ] unit-test

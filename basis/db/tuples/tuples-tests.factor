@@ -339,7 +339,6 @@ PERSISTENT: pet2
         }
     ]
     [
-B
         pet2 new select-tuples
     ] unit-test
     ;
@@ -432,19 +431,12 @@ PERSISTENT: test2
                T{ or-sequence
                 { sequence
                     {
-                       T{ op-eq { left "score" } { right "?" } }
-                       T{ op-eq { left "score" } { right "?" } }
-                       T{ op-eq { left "score" } { right "?" } }
+                       T{ op-eq { left "score" } { right { INTEGER 49 } } }
+                       T{ op-eq { left "score" } { right { INTEGER 50 } } }
+                       T{ op-eq { left "score" } { right { INTEGER 51 } } }
                     }
                 }
               }
-           }
-           { where-in
-                {
-                    T{ binder { type INTEGER } { value 49 } }
-                    T{ binder { type INTEGER } { value 50 } }
-                    T{ binder { type INTEGER } { value 51 } }
-                }
            }
        } expand-fql
     ] unit-test

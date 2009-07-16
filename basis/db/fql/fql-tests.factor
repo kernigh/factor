@@ -7,10 +7,11 @@ IN: db.fql.tests
 : test-fql ( -- )
     create-computer-table
 
-    [ "insert into computer (name, os) values (?, ?);" ]
+    [ "INSERT INTO computer (name, os) VALUES (?, ?)" ]
     [
-        "computer" { "name" "os" } { "lol" "os2" } <insert> expand-fql
-        sql>>
+        "computer"
+        { { "name" { "lol" VARCHAR } } { "os" { "os2" VARCHAR } } } <insert>
+        expand-fql sql>>
     ] unit-test
 
     [ "select name, os from computer" ]
@@ -34,17 +35,18 @@ IN: db.fql.tests
     ] unit-test
 
     [
-        "select name, os from computer where (hmm > 1 or foo is NULL) group by os order by lol offset 100 limit 3"
+        "select name, os from computer where hmm > ? or foo is ? group by os order by lol offset 100 limit 3"
     ] [
         select new
             { "name" "os" } >>names
             "computer" >>from
-            T{ or-sequence { sequence { "hmm > 1" "foo is NULL" } } } >>where
+            T{ or-sequence
+                { sequence { T{ op-gt f "hmm" { 1 INTEGER } } T{ op-is f "foo" { "NULL" NULL } } } }
+            } >>where
             "os" >>group-by
             "lol" >>order-by
             100 >>offset
-            3 >>limit
-        expand-fql sql>>
+            3 >>limit expand-fql sql>>
     ] unit-test
 
     [ "delete from computer order by omg limit 3" ]
@@ -87,3 +89,35 @@ IN: db.fql.tests
     ;
 
 [ test-fql ] test-dbs
+
+
+/*
+: test-multi-select ( -- )
+    <select>
+    { "user.username" "blog.id" "blog.url" "post.id" "post.date"
+    "post.title" "post.content" } >>names
+    "post" >>from
+    "blog" "blog.id" "post.blog_id" <left-outer-join>
+    "user" "user.id" "blog.user_id" <left-outer-join>
+    2array >>join
+    "blog.url" "erg"  <op-eq> 1array >>where
+    expand-fql ;
+
+T{ tuple-out
+    { table "user" }
+    { class user }
+    { slots { "username" } }
+}
+T{ tuple-out
+    { table "blog" }
+    { class blog }
+    { slots { "id" "url" } }
+}
+T{ tuple-out
+    { table "post" }
+    { class post }
+    { slots { "id" "date" "title" "content" } }
+}
+
+
+*/

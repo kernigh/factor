@@ -11,11 +11,8 @@ FROM: db.fql => update ;
 FROM: db.fql => delete ;
 IN: db.tuples
 
-ERROR: unimplemented ;
-
-HOOK: create-table-statement db-connection ( class -- statement )
-HOOK: drop-table-statement db-connection ( class -- statement )
-
+HOOK: create-table-string db-connection ( class -- statement )
+HOOK: drop-table-string db-connection ( class -- statement )
 HOOK: insert-tuple-statement db-connection ( tuple -- statement )
 HOOK: post-insert-tuple db-connection ( tuple -- )
 HOOK: update-tuple-statement db-connection ( tuple -- statement )
@@ -24,76 +21,18 @@ HOOK: select-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuples-statement db-connection ( tuple -- statement )
 HOOK: count-tuples-statement db-connection ( tuple -- statement )
 
-GENERIC# where-object 1 ( obj spec -- )
-
-: (where-object) ( obj spec -- )
-    swap [
-        drop slot-name>> "?" <op-eq>
-    ] [
-        [ type>> ] dip <simple-binder> 1array
-    ] 2bi 2array , ;
-
-M: object where-object (where-object) ;
-M: integer where-object (where-object) ;
-M: byte-array where-object (where-object) ;
-M: string where-object (where-object) ;
-M: interval where-object
-    swap
-    [
-        from>> first2 [
-            [ slot-name>> "?" <op-gt-eq> ] dip
-        ] [
-            [ slot-name>> "?" <op-gt> ] dip
-        ] if
-        REAL swap <simple-binder> 1array 2array ,
-    ] [
-        to>> first2 [
-            [ slot-name>> "?" <op-lt-eq> ] dip
-        ] [
-            [ slot-name>> "?" <op-lt> ] dip
-        ] if
-        REAL swap <simple-binder> 1array 2array ,
-    ] 2bi ;
-
-M: sequence where-object
-    swap [
-        [
-            drop slot-name>> "?" <op-eq>
-        ] [
-            [ type>> ] dip <simple-binder>
-        ] 2bi 2array
-    ] with map [ keys <or-sequence> ] [ values ] bi 2array , ;
-
-: many-where ( tuple seq -- )
-    [
-        [ getter>> call( obj -- obj ) ] keep where-object
-    ] with each ;
-
-: filter-slots ( tuple specs -- specs' )
-    [ slot-name>> swap get-slot-named ] with filter ;
-
-: where-clause ( tuple specs -- and-sequence binder-sequence )
-    [ drop ] [ filter-slots ] 2bi
-    [ drop f f ]
-    [
-        [ many-where ] { } make
-        [ keys <and-sequence> ] [ values concat ] bi
-    ] if-empty ;
-
-: set-statement-where ( statement tuple specs -- statement )
-    columns>> where-clause
-    [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty ;
+: modifiers, ( column -- )
+    modifiers>> [
+        sql-modifiers>string [ " " % % ] unless-empty
+    ] unless-empty ;
 
 : create-column, ( column -- )
     [ column-name>> % " " % ]
     [ type>> sql-type>string % ]
-    [
-        dup sql-primary-key?
-        [ drop ] [ " " % modifiers>> sql-modifiers>string % ] if
-    ] tri ;
+    [ dup sql-primary-key? [ drop ] [ modifiers, ] if ] tri ;
 
-M: object create-table-statement ( class -- statement )
-    [ statement new ] dip lookup-persistent
+M: object create-table-string ( class -- statement )
+    lookup-persistent
     [
         "create table " %
         [ table-name>> % "(" % ]
@@ -102,65 +41,164 @@ M: object create-table-statement ( class -- statement )
             [ ", " % ] [ create-column, ] interleave
         ] [ 
             find-primary-key [
-                ", " %
-                "primary key(" %
-                [ "," % ] [ column-name>> % ] interleave
-                ")" %
+                ", primary key(" %
+                [ "," % ] [ column-name>> % ] interleave ")" %
             ] unless-empty
             ")" %
         ] tri
-    ] "" make >>sql ;
+    ] "" make ;
 
-M: object drop-table-statement ( class -- statement )
+M: object drop-table-string ( class -- string )
     lookup-persistent table-name>> sanitize-sql-name
     "drop table " prepend ;
 
-: make-binder ( type obj -- binder )
-    over {
-        { +random-key+ [ drop 64 random-bits <simple-binder> ] }
-        [ drop <simple-binder> ]
-    } case ;
+: remove-db-assigned-key ( columns -- columns' )
+    [ +db-assigned-key+? not ] filter ;
+
+: maybe-remove-primary-key ( columns -- columns' )
+    remove-db-assigned-key ;
+
+: insert-binders ( tuple persistent -- binders )
+    persistent-columns maybe-remove-primary-key [
+        {
+            [ nip persistent>> table-name>> ]
+            [ nip column-name>> ]
+            [ nip type>> ]
+            [ getter>> call( obj -- obj ) ]
+        } 2cleave <in-binder>
+    ] with map ;
 
 M: object insert-tuple-statement ( tuple -- statement )
     [ \ insert new ] dip
     dup lookup-persistent {
-        [ nip table-name>> >>into ]
-        [ nip columns [ column-name>> ] map >>names ]
-        [
-            [
-                nip columns [ type>> ] map
-            ] [
-                columns [ getter>> ] map
-                [ call( obj -- obj' ) ] with map
-            ] 2bi
-            [ make-binder ] 2map >>values
-        ]
-    } 2cleave expand-fql ;
+        [ nip table-name>> >>table ]
+        [ insert-binders >>binders ]
+    } 2cleave ;
 
-: all-columns ( persistent -- seq )
-    columns>> [
-        dup type>> tuple-class? [
-            type>> lookup-persistent all-columns
-        ] [
-            1array
-        ] if
-    ] map concat ;
+M: object post-insert-tuple drop ;
 
-: all-tables ( persistent -- seq )
-    all-columns [ persistent>> table-name>> ] map prune ;
 
-: columns>qualified-names ( persistent -- string )
+
+
+GENERIC: where-object ( spec obj -- )
+
+: name/type ( obj -- name type )
+    [ slot-name>> ] [ type>> ] bi ;
+
+: make-op ( spec obj op-class -- op )
+    [ [ name/type ] dip 2array ] dip new-op ;
+
+: (where-object) ( spec obj -- ) \ op-eq make-op , ;
+
+M: object where-object (where-object) ;
+M: integer where-object (where-object) ;
+M: byte-array where-object (where-object) ;
+M: string where-object (where-object) ;
+
+/*
+M: interval where-object
     [
-        [ persistent>> table-name>> ]
-        [ column-name>> ] bi "." glue
-    ] map ;
+        from>> first2 [ \ op-gt-eq make-op ] [ \ op-gt make-op ] if
+        REAL <simple-binder> 1array 2array ,
+    ] [
+        to>> first2 [ \ op-lt-eq make-op ] [ \ op-lt make-op ] if
+        REAL <simple-binder> 1array 2array ,
+    ] 2bi ;
+*/
 
-: all-qualified-names ( persistent -- string )
-    all-columns columns>qualified-names ;
+M: sequence where-object
+    [ \ op-eq make-op ] with map <or-sequence> , ;
+
+: many-where ( tuple seq -- )
+    [
+        [ getter>> call( obj -- obj ) ] keep swap where-object
+    ] with each ;
+
+: filter-slots ( tuple specs -- specs' )
+    [ slot-name>> swap get-slot-named ] with filter ;
+
+: where-clause ( tuple specs -- where-sequence )
+    [ drop ] [ filter-slots ] 2bi
+    [ drop f ] [
+        [ many-where ] { } make <and-sequence> 
+    ] if-empty ;
+
+: set-statement-where ( statement tuple specs -- statement )
+    columns>> where-clause >>where ;
+
+: column>out-tuple ( tuple columns -- out-tuple )
+    [
+        nip first persistent>> [ class>> ] [ table-name>> ] bi
+    ] [
+        [
+            [ nip column-name>> ]
+            [ nip type>> ]
+            [ nip setter>> ] 2tri 3array
+        ] with map
+    ] 2bi <out-tuple-binder> ;
+
+: columns>out-tuples ( tuple columns column -- seq )
+    [ [ type>> lookup-persistent columns>> column>out-tuple ] with map ]
+    [ column>out-tuple prefix ] bi-curry* bi ; inline
+
+: select-columns ( tuple persistent -- seq )
+    columns>> [ type>> tuple-class? ] partition columns>out-tuples ;
+
+: column>join ( db-column -- joins )
+    [ type>> lookup-persistent table-name>> ]
+    [ [ persistent>> table-name>> ] [ column-name>> ] bi "." glue ]
+    [
+        type>> lookup-persistent [ table-name>> ] [ find-primary-key ] bi
+        tuck
+        [ [ column-name>> "_" glue ] with map ]
+        [ [ column-name>> "." glue ] with map ] 2bi*
+    ] tri <left-join> ;
+
+: select-joins ( persistent -- seq )
+    columns>> [ type>> tuple-class? ] filter
+    [ column>join ] map ;
+
+: select-tuples-no-relations ( tuple -- statement )
+    [ \ select new ] dip dup lookup-persistent {
+        [ select-columns >>columns ]
+        [ nip table-name>> >>from ]
+        [ set-statement-where ]
+    } 2cleave ;
+
+: select-tuples-relations ( tuple -- statement )
+    [ \ select new ] dip dup lookup-persistent {
+        [ select-columns >>columns ]
+        [ nip table-name>> >>from ]
+        [ nip select-joins >>join ]
+        [ set-statement-where ]
+    } 2cleave ;
+
+
+M: object select-tuples-statement ( tuple -- statement )
+    dup db-relations? [
+        select-tuples-relations
+    ] [
+        select-tuples-no-relations
+    ] if ;
+
+M: object select-tuple-statement ( tuple -- statement )
+    select-tuples-statement 1 >>limit expand-fql ;
+
+
+
+/*
+: make-binder ( obj type -- binder )
+    [
+        {
+            { +random-key+ [ drop 64 random-bits ] }
+            [ drop ]
+        } case
+    ] keep <simple-binder> ;
+
 
 : where-primary-key ( statement tuple specs -- statement )
     find-primary-key where-clause
-    [ drop ] [ [ >>where ] [ >>where-in ] bi* ] if-empty ;
+    [ >>where ] unless-empty ;
 
 M: object update-tuple-statement ( tuple -- statement )
     [ \ update new ] dip
@@ -189,49 +227,25 @@ M: object delete-tuple-statement ( tuple -- statement )
         [ set-statement-where ]
     } 2cleave expand-fql ;
 
-: (select-tuples-statement) ( tuple -- fql )
-    [ \ select new ] dip
-    dup lookup-persistent {
-        [ nip all-qualified-names >>names ]
-        [
-            nip
-            [ class>> ]
-            [ all-columns [ slot-name>> ] map ]
-            [ all-columns [ type>> ] map ] tri
-            [ <return-binder> ] 2map <tuple-binder> >>names-out
-        ]
-        ! [ nip table-name>> >>from ]
-        [ nip all-tables >>from ]
-        [ set-statement-where ]
-    } 2cleave ;
-
-M: object select-tuple-statement ( tuple -- statement )
-    (select-tuples-statement) 1 >>limit expand-fql ;
-
-: full-column-names ( persistent -- seq )
-    [ table-name>> ] [ columns>> [ column-name>> ] map ] bi
-    [ "." glue ] with map ;
-
-M: object select-tuples-statement ( tuple -- statement )
-    (select-tuples-statement) expand-fql ;
-
 M: object count-tuples-statement ( tuple -- statement )
     [ \ select new ] dip
     dup lookup-persistent {
         [
             nip [ table-name>> ] [ columns>> ] bi
             first column-name>> "." glue <fql-count> >>names
-            INTEGER f <simple-binder> >>names-out
+            f INTEGER <simple-binder> >>names-out
         ]
         [ nip table-name>> >>from ]
         [ set-statement-where ]
     } 2cleave expand-fql ;
 
-: create-table ( class -- )
-    create-table-statement sql-bind-command ;
+: count-tuples ( tuple -- n )
+    count-tuples-statement sql-bind-typed-query first first ;
+*/
 
-: drop-table ( class -- )
-    drop-table-statement sql-command ;
+: create-table ( class -- ) create-table-string sql-command ;
+
+: drop-table ( class -- ) drop-table-string sql-command ;
 
 : ensure-table ( class -- )
     '[ [ _ create-table ] ignore-table-exists ] ignore-function-exists ;
@@ -241,17 +255,13 @@ M: object count-tuples-statement ( tuple -- statement )
 : recreate-table ( class -- )
     [ drop-table ] [ create-table ] bi ;
 
+
 : select-tuple ( tuple -- tuple'/f )
-    select-tuple-statement sql-bind-typed-query
+    select-tuple-statement expand-fql sql-bind-typed-query
     [ f ] [ first ] if-empty ;
 
 : select-tuples ( tuple -- seq )
-    select-tuples-statement sql-bind-typed-query ;
-
-: count-tuples ( tuple -- n )
-    count-tuples-statement sql-bind-typed-query first first ;
-
-M: object post-insert-tuple drop ;
+    select-tuples-statement expand-fql sql-bind-typed-query ;
 
 : select-relations ( tuple -- tuple' )
     [ find-relations ] [
@@ -266,11 +276,13 @@ M: object post-insert-tuple drop ;
         select-relations
     ] when
 
-    [ insert-tuple-statement sql-bind-typed-command ]
+    [ insert-tuple-statement expand-fql sql-bind-typed-command ]
     [ dup special-primary-key? [ post-insert-tuple ] [ drop ] if ] bi ;
 
+/*
 : update-tuple ( tuple -- )
     update-tuple-statement sql-bind-typed-command ;
 
 : delete-tuples ( tuple -- )
     delete-tuple-statement sql-bind-typed-command ;
+*/

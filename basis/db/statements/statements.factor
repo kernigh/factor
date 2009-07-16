@@ -32,6 +32,11 @@ PRIVATE>
     [ obj>vector ] change-out
     [ obj>vector ] change-in ;
 
+: empty-statement ( -- statement )
+    statement new
+        V{ } clone >>in
+        V{ } clone >>out ;
+
 : <statement> ( sql in out -- statement )
     statement new
         swap >>out
@@ -41,6 +46,14 @@ PRIVATE>
 
 : <empty-statement> ( -- statement )
     f f f <statement> ;
+
+: add-sql ( statement sql -- statement )
+    '[ _ "" append-as ] change-sql ;
+
+: add-in-param ( statement sql -- statement ) over in>> push ;
+: add-in-params ( statement sql -- statement ) over in>> push-all ;
+: add-out-param ( statement sql -- statement ) over out>> push ;
+: add-out-params ( statement sql -- statement ) over out>> push-all ;
 
 HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: execute-statement* db-connection ( statement type -- )
@@ -90,7 +103,7 @@ M: object execute-statement* ( statement type -- )
 
 : return-sequence ( result-set -- seq ) sql-row-typed ;
 
-: return-tuples? ( result-set -- ? ) [ tuple-binder? ] all? ;
+: return-tuples? ( result-set -- ? ) [ out-tuple-binder? ] all? ;
 
 : statement>typed-result-sequence ( statement -- sequence )
     normalize-statement

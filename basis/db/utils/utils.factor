@@ -24,6 +24,13 @@ SLOT: slot-name
 : ?first3 ( sequence -- object1/f object2/f object3/f )
     [ ?first ] [ ?second ] [ ?third ] tri ;
 
+:: 2interleave ( seq1 seq2 between: ( -- ) quot: ( obj1 obj2 -- ) -- )
+    { [ seq1 empty? ] [ seq2 empty? ] } 0|| [
+        seq1 seq2 [ first-unsafe ] bi@ quot call
+        between call
+        seq1 seq2 [ rest-slice ] bi@ between quot 2interleave
+    ] unless ; inline recursive
+
 : assoc-with ( object sequence quot -- obj curry )
     swapd [ [ -rot ] dip  call ] 2curry ; inline
 

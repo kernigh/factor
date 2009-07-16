@@ -1,9 +1,10 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs combinators constructors
-db.binders db.statements db.types db.utils destructors kernel
-make math.parser namespaces sequences splitting strings
-fry db.persistent locals math ;
+USING: accessors arrays assocs combinators
+combinators.short-circuit constructors db.binders db.persistent
+db.statements db.types db.utils destructors fry kernel locals
+make math math.parser multiline namespaces sequences splitting
+strings vectors ;
 IN: db.fql
 
 : ??first2 ( obj -- obj1 obj2 )
@@ -187,11 +188,7 @@ M: insert expand-fql*
 GENERIC: param>binder* ( obj -- obj' type )
 
 M: number param>binder*
-    dup integer? [
-        INTEGER
-    ] [
-        REAL
-    ] if ;
+    dup integer? [ INTEGER ] [ REAL ] if ;
 
 M: sequence param>binder*
     ??first2 [ [ VARCHAR ] unless* ] dip ;
@@ -238,7 +235,8 @@ SYMBOL: tables
 GENERIC: expand-out ( obj -- names binders )
 
 M: out-tuple-binder expand-out ( obj -- names binders )
-    binders>> [ [ first ] map ] [ [ first3 <out-tuple-slot-binder> ] map ] bi ;
+    [ table>> ] [ binders>> ] bi
+    [ [ first "." glue ] with map ] [ [ first3 <out-tuple-slot-binder> ] map ] bi ;
 
 
 : select-out ( statement tuple -- statement )
@@ -257,10 +255,8 @@ M:: select expand-fql* ( statement obj -- statement )
         statement obj
         {
             [ [ "SELECT " add-sql ] dip select-out ]
-            [
-                [ " FROM " add-sql ] dip from>> ", " join add-sql
-            ]
-            [ join>> [ [ expand-fql* ] with map ] when* ]
+            [ [ " FROM " add-sql ] dip from>> ", " join add-sql ]
+            [ join>> B [ dupd [ expand-fql* drop ] with each ] when* ]
             [ expand-where ]
             [ group-by>> [ [ " GROUP BY " add-sql ] dip ", " join add-sql ] when* ]
             [ order-by>> [ [ " ORDER BY " add-sql ] dip ", " join add-sql ] when* ]

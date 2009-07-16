@@ -27,8 +27,13 @@ SLOT: slot-name
 :: 2interleave ( seq1 seq2 between: ( -- ) quot: ( obj1 obj2 -- ) -- )
     { [ seq1 empty? ] [ seq2 empty? ] } 0|| [
         seq1 seq2 [ first-unsafe ] bi@ quot call
-        between call
-        seq1 seq2 [ rest-slice ] bi@ between quot 2interleave
+        seq1 seq2 [ rest-slice ] bi@
+        2dup { [ nip empty? ] [ drop empty? ] } 2|| [
+            2drop
+        ] [
+            between call
+            between quot 2interleave
+        ] if
     ] unless ; inline recursive
 
 : assoc-with ( object sequence quot -- obj curry )

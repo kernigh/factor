@@ -263,11 +263,13 @@ M: object count-tuples-statement ( tuple -- statement )
 : select-tuples ( tuple -- seq )
     select-tuples-statement expand-fql sql-bind-typed-query ;
 
+ERROR: bad-relation-insert ;
+
 : select-relations ( tuple -- tuple' )
     [ find-relations ] [
         '[
             drop
-            slot-name>> _ [ select-tuple ] change-slot-named drop
+            slot-name>> _ [ [ bad-relation-insert ] unless* select-tuple ] change-slot-named drop
         ] assoc-each
     ] [ ] tri ;
 

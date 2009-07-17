@@ -92,8 +92,8 @@ IN: db.fql.tests
 
 [ test-fql ] test-dbs
 
-
 /*
+
 : test-multi-select ( -- )
     <select>
     { "user.username" "blog.id" "blog.url" "post.id" "post.date"
@@ -120,6 +120,5 @@ T{ tuple-out
     { class post }
     { slots { "id" "date" "title" "content" } }
 }
-
 
 */

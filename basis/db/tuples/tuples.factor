@@ -248,17 +248,16 @@ ERROR: bad-relation-insert ;
     [ insert-tuple-statement expand-fql sql-bind-typed-command ]
     [ dup special-primary-key? [ post-insert-tuple ] [ drop ] if ] bi ;
 
-
-
-
-
-
-/*
 : update-tuple ( tuple -- )
     update-tuple-statement sql-bind-typed-command ;
 
 : delete-tuples ( tuple -- )
     delete-tuple-statement sql-bind-typed-command ;
+
+
+
+
+/*
 
 M: object delete-tuple-statement ( tuple -- statement )
     [ \ delete new ] dip

@@ -21,6 +21,8 @@ CONSTRUCTOR: out-tuple-binder ( class table binders -- obj ) ;
 
 
 
+
+
 /*
 TUPLE: typed obj type ;
 

@@ -47,14 +47,20 @@ IN: db.tuples.tests
         sql-command
     ] unit-test
 
+/*
     [
         V{
             T{ computer { os "mac" } }
         }
     ] [
         "select os, version from computer where name = ?;"
-        { SB{ VARCHAR "rocky" } }
-        { TB{ computer { "os" VARCHAR } { "version" INTEGER } } }
+        { T{ in-binder f VARCHAR "rocky" } }
+        {
+            T{ out-tuple-binder
+                f
+                computer { "os" VARCHAR } { "version" INTEGER }
+            }
+        }
         <statement> sql-bind-typed-query
     ] unit-test
 
@@ -88,7 +94,7 @@ IN: db.tuples.tests
         }
     ] [
         "select name, os, version from computer where name = ?;"
-        { SB{ VARCHAR "rocky" } }
+        { T{ in-binder f f "name" VARCHAR "rocky" } }
         {
             TB{ computer
                 { "name" VARCHAR }
@@ -97,7 +103,9 @@ IN: db.tuples.tests
             }
         }
         <statement> sql-bind-typed-query
-    ] unit-test ;
+    ] unit-test
+    */
+    ;
 
 TUPLE: pet-store id name pets ;
 TUPLE: pet id pet-store-id name type ;

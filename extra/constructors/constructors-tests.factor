@@ -41,9 +41,9 @@ CONSTRUCTOR: ct4 ( a b c d -- obj )
     [ 1 + ] change-a ;
 
 [ 1001 ] [ 1000 <ct1> a>> ] unit-test
-[ 2 ] [ 0 0 <ct2> a>> ] unit-test
-[ 2 ] [ 0 0 0 <ct3> a>> ] unit-test
-[ 3 ] [ 0 0 0 0 <ct4> a>> ] unit-test
+[ 3 ] [ 0 0 <ct2> a>> ] unit-test
+[ 5 ] [ 0 0 0 <ct3> a>> ] unit-test
+[ 8 ] [ 0 0 0 0 <ct4> a>> ] unit-test
 
 
 TUPLE: rofl a b c ;
@@ -74,12 +74,10 @@ TUPLE: inherit5 < inherit3 ;
 CONSTRUCTOR: inherit3 ( -- obj )
     dup max-hp>> >>hp ;
 
-BACKWARD-CONSTRUCTOR: inherit4 ( -- obj )
+CONSTRUCTOR: inherit4 ( -- obj )
     10 >>max-hp ;
 
-[ 10 ] [ <inherit4> hp>> ] unit-test
-
-FORWARD-CONSTRUCTOR: inherit5 ( -- obj )
+CONSTRUCTOR: inherit5 ( -- obj )
     5 >>hp
     10 >>max-hp ;
 

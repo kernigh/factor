@@ -60,9 +60,6 @@ MACRO:: slots>constructor ( class slots -- quot )
 : parse-constructor ( -- class word effect def )
     scan-constructor complete-effect parse-definition ;
 
-SYNTAX: CONSTRUCTOR: parse-constructor define-constructor ;
-SYNTAX: FORWARD-CONSTRUCTOR: parse-constructor f define-auto-constructor ;
-SYNTAX: BACKWARD-CONSTRUCTOR: parse-constructor t define-auto-constructor ;
-SYNTAX: AUTO-CONSTRUCTOR: parse-constructor f define-auto-constructor ;
+SYNTAX: CONSTRUCTOR: parse-constructor f define-auto-constructor ;
 
 "initializers" create-vocab drop

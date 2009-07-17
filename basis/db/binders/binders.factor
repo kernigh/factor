@@ -64,23 +64,8 @@ TUPLE: slot-binder slot binder ;
         swap >>slot-name
         set-binder-accessors ;
 
-SYNTAX: SB{
-    \ } [
-        2 ensure-length first2 <simple-binder>
-    ] parse-literal ;
-
-ERROR: tuple-class-expected object ;
-
-: ensure-class ( object -- tuple-class )
-    dup tuple-class? [ tuple-class-expected ] unless ;
-
 : <tuple-binder> ( class binders -- binder )
     tuple-binder new
         swap >>binders
         swap ensure-class >>class ;
-
-SYNTAX: TB{
-    \ } [
-        unclip swap [ first2 <return-binder> ] map <tuple-binder>
-    ] parse-literal ;
 */

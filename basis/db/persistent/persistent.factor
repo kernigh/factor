@@ -35,6 +35,7 @@ TUPLE: db-column persistent slot-name getter setter column-name type modifiers ;
 
 TUPLE: persistent class table-name
 columns
+constructor
 relation-columns
 primary-key primary-key-names ;
 
@@ -158,6 +159,12 @@ M: persistent db-assigned-id? ( persistent -- ? )
 : all-relations-primary-keys-set? ( tuple -- ? )
     find-relations [ nip primary-key-set? ] assoc-all? ;
 
+: set-constructor ( persistent -- persistent' )
+    dup columns>> [ type>> tuple-class? ] filter
+    [
+        setter>>
+    ] map '[ _ spread ] >>constructor ;
+
 GENERIC: db-relations? ( obj -- seq )
 
 M: persistent db-relations? ( persistent -- seq )
@@ -179,6 +186,7 @@ M: tuple db-relations? ( class -- seq )
 : analyze-persistent ( persistent -- persistent )
     set-column-persistent-slots
     set-relation-columns
+    set-constructor
     set-primary-key 
     set-primary-key-names ;
 

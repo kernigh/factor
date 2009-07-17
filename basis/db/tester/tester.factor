@@ -139,7 +139,7 @@ TUPLE: author id name ;
 
 TUPLE: thread id topic author ;
 
-TUPLE: comment id thread author ;
+TUPLE: comment id thread author text ;
 
 PERSISTENT: author
     { "id" +db-assigned-key+ }
@@ -153,4 +153,5 @@ PERSISTENT: thread
 PERSISTENT: comment
     { "id" +db-assigned-key+ }
     { "thread" thread }
-    { "author" author } ;
+    { "author" author }
+    { "text" VARCHAR } ;

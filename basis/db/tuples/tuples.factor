@@ -144,21 +144,21 @@ M: sequence where-object
 : set-statement-where ( statement tuple specs -- statement )
     columns>> where-clause >>where ;
 
-: column>out-tuple ( tuple columns -- out-tuple )
-    [ nip first persistent>> [ class>> ] [ table-name>> ] bi ]
+: column>out-tuple ( columns -- out-tuple )
+    [ first persistent>> [ class>> ] [ table-name>> ] bi ]
     [
         [
-            [ nip column-name>> ]
-            [ nip type>> ]
-            [ nip setter>> ] 2tri <out-tuple-slot-binder>
-        ] with map
-    ] 2bi <out-tuple-binder> ;
+            [ column-name>> ]
+            [ type>> ]
+            [ setter>> ] tri <out-tuple-slot-binder>
+        ] map
+    ] bi <out-tuple-binder> ;
 
-: columns>out-tuples ( tuple columns column -- seq )
-    [ [ type>> lookup-persistent columns>> column>out-tuple ] with map ]
-    [ column>out-tuple prefix ] bi-curry* bi ; inline
+: columns>out-tuples ( columns column -- seq )
+    [ [ type>> lookup-persistent columns>> column>out-tuple ] map ]
+    [ column>out-tuple prefix ] bi* ; inline
 
-: select-columns ( tuple persistent -- seq )
+: select-columns ( persistent -- seq )
     columns>> [ type>> tuple-class? ] partition columns>out-tuples ;
 
 : column>join ( db-column -- joins )
@@ -177,14 +177,14 @@ M: sequence where-object
 
 : select-tuples-no-relations ( tuple -- statement )
     [ \ select new ] dip dup lookup-persistent {
-        [ select-columns >>columns ]
+        [ nip select-columns >>columns ]
         [ nip table-name>> >>from ]
         [ set-statement-where ]
     } 2cleave ;
 
 : select-tuples-relations ( tuple -- statement )
     [ \ select new ] dip dup lookup-persistent {
-        [ select-columns >>columns ]
+        [ nip select-columns >>columns ]
         [ nip table-name>> >>from ]
         [ nip select-joins >>join ]
         [ set-statement-where ]
@@ -206,23 +206,26 @@ M: object select-tuple-statement ( tuple -- statement )
 
 : drop-table ( class -- ) drop-table-string sql-command ;
 
+: safe-drop-table ( class -- )
+    '[ _ drop-table ] ignore-table-missing ;
+
 : ensure-table ( class -- )
     '[ [ _ create-table ] ignore-table-exists ] ignore-function-exists ;
 
 : ensure-tables ( seq -- ) [ ensure-table ] each ;
 
 : recreate-table ( class -- )
-    [ drop-table ] [ create-table ] bi ;
+    [ safe-drop-table ] [ create-table ] bi ;
 
-
-: select-tuple ( tuple -- tuple'/f )
-    select-tuple-statement expand-fql sql-bind-typed-query
-    [ f ] [ first ] if-empty ;
 
 : construct-tuples ( seq tuple -- seq' )
     lookup-persistent constructor>> [
         '[ _ with-datastack first ] map
      ] when* ;
+
+: select-tuple ( tuple -- tuple'/f )
+    dup select-tuple-statement expand-fql sql-bind-typed-query
+    [ drop f ] [ swap construct-tuples first ] if-empty ;
 
 : select-tuples ( tuple -- seq )
     [ select-tuples-statement expand-fql sql-bind-typed-query ] keep
@@ -235,7 +238,10 @@ ERROR: bad-relation-insert ;
         '[
             drop
             slot-name>> _ [
-                [ bad-relation-insert ] unless* select-tuple
+                [ bad-relation-insert ] unless*
+                dup primary-key-set? [
+                    select-tuple
+                ] unless
             ] change-slot-named drop
         ] assoc-each
     ] [ ] tri ;
@@ -258,7 +264,6 @@ ERROR: bad-relation-insert ;
 
 
 /*
-
 M: object delete-tuple-statement ( tuple -- statement )
     [ \ delete new ] dip
     dup lookup-persistent {

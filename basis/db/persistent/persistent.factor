@@ -160,10 +160,9 @@ M: persistent db-assigned-id? ( persistent -- ? )
     find-relations [ nip primary-key-set? ] assoc-all? ;
 
 : set-constructor ( persistent -- persistent' )
-    dup columns>> [ type>> tuple-class? ] filter
-    [
-        setter>>
-    ] map '[ _ spread ] >>constructor ;
+    dup columns>> [ type>> tuple-class? ] filter [
+        [ setter>> ] map '[ _ spread ] >>constructor
+    ] unless-empty ;
 
 GENERIC: db-relations? ( obj -- seq )
 

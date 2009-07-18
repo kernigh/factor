@@ -7,8 +7,7 @@ continuations kernel libc math macros namespaces math.vectors
 math.parser opengl.gl combinators combinators.smart arrays
 sequences splitting words byte-arrays assocs vocabs
 colors colors.constants accessors generalizations locals fry
-specialized-arrays.float specialized-arrays.uint
-tools.annotations tools.annotations.private compiler.units ;
+specialized-arrays.float specialized-arrays.uint ;
 IN: opengl
 
 : gl-color ( color -- ) >rgba-components glColor4d ; inline
@@ -30,52 +29,19 @@ IN: opengl
         { HEX: 0506 "Invalid framebuffer operation" }
     } at "Unknown error" or ;
 
-TUPLE: gl-error code string ;
+TUPLE: gl-error function code string ;
 
-TUPLE: gl-error-log
-    { function word initial: t }
-    { error gl-error }
-    { timestamp timestamp } ;
-
-gl-error-log [ V{ } clone ] initialize
-
-: <gl-error> ( code -- gl-error )
+: <gl-error> ( function code -- gl-error )
     dup error>string \ gl-error boa ; inline
-
-: <gl-error-log> ( function code -- gl-error-log )
-    <gl-error> now gl-error-log boa ;
 
 : gl-error-code ( -- code/f )
     glGetError dup 0 = [ drop f ] when ; inline
 
+: (gl-error) ( function -- )
+    gl-error-code [ <gl-error> throw ] [ drop ] if* ;
+
 : gl-error ( -- )
-    gl-error-code [ <gl-error> throw ] [ ] if* ;
-
-: log-gl-error ( function -- )
-    gl-error-code [ <gl-error-log> gl-error-log get push ] [ drop ] if* ;
-
-: gl-function? ( word -- ? )
-    name>> { [ "glGetError" = not ] [ "gl" head? ] [ third LETTER? ] } 1&& ;
-
-: gl-functions ( -- words )
-    "opengl.gl" vocab words [ gl-function? ] filter ;
-
-: annotate-gl-functions ( quot -- )
-    [
-        [ gl-functions ] dip [ [ dup ] dip curry (annotate) ] curry each
-    ] with-compilation-unit ;
-
-: reset-gl-functions ( -- )
-    [ gl-functions [ (reset) ] each ] with-compilation-unit ;
-
-: clear-gl-error-log ( -- )
-    V{ } clone gl-error-log set ;
-
-: throw-gl-errors ( -- )
-    [ drop '[ @ gl-error ] ] annotate-gl-functions ;
-
-: log-gl-errors ( -- )
-    [ '[ @ _ log-gl-error ] ] annotate-gl-functions ;
+    f (gl-error) ; inline
 
 : do-enabled ( what quot -- )
     over glEnable dip glDisable ; inline

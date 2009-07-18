@@ -23,29 +23,19 @@ IN: compiler.cfg.builder
 ! Convert tree SSA IR to CFG SSA IR.
 
 SYMBOL: procedures
-SYMBOL: current-word
-SYMBOL: current-label
 SYMBOL: loops
-
-: add-procedure ( -- )
-    basic-block get current-word get current-label get
-    <cfg> procedures get push ;
 
 : begin-procedure ( word label -- )
     end-basic-block
     begin-basic-block
     H{ } clone loops set
-    current-label set
-    current-word set
-    add-procedure ;
+    [ basic-block get ] 2dip
+    <cfg> procedures get push ;
 
 : with-cfg-builder ( nodes word label quot -- )
     '[ begin-procedure @ ] with-scope ; inline
 
 GENERIC: emit-node ( node -- )
-
-: check-basic-block ( node -- node' )
-    basic-block get [ drop f ] unless ; inline
 
 : emit-nodes ( nodes -- )
     [ basic-block get [ emit-node ] [ drop ] if ] each ;
@@ -98,17 +88,10 @@ M: #recursive emit-node
 
 ! #if
 : emit-branch ( obj -- final-bb )
-    [
-        begin-basic-block
-        emit-nodes
-        basic-block get dup [ ##branch ] when
-    ] with-scope ;
+    [ emit-nodes ] with-branch ;
 
 : emit-if ( node -- )
-    children>> [ emit-branch ] map
-    end-basic-block
-    begin-basic-block
-    basic-block get '[ [ _ swap successors>> push ] when* ] each ;
+    children>> [ emit-branch ] map emit-conditional ;
 
 : ##branch-t ( vreg -- )
     \ f tag-number cc/= ##compare-imm-branch ;

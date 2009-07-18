@@ -33,13 +33,26 @@ TUPLE: db-column persistent slot-name getter setter column-name type modifiers ;
              [ lookup-getter 1quotation >>getter ]
              [ lookup-setter 1quotation >>setter ] tri ;
 
+TUPLE: one-to-one class ;
+CONSTRUCTOR: one-to-one ( class -- obj ) ;
+
+TUPLE: one-to-many class ;
+CONSTRUCTOR: one-to-many ( class -- obj ) ;
+
+TUPLE: many-to-many class ;
+CONSTRUCTOR: many-to-many ( class -- obj ) ;
+
 TUPLE: persistent class table-name
 columns
 constructor
 relation-columns
+relations
 primary-key primary-key-names ;
 
 ERROR: not-persistent class ;
+
+: add-relation ( obj relation -- obj )
+    over relations>> push ;
 
 GENERIC: lookup-persistent ( obj -- persistent )
 
@@ -208,7 +221,8 @@ M: class lookup-persistent ( class -- persistent )
         check-columns
     ] cache ;
 
-CONSTRUCTOR: persistent ( class table-name columns -- obj ) ;
+CONSTRUCTOR: persistent ( class table-name columns -- obj )
+    V{ } clone >>relations ;
 
 : check-sanitized-name ( string -- string )
     dup dup sanitize-sql-name = [ bad-table-name ] unless ;
@@ -302,6 +316,4 @@ M: word parse-column-modifiers
 
 : return-tuple-layout ( class -- tuple )
     ;
-
-
 

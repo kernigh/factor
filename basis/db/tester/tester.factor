@@ -135,31 +135,39 @@ PERSISTENT: thing
     { "whatsit" VARCHAR } ;
 
 
+
+
+
+
 TUPLE: author id name ;
 
-TUPLE: thread id topic author ;
+TUPLE: thread id topic author comments ;
 
-TUPLE: comment id thread author text ;
+TUPLE: comment id author text ;
 
 PERSISTENT: author
     { "id" +db-assigned-key+ }
     { "name" VARCHAR } ;
+
 ! T{ author }
-
-
-PERSISTENT: thread
-    { "id" +db-assigned-key+ }
-    { "timestamp" timestamp }
-    { "topic" VARCHAR }
-    { "author" author } ;
-! T{ thread { author author } }
-
 
 PERSISTENT: comment
     { "id" +db-assigned-key+ }
     { "timestamp" timestamp }
     { "author" author }
     { "text" VARCHAR } ;
+
+/*
+PERSISTENT: thread
+    { "id" +db-assigned-key+ }
+    { "timestamp" timestamp }
+    { "topic" VARCHAR }
+    { "author" author }
+    { "comments" { comment sequence } } ;
+*/
+
+    ! 1 thread : many comments
+
 
 /*
 T{ comment
@@ -173,34 +181,21 @@ T{ comment
 
 
 
-TUPLE: thread2 id topic author comments ;
 
-PERSISTENT: thread2
-    { "id" +db-assigned-key+ }
-    { "topic" VARCHAR }
-    { "author" author }
-    { "comments" { comment sequence } } ;
-! T{ thread2 { author author } { comments { comment sequence } } }
-! T{ thread2 author { >>comments } }
 
 
 TUPLE: examinee id name version ;
 
-TUPLE: exam id name date-taken version ;
+TUPLE: exam id name questions date-taken version ;
 
 TUPLE: question id text version ;
 
-TUPLE: answer id question correct? text version ;
+TUPLE: answer id correct? text version ;
 
-! Genrated tables, many-many -- BUT HOW?
-! ID vs tuple-class
-TUPLE: exam-question id exam-id question-id version ;
+
+! TUPLE: exam-question id exam-id question-id version ;
 
 TUPLE: answered-question id exam question correct? version ;
 
 TUPLE: selected-answer answered-question-id answer-id version ;
-
-
-
-
 

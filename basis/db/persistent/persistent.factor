@@ -33,13 +33,26 @@ TUPLE: db-column persistent slot-name getter setter column-name type modifiers ;
              [ lookup-getter 1quotation >>getter ]
              [ lookup-setter 1quotation >>setter ] tri ;
 
+TUPLE: one-to-one class ;
+CONSTRUCTOR: one-to-one ( class -- obj ) ;
+
+TUPLE: one-to-many class ;
+CONSTRUCTOR: one-to-many ( class -- obj ) ;
+
+TUPLE: many-to-many class ;
+CONSTRUCTOR: many-to-many ( class -- obj ) ;
+
 TUPLE: persistent class table-name
 columns
 constructor
 relation-columns
+relations
 primary-key primary-key-names ;
 
 ERROR: not-persistent class ;
+
+: add-relation ( obj relation -- obj )
+    over relations>> push ;
 
 GENERIC: lookup-persistent ( obj -- persistent )
 
@@ -208,7 +221,8 @@ M: class lookup-persistent ( class -- persistent )
         check-columns
     ] cache ;
 
-CONSTRUCTOR: persistent ( class table-name columns -- obj ) ;
+CONSTRUCTOR: persistent ( class table-name columns -- obj )
+    V{ } clone >>relations ;
 
 : check-sanitized-name ( string -- string )
     dup dup sanitize-sql-name = [ bad-table-name ] unless ;
@@ -250,16 +264,20 @@ M: sequence parse-column-name
 M: string parse-column-name
     dup 2array parse-column-name ;
 
-M: word parse-column-type
+: ensure-type ( obj -- obj )
     dup tuple-class?
-    [ ensure-persistent ]
-    [ ensure-sql-type ] if ;
+    [ ensure-persistent ] [ ensure-sql-type ] if ;
+
+ERROR: invalid-type-modifier obj ;
+
+: ensure-type-modifier ( obj -- obj )
+    dup { sequence } member? [ invalid-type-modifier ] unless ; 
+
+M: word parse-column-type ensure-type ;
 
 M: sequence parse-column-type
-    1 2 ensure-length-range
-    ?first2
-    [ ensure-sql-type ] [ ] bi*
-    [ 2array ] when* ;
+    2 ensure-length
+    first2 [ ensure-type ] [ ensure-type-modifier ] bi* 2array ;
 
 M: sequence parse-column-modifiers
     [ ensure-sql-modifier ] map ;
@@ -295,3 +313,7 @@ M: word parse-column-modifiers
 : full-column-names ( persistent -- seq )
     [ table-name>> ] [ columns>> [ column-name>> ] map ] bi
     [ "." glue ] with map ;
+
+: return-tuple-layout ( class -- tuple )
+    ;
+

@@ -3,7 +3,7 @@
 USING: combinators concurrency.combinators db.connections
 db.persistent db.pools db.sqlite db.types fry io.files.temp
 kernel literals math multiline namespaces random threads
-tools.test ;
+tools.test sequences ;
 IN: db.tester
 
 : sqlite-test-db ( -- sqlite-db )
@@ -135,23 +135,67 @@ PERSISTENT: thing
     { "whatsit" VARCHAR } ;
 
 
+
+
+
+
 TUPLE: author id name ;
 
-TUPLE: thread id topic author ;
+TUPLE: thread id topic author comments ;
 
-TUPLE: comment id thread author text ;
+TUPLE: comment id author text ;
 
 PERSISTENT: author
     { "id" +db-assigned-key+ }
     { "name" VARCHAR } ;
 
-PERSISTENT: thread
-    { "id" +db-assigned-key+ }
-    { "topic" VARCHAR }
-    { "author" author } ;
+! T{ author }
 
 PERSISTENT: comment
     { "id" +db-assigned-key+ }
-    { "thread" thread }
+    { "timestamp" timestamp }
     { "author" author }
     { "text" VARCHAR } ;
+
+/*
+PERSISTENT: thread
+    { "id" +db-assigned-key+ }
+    { "timestamp" timestamp }
+    { "topic" VARCHAR }
+    { "author" author }
+    { "comments" { comment sequence } } ;
+*/
+
+    ! 1 thread : many comments
+
+
+/*
+T{ comment
+    {
+        thread
+        T{ thread { author T{ author a1 } } }
+    }
+    { author T{ author a2 } }
+} ;
+*/
+
+
+
+
+
+
+TUPLE: examinee id name version ;
+
+TUPLE: exam id name questions date-taken version ;
+
+TUPLE: question id text version ;
+
+TUPLE: answer id correct? text version ;
+
+
+! TUPLE: exam-question id exam-id question-id version ;
+
+TUPLE: answered-question id exam question correct? version ;
+
+TUPLE: selected-answer answered-question-id answer-id version ;
+

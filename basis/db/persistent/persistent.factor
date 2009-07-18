@@ -250,16 +250,20 @@ M: sequence parse-column-name
 M: string parse-column-name
     dup 2array parse-column-name ;
 
-M: word parse-column-type
+: ensure-type ( obj -- obj )
     dup tuple-class?
-    [ ensure-persistent ]
-    [ ensure-sql-type ] if ;
+    [ ensure-persistent ] [ ensure-sql-type ] if ;
+
+ERROR: invalid-type-modifier obj ;
+
+: ensure-type-modifier ( obj -- obj )
+    dup { sequence } member? [ invalid-type-modifier ] unless ; 
+
+M: word parse-column-type ensure-type ;
 
 M: sequence parse-column-type
-    1 2 ensure-length-range
-    ?first2
-    [ ensure-sql-type ] [ ] bi*
-    [ 2array ] when* ;
+    2 ensure-length
+    first2 [ ensure-type ] [ ensure-type-modifier ] bi* 2array ;
 
 M: sequence parse-column-modifiers
     [ ensure-sql-modifier ] map ;
@@ -295,3 +299,9 @@ M: word parse-column-modifiers
 : full-column-names ( persistent -- seq )
     [ table-name>> ] [ columns>> [ column-name>> ] map ] bi
     [ "." glue ] with map ;
+
+: return-tuple-layout ( class -- tuple )
+    ;
+
+
+

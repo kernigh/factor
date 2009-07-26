@@ -1,12 +1,13 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: arrays continuations db io kernel math namespaces
-quotations sequences db.postgresql.ffi alien alien.c-types
-db.types tools.walker ascii splitting math.parser combinators
-libc calendar.format byte-arrays destructors prettyprint
-accessors strings serialize io.encodings.binary io.encodings.utf8
-alien.strings io.streams.byte-array summary present urls
-specialized-arrays.uint specialized-arrays.alien db.private ;
+USING: accessors alien alien.c-types alien.strings arrays ascii
+byte-arrays calendar.format combinators continuations db
+db.connections db.postgresql.ffi db.types destructors io
+io.encodings.binary io.encodings.utf8 io.streams.byte-array
+kernel libc math math.parser multiline namespaces present
+prettyprint quotations sequences serialize
+specialized-arrays.alien specialized-arrays.uint splitting
+strings summary tools.walker urls ;
 IN: db.postgresql.lib
 
 : postgresql-result-error-message ( res -- str/f )
@@ -47,6 +48,8 @@ M: postgresql-result-null summary ( obj -- str )
     db-connection get handle>> swap sql>> PQexec dup postgresql-result-ok? [
         [ postgresql-result-error-message ] [ PQclear ] bi throw
     ] unless ;
+
+/*
 
 : type>oid ( symbol -- n )
     dup array? [ first ] when
@@ -172,3 +175,4 @@ M: postgresql-malloc-destructor dispose ( obj -- )
             dup [ bytes>object ] when ] }
         [ no-sql-type ]
     } case ;
+*/

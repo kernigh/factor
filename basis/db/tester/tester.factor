@@ -1,9 +1,9 @@
 ! Copyright (C) 2008 Slava Pestov, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: combinators concurrency.combinators db.connections
-db.persistent db.pools db.sqlite db.types fry io.files.temp
-kernel literals math multiline namespaces random threads
-tools.test sequences ;
+USING: accessors combinators concurrency.combinators
+db.connections db.persistent db.pools db.postgresql db.sqlite
+db.types fry io.files.temp kernel literals math multiline
+namespaces random sequences system threads tools.test ;
 IN: db.tester
 
 : sqlite-test-db ( -- sqlite-db )
@@ -24,7 +24,6 @@ IN: db.tester
         [ test-sqlite0 ]
     } cleave ;
 
-/*
 : postgresql-test-db ( -- postgresql-db )
     <postgresql-db>
         "localhost" >>host
@@ -42,6 +41,8 @@ IN: db.tester
         ] unless
     ] call ; inline
 
+
+/*
 TUPLE: test-1 id a b c ;
 
 PERSISTENT: test-1

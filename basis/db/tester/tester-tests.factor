@@ -1,12 +1,14 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.tester db.tuples kernel sequences
+USING: accessors db.tester db.tuples kernel multiline sequences
 tools.test ;
 IN: db.tester.tests
 
 ! [ ] [ sqlite-test-db db-tester ] unit-test
 ! [ ] [ sqlite-test-db db-tester2 ] unit-test
 
+
+/*
 : author-erg ( -- author ) \ author new "erg" >>name ;
 : author-mew ( -- author ) \ author new "mew" >>name ;
 : thread-erg ( -- thread ) \ thread new author-erg >>author "erg's thread" >>topic ;
@@ -69,3 +71,4 @@ IN: db.tester.tests
     ;
 
 [ ] [ [ test-comments ] test-sqlite ] unit-test
+*/

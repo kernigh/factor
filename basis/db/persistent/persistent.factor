@@ -115,6 +115,15 @@ ERROR: bad-primary-key key ;
 : remove-primary-key ( persistent -- seq )
     columns>> [ column-primary-key? not ] filter ;
 
+: remove-many-relation-columns ( columns -- seq )
+    [
+        type>> {
+            [ array? ]
+            [ length 2 = ]
+            [ second sequence = ]
+        } 1&& not
+    ] filter ;
+
 M: persistent db-assigned-id? ( persistent -- ? )
     find-primary-key [ db-assigned-id? ] any? ;
 

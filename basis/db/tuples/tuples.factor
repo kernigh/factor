@@ -38,6 +38,8 @@ M: object create-table-string ( class -- statement )
         [ table-name>> % "(" % ]
         [
             { [ relation-columns>> ] [ columns>> ] } 1||
+            remove-many-relation-columns
+
             [ ", " % ] [ create-column, ] interleave
         ] [ 
             find-primary-key [

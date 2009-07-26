@@ -1,3 +1,5 @@
+/*
+
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors db db.tester db.persistent.tests
@@ -69,7 +71,6 @@ IN: db.fql.tests
         expand-fql sql>>
     ] unit-test
 
-/*
     [ "select count(name) from computer" ]
     [
         select new
@@ -86,13 +87,11 @@ IN: db.fql.tests
             "name" <fql-min> >>names
         expand-fql sql>>
     ] unit-test
-*/
 
     ;
 
 [ test-fql ] test-dbs
 
-/*
 
 : test-multi-select ( -- )
     <select>

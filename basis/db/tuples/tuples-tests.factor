@@ -1,3 +1,6 @@
+/*
+
+
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db db.persistent db.tester
@@ -47,7 +50,6 @@ IN: db.tuples.tests
         sql-command
     ] unit-test
 
-/*
     [
         V{
             T{ computer { os "mac" } }
@@ -104,7 +106,6 @@ IN: db.tuples.tests
         }
         <statement> sql-bind-typed-query
     ] unit-test
-    */
     ;
 
 TUPLE: pet-store id name pets ;
@@ -281,6 +282,7 @@ PERSISTENT: pet
         sql-bind-typed-query
     ] unit-test ;
 
+
 TUPLE: pet-store2 id name pets ;
 TUPLE: pet2 id pet-store2 name type ;
 
@@ -375,13 +377,10 @@ PERSISTENT: test1
     [ 5 ] [ T{ test1 } select-tuples length ] unit-test
     [ 5 ] [ T{ test1 } count-tuples ] unit-test
     [ t ] [ T{ test1 } select-tuples [ timestamp>> ] all? ] unit-test
-/*
     [ ] [
         T{ test1 { timestamp $[ 2010 1 2 <date> 2010 1 4 <date> R:[a,b] ] } }
         select-tuples
-    ] unit-test
-*/
-    ;
+    ] unit-test ;
 
 [ test-test1 ] test-dbs
 
@@ -537,3 +536,4 @@ PERSISTENT: refers-to-complex-obj
     [ ] [ refers-to-complex-obj create-table ] unit-test ;
 
 [ test-test7 ] test-dbs
+*/

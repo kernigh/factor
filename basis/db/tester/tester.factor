@@ -141,9 +141,9 @@ PERSISTENT: thing
 
 TUPLE: author id name ;
 
-TUPLE: thread id topic author comments ;
+TUPLE: thread id topic author comments ts ;
 
-TUPLE: comment id author text ;
+TUPLE: comment id author text ts ;
 
 PERSISTENT: author
     { "id" +db-assigned-key+ }
@@ -153,14 +153,14 @@ PERSISTENT: author
 
 PERSISTENT: comment
     { "id" +db-assigned-key+ }
-    { "timestamp" timestamp }
+    { "ts" TIMESTAMP }
     { "author" author }
     { "text" VARCHAR } ;
 
 /*
 PERSISTENT: thread
     { "id" +db-assigned-key+ }
-    { "timestamp" timestamp }
+    { "ts" TIMESTAMP }
     { "topic" VARCHAR }
     { "author" author }
     { "comments" { comment sequence } } ;

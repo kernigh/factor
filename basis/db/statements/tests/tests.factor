@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db db.errors db.statements
-db.tester db.types kernel tools.test db.binders ;
+db.tester db.types kernel tools.test ;
 USE: multiline
 IN: db.statements.tests
 

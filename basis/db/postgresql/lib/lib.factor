@@ -49,6 +49,16 @@ M: postgresql-result-null summary ( obj -- str )
         [ postgresql-result-error-message ] [ PQclear ] bi throw
     ] unless ;
 
+: pq-get-is-null ( handle row column -- ? )
+    PQgetisnull 1 = ;
+
+: pq-get-string ( handle row column -- obj )
+    3dup PQgetvalue utf8 alien>string
+    dup empty? [ [ pq-get-is-null f ] dip ? ] [ [ 3drop ] dip ] if ;
+
+: pq-get-number ( handle row column -- obj )
+    pq-get-string dup [ string>number ] when ;
+
 /*
 
 : type>oid ( symbol -- n )
@@ -114,16 +124,6 @@ M: postgresql-result-null summary ( obj -- str )
             [ postgresql-result-error-message ] [ PQclear ] bi throw
         ] unless
     ] with-destructors ;
-
-: pq-get-is-null ( handle row column -- ? )
-    PQgetisnull 1 = ;
-
-: pq-get-string ( handle row column -- obj )
-    3dup PQgetvalue utf8 alien>string
-    dup empty? [ [ pq-get-is-null f ] dip ? ] [ [ 3drop ] dip ] if ;
-
-: pq-get-number ( handle row column -- obj )
-    pq-get-string dup [ string>number ] when ;
 
 TUPLE: postgresql-malloc-destructor alien ;
 C: <postgresql-malloc-destructor> postgresql-malloc-destructor

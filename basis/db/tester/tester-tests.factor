@@ -1,6 +1,6 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.tester db.tuples kernel multiline sequences
+USING: accessors db.tester kernel multiline sequences
 tools.test ;
 IN: db.tester.tests
 

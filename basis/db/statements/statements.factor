@@ -1,8 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db.connections db.errors
-db.result-sets db.utils destructors fry kernel sequences
-strings vectors db.binders db.types namespaces math
+USING: accessors continuations db.connections
+db.result-sets destructors fry kernel sequences
+strings vectors db.types namespaces math
 combinators.short-circuit ;
 IN: db.statements
 
@@ -16,17 +16,6 @@ TUPLE: tuple-parameter < parameter db-column ;
     tuple-parameter new
         swap >>db-column
         swap >>value ;
-
-<PRIVATE
-
-: obj>vector ( obj -- vector )
-    dup { [ sequence? ] [ integer? not ] } 1&& [
-        >vector
-    ] [
-        1vector
-    ] if ;
-
-PRIVATE>
 
 : normalize-statement ( statement -- statement )  
     [ obj>vector ] change-out
@@ -92,6 +81,7 @@ M: object execute-statement* ( statement type -- )
 : statement>result-sequence ( statement -- sequence )
     statement>result-set [ [ sql-row ] result-set-map ] with-disposal ;
 
+/*
 : return-tuple ( result-set -- seq )
     -1 sql-column-counter [
         dup out>> [
@@ -119,3 +109,4 @@ M: object execute-statement* ( statement type -- )
             [ return-sequence ] result-set-map
         ] if
     ] with-disposal ;
+*/

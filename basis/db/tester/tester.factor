@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Slava Pestov, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors combinators concurrency.combinators
-db.connections db.persistent db.pools db.postgresql db.sqlite
+db.connections db.pools db.postgresql db.sqlite
 db.types fry io.files.temp kernel literals math multiline
 namespaces random sequences system threads tools.test ;
 IN: db.tester
@@ -93,7 +93,6 @@ PERSISTENT: test-2
             ] parallel-each
         ] with-pooled-db
     ] bi ;
-*/
 
 
 
@@ -182,3 +181,4 @@ TUPLE: answered-question id exam question correct? version ;
 
 TUPLE: selected-answer answered-question-id answer-id version ;
 
+*/

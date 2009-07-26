@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel sequences combinators fry
-db.types db.binders math.ranges namespaces ;
+db.types math.ranges namespaces ;
 IN: db.result-sets
 
 SYMBOL: sql-column-counter
@@ -34,9 +34,12 @@ GENERIC# column-typed 2 ( result-set column type -- sql )
 GENERIC: get-type ( obj -- type )
 
 M: sql-type get-type ;
+
+/*
 M: out-string-binder get-type drop VARCHAR ;
 M: out-typed-binder get-type type>> ;
 M: out-tuple-slot-binder get-type type>> ;
+*/
 
 : sql-row-typed ( result-set -- seq )
     [ #columns ] [ out>> ] [ ] tri

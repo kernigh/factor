@@ -1,6 +1,6 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db.fql db.result-sets
+USING: accessors continuations db.result-sets
 db.statements destructors fry kernel math namespaces sequences
 strings summary ;
 IN: db
@@ -15,8 +15,8 @@ GENERIC: sql-bind-query ( object -- sequence )
 GENERIC: sql-bind-typed-command ( object -- )
 GENERIC: sql-bind-typed-query ( object -- sequence )
 
-: maybe-expand-fql ( statement -- statement )
-    [ dup fql? [ expand-fql ] when ] change-sql ;
+! : maybe-expand-fql ( statement -- statement )
+    ! [ dup fql? [ expand-fql ] when ] change-sql ;
 
 M: string sql-command ( string -- )
     f f <statement> sql-command ;
@@ -51,12 +51,14 @@ M: statement sql-bind-typed-command ( statement -- )
 M: no-out-types summary
     drop "SQL types are required for the return values of this query" ;
 
+/*
 M: statement sql-bind-typed-query ( statement -- sequence )
     [
         dup out>> empty? [ no-out-types ] when
         prepare-statement
         [ bind-typed-sequence ] [ statement>typed-result-sequence ] bi
     ] with-disposal ;
+*/
 
 M: sequence sql-command [ sql-command ] each ;
 M: sequence sql-query [ sql-query ] map ;

@@ -29,21 +29,18 @@ CONSTRUCTOR: ct1 ( a -- obj )
     [ 1 + ] change-a ;
 
 CONSTRUCTOR: ct2 ( a b -- obj )
-    initialize-ct1
     [ 1 + ] change-a ;
 
 CONSTRUCTOR: ct3 ( a b c -- obj )
-    initialize-ct1
     [ 1 + ] change-a ;
 
 CONSTRUCTOR: ct4 ( a b c d -- obj )
-    initialize-ct3
     [ 1 + ] change-a ;
 
 [ 1001 ] [ 1000 <ct1> a>> ] unit-test
-[ 3 ] [ 0 0 <ct2> a>> ] unit-test
-[ 5 ] [ 0 0 0 <ct3> a>> ] unit-test
-[ 8 ] [ 0 0 0 0 <ct4> a>> ] unit-test
+[ 2 ] [ 0 0 <ct2> a>> ] unit-test
+[ 3 ] [ 0 0 0 <ct3> a>> ] unit-test
+[ 4 ] [ 0 0 0 0 <ct4> a>> ] unit-test
 
 
 TUPLE: rofl a b c ;

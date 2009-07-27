@@ -46,9 +46,7 @@ IN: db.statements.tests
 
     [ ] [
         "insert into computer (name, os, version) values(?, ?, ?);"
-        { "clubber" "windows" "7" }
-        f <statement>
-        sql-bind-command
+        { "clubber" "windows" "7" } f <statement> sql-bind-command
     ] unit-test
 
     [ { { "windows" } } ] [

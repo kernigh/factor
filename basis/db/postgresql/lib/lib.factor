@@ -52,14 +52,6 @@ M: postgresql-result-null summary ( obj -- str )
 : pq-get-is-null ( handle row column -- ? )
     PQgetisnull 1 = ;
 
-: pq-get-string ( handle row column -- obj )
-    3dup PQgetvalue utf8 alien>string
-    dup empty? [ [ pq-get-is-null f ] dip ? ] [ [ 3drop ] dip ] if ;
-
-: pq-get-number ( handle row column -- obj )
-    pq-get-string dup [ string>number ] when ;
-
-/*
 
 : type>oid ( symbol -- n )
     dup array? [ first ] when
@@ -78,18 +70,14 @@ M: postgresql-result-null summary ( obj -- str )
     } case ;
 
 : param-types ( statement -- seq )
-    in-params>> [ type>> type>oid ] uint-array{ } map-as ;
-
-: malloc-byte-array/length ( byte-array -- alien length )
-    [ malloc-byte-array &free ] [ length ] bi ;
+    in>> [ type>> type>oid ] uint-array{ } map-as ;
 
 : default-param-value ( obj -- alien n )
-    number>string* dup [ utf8 malloc-string &free ] when 0 ;
+    ?number>string dup [ utf8 malloc-string &free ] when 0 ;
 
 : param-values ( statement -- seq seq2 )
-    [ bind-params>> ] [ in-params>> ] bi
     [
-        [ value>> ] [ type>> ] bi* {
+        [ value>> ] [ type>> ] bi {
             { FACTOR-BLOB [
                 dup [ object>bytes malloc-byte-array/length ] [ 0 ] if
             ] }
@@ -101,21 +89,21 @@ M: postgresql-result-null summary ( obj -- str )
             { URL [ dup [ present ] when default-param-value ] }
             [ drop default-param-value ]
         } case 2array
-    ] 2map flip [
+    ] map flip [
         f f
     ] [
         first2 [ >void*-array ] [ >uint-array ] bi*
     ] if-empty ;
 
 : param-formats ( statement -- seq )
-    in-params>> [ type>> type>param-format ] uint-array{ } map-as ;
+    in>> [ type>> type>param-format ] uint-array{ } map-as ;
 
 : do-postgresql-bound-statement ( statement -- res )
     [
         [ db-connection get handle>> ] dip
         {
             [ sql>> ]
-            [ bind-params>> length ]
+            [ in>> length ]
             [ param-types ]
             [ param-values ]
             [ param-formats ]
@@ -157,8 +145,8 @@ M: postgresql-malloc-destructor dispose ( obj -- )
 : postgresql-column-typed ( handle row column type -- obj )
     dup array? [ first ] when
     {
-        { +db-assigned-id+ [ pq-get-number ] }
-        { +random-id+ [ pq-get-number ] }
+        { +db-assigned-key+ [ pq-get-number ] }
+        { +random-key+ [ pq-get-number ] }
         { INTEGER [ pq-get-number ] }
         { BIG-INTEGER [ pq-get-number ] }
         { DOUBLE [ pq-get-number ] }
@@ -175,4 +163,3 @@ M: postgresql-malloc-destructor dispose ( obj -- )
             dup [ bytes>object ] when ] }
         [ no-sql-type ]
     } case ;
-*/

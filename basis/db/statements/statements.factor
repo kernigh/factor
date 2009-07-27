@@ -1,9 +1,9 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db.connections
-db.result-sets destructors fry kernel sequences
-strings vectors db.types namespaces math
-combinators.short-circuit ;
+USING: accessors combinators.short-circuit continuations
+db.connections db.errors db.result-sets db.types db.utils
+destructors fry kernel math multiline namespaces sequences
+strings vectors ;
 IN: db.statements
 
 TUPLE: statement handle sql in out type ;

@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db.result-sets
-db.statements destructors fry kernel math namespaces sequences
+USING: accessors continuations db.result-sets db.statements
+destructors fry kernel math multiline namespaces sequences
 strings summary ;
 IN: db
 

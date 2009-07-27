@@ -1,7 +1,11 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.postgresql.ffi db.postgresql.types
-db.result-sets kernel math sequences ;
+USING: accessors alien.c-types arrays calendar.format
+combinators db.connections db.postgresql.ffi db.postgresql.lib
+db.postgresql.statements db.postgresql.types db.result-sets
+db.statements db.types db.utils destructors io.encodings.utf8
+kernel libc math namespaces present sequences serialize
+specialized-arrays.alien specialized-arrays.uint ;
 IN: db.postgresql.result-sets
 
 TUPLE: postgresql-result-set < result-set ;
@@ -27,3 +31,55 @@ M: postgresql-result-set advance-row ( result-set -- )
 
 M: postgresql-result-set more-rows? ( result-set -- ? )
     [ n>> ] [ max>> ] bi < ;
+
+
+: param-types ( statement -- seq )
+    in>> [ type>> type>oid ] uint-array{ } map-as ;
+
+: default-param-value ( obj -- alien n )
+    ?number>string dup [ utf8 malloc-string &free ] when 0 ;
+
+: param-values ( statement -- seq seq2 )
+    in>>
+    [
+        [ value>> ] [ type>> ] bi {
+            { FACTOR-BLOB [
+                dup [ object>bytes malloc-byte-array/length ] [ 0 ] if
+            ] }
+            { BLOB [ dup [ malloc-byte-array/length ] [ 0 ] if ] }
+            { DATE [ dup [ timestamp>ymd ] when default-param-value ] }
+            { TIME [ dup [ timestamp>hms ] when default-param-value ] }
+            { DATETIME [ dup [ timestamp>ymdhms ] when default-param-value ] }
+            { TIMESTAMP [ dup [ timestamp>ymdhms ] when default-param-value ] }
+            { URL [ dup [ present ] when default-param-value ] }
+            [ drop default-param-value ]
+        } case 2array
+    ] map flip [
+        f f
+    ] [
+        first2 [ >void*-array ] [ >uint-array ] bi*
+    ] if-empty ;
+
+: param-formats ( statement -- seq )
+    in>> [ type>> type>param-format ] uint-array{ } map-as ;
+
+
+
+M: postgresql-db-connection statement>result-set ( statement -- result-set )
+    [
+        [ db-connection get handle>> ] dip
+        {
+            [ sql>> ]
+            [ in>> length ]
+            [ param-types ]
+            [ param-values ]
+            [ param-formats ]
+        } cleave
+        0 PQexecParams dup postgresql-result-ok? [
+            [ postgresql-result-error-message ] [ PQclear ] bi throw
+        ] unless
+    ] with-destructors ;
+
+    ! postgresql-result-set new-result-set
+    ! dup init-result-set ;
+

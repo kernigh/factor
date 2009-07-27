@@ -64,67 +64,9 @@ M: postgresql-result-null summary ( obj -- str )
 
 
 
-
-
-: type>oid ( symbol -- n )
-    dup array? [ first ] when
-    {
-        { BLOB [ BYTEA-OID ] }
-        { FACTOR-BLOB [ BYTEA-OID ] }
-        [ drop 0 ]
-    } case ;
-
-: type>param-format ( symbol -- n )
-    dup array? [ first ] when
-    {
-        { BLOB [ 1 ] }
-        { FACTOR-BLOB [ 1 ] }
-        [ drop 0 ]
-    } case ;
-
-: param-types ( statement -- seq )
-    in>> [ type>> type>oid ] uint-array{ } map-as ;
-
 : default-param-value ( obj -- alien n )
     ?number>string dup [ utf8 malloc-string &free ] when 0 ;
 
-: param-values ( statement -- seq seq2 )
-    [
-        [ value>> ] [ type>> ] bi {
-            { FACTOR-BLOB [
-                dup [ object>bytes malloc-byte-array/length ] [ 0 ] if
-            ] }
-            { BLOB [ dup [ malloc-byte-array/length ] [ 0 ] if ] }
-            { DATE [ dup [ timestamp>ymd ] when default-param-value ] }
-            { TIME [ dup [ timestamp>hms ] when default-param-value ] }
-            { DATETIME [ dup [ timestamp>ymdhms ] when default-param-value ] }
-            { TIMESTAMP [ dup [ timestamp>ymdhms ] when default-param-value ] }
-            { URL [ dup [ present ] when default-param-value ] }
-            [ drop default-param-value ]
-        } case 2array
-    ] map flip [
-        f f
-    ] [
-        first2 [ >void*-array ] [ >uint-array ] bi*
-    ] if-empty ;
-
-: param-formats ( statement -- seq )
-    in>> [ type>> type>param-format ] uint-array{ } map-as ;
-
-: do-postgresql-bound-statement ( statement -- res )
-    [
-        [ db-connection get handle>> ] dip
-        {
-            [ sql>> ]
-            [ in>> length ]
-            [ param-types ]
-            [ param-values ]
-            [ param-formats ]
-        } cleave
-        0 PQexecParams dup postgresql-result-ok? [
-            [ postgresql-result-error-message ] [ PQclear ] bi throw
-        ] unless
-    ] with-destructors ;
 
 TUPLE: postgresql-malloc-destructor alien ;
 C: <postgresql-malloc-destructor> postgresql-malloc-destructor

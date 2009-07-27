@@ -6,7 +6,7 @@ db.postgresql.ffi db.postgresql.lib db.postgresql.statements
 db.postgresql.types db.result-sets db.statements db.types
 db.utils destructors io.encodings.utf8 kernel libc math
 namespaces present sequences serialize specialized-arrays.alien
-specialized-arrays.uint ;
+specialized-arrays.uint strings ;
 IN: db.postgresql.result-sets
 
 TUPLE: postgresql-result-set < result-set ;
@@ -36,17 +36,40 @@ M: postgresql-result-set advance-row ( result-set -- )
 M: postgresql-result-set more-rows? ( result-set -- ? )
     [ n>> ] [ max>> ] bi < ;
 
+: type>oid ( symbol -- n )
+    dup array? [ first ] when
+    {
+        { BLOB [ BYTEA-OID ] }
+        { FACTOR-BLOB [ BYTEA-OID ] }
+        [ drop 0 ]
+    } case ;
+
+: type>param-format ( symbol -- n )
+    dup array? [ first ] when
+    {
+        { BLOB [ 1 ] }
+        { FACTOR-BLOB [ 1 ] }
+        [ drop 0 ]
+    } case ;
 
 : param-types ( statement -- seq )
-    in>> [ type>> type>oid ] uint-array{ } map-as ;
+    in>> [ type>oid ] uint-array{ } map-as ;
 
 : default-param-value ( obj -- alien n )
     ?number>string dup [ utf8 malloc-string &free ] when 0 ;
 
+: obj>value/type ( obj -- value type )
+    {
+        { [ dup string? ] [ VARCHAR ] }
+        { [ dup array? ] [ first2 ] }
+        [ "omg" throw ] 
+    } cond ;
+
 : param-values ( statement -- seq seq2 )
     in>>
     [
-        [ value>> ] [ type>> ] bi {
+        obj>value/type
+        {
             { FACTOR-BLOB [
                 dup [ object>bytes malloc-byte-array/length ] [ 0 ] if
             ] }
@@ -65,7 +88,7 @@ M: postgresql-result-set more-rows? ( result-set -- ? )
     ] if-empty ;
 
 : param-formats ( statement -- seq )
-    in>> [ type>> type>param-format ] uint-array{ } map-as ;
+    in>> [ type>param-format ] uint-array{ } map-as ;
 
 
 
@@ -73,6 +96,7 @@ M: postgresql-db-connection statement>result-set ( statement -- result-set )
     dup
     [
         [ db-connection get handle>> ] dip
+B
         {
             [ sql>> ]
             [ in>> length ]

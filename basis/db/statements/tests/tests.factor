@@ -17,7 +17,6 @@ IN: db.statements.tests
     [ "drop table computer;" sql-command ] must-fail
 
     [ ] [
-B
         "create table computer(name varchar, os varchar, version integer);"
         sql-command
     ] unit-test ;
@@ -45,6 +44,7 @@ B
 
     ! [ "selectt" sql-query drop ] [ sql-syntax-error? ] must-fail-with
 
+/*
     [ ] [
         "insert into computer (name, os, version) values(?, ?, ?);"
         { "clubber" "windows" "7" } f <statement> sql-bind-command
@@ -54,45 +54,22 @@ B
         "select os from computer where name = ?;"
         { "clubber" } f <statement> sql-bind-query
     ] unit-test
-
-/*
-    [ { { "windows" 7 } } ] [
-        "select os, version from computer where name = ?;"
-        { SB{ "clubber" VARCHAR } }
-        { VARCHAR INTEGER }
-        <statement> sql-bind-typed-query
-    ] unit-test
-
-    [ { { "windows" 7 } } ] [
-        "select os, version from computer where name = ?;"
-        { SB{ "clubber" VARCHAR } }
-        { VARCHAR INTEGER }
-        <statement> sql-bind-typed-query
-    ] unit-test
-
-    [ ] [
-        "insert into computer (name, os, version) values(?, ?, ?);"
-        {
-            SB{ "paulie" VARCHAR }
-            SB{ "netbsd" VARCHAR }
-            SB{ 7 INTEGER }
-        } f <statement>
-        sql-bind-typed-command
-    ] unit-test
-
-    [ ] [
-        insert new
-            "computer" >>into
-            { "name" "os" "version" } >>names
-            { "shoes" "freebsd" 5 } >>values
-        
-    ] unit-test
 */
+
+    [ ] [
+        "insert into computer (name, os, version) values($1, $2, $3);"
+        { "clubber" "windows" "7" } f <statement> sql-bind-command
+    ] unit-test
+
+    [ { { "windows" } } ] [
+        "select os from computer where name = $1;"
+        { "clubber" } f <statement> sql-bind-query
+    ] unit-test
 
     [ "drop table default_person" sql-command ] ignore-errors
 
     [ ] [
-        "create table default_person(id INTEGER SERIAL PRIMARY KEY, name TEXT, birthdate TIMESTAMP, email TEXT, homepage TEXT)" f f <statement> sql-bind-command
+        "create table default_person(id SERIAL PRIMARY KEY, name TEXT, birthdate TIMESTAMP, email TEXT, homepage TEXT)" f f <statement> sql-bind-command
     ] unit-test ;
 
 [ test-sql-command ] test-dbs

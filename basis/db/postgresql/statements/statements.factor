@@ -8,7 +8,7 @@ IN: db.postgresql.statements
 
 M: postgresql-db-connection prepare-statement*
     dup
-    [ db-connection get handle>> f ] dip
+    [ db-connection get handle>> "statementname-can'tbef?" ] dip
     [ sql>> ] [ in>> ] bi length f
     PQprepare postgresql-error >>handle ;
 
@@ -19,3 +19,5 @@ M: postgresql-db-connection dispose ( query -- )
 M: postgresql-db-connection dispose-statement
     dup handle>> PQclear
     f >>handle drop ;
+
+M: postgresql-db-connection bind-sequence drop ;

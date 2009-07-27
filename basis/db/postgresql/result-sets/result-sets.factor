@@ -96,7 +96,6 @@ M: postgresql-db-connection statement>result-set ( statement -- result-set )
     dup
     [
         [ db-connection get handle>> ] dip
-B
         {
             [ sql>> ]
             [ in>> length ]

@@ -19,10 +19,10 @@ GENERIC# column-typed 2 ( result-set column type -- sql )
     dup #rows >>max
     0 >>n ;
 
-: new-result-set ( query class -- result-set )
+: new-result-set ( query handle class -- result-set )
     new
+        swap >>handle
         swap {
-            [ handle>> >>handle ]
             [ sql>> >>sql ]
             [ in>> >>in ]
             [ out>> >>out ]

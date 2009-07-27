@@ -2,13 +2,24 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.strings arrays ascii
 byte-arrays calendar.format combinators continuations db
-db.connections db.postgresql.ffi db.types destructors io
-io.encodings.binary io.encodings.utf8 io.streams.byte-array
+db.connections db.postgresql.ffi db.types db.utils destructors
+io io.encodings.binary io.encodings.utf8 io.streams.byte-array
 kernel libc math math.parser multiline namespaces present
 prettyprint quotations sequences serialize
 specialized-arrays.alien specialized-arrays.uint splitting
 strings summary tools.walker urls ;
 IN: db.postgresql.lib
+
+: pq-get-is-null ( handle row column -- ? )
+    PQgetisnull 1 = ;
+
+: pq-get-string ( handle row column -- obj )
+    3dup PQgetvalue utf8 alien>string
+    dup empty? [ [ pq-get-is-null f ] dip ? ] [ [ 3drop ] dip ] if ;
+
+: pq-get-number ( handle row column -- obj )
+    pq-get-string dup [ string>number ] when ;
+
 
 : postgresql-result-error-message ( res -- str/f )
     dup zero? [
@@ -49,8 +60,10 @@ M: postgresql-result-null summary ( obj -- str )
         [ postgresql-result-error-message ] [ PQclear ] bi throw
     ] unless ;
 
-: pq-get-is-null ( handle row column -- ? )
-    PQgetisnull 1 = ;
+
+
+
+
 
 
 : type>oid ( symbol -- n )

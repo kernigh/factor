@@ -6,14 +6,16 @@ db.postgresql.lib db.statements destructors kernel namespaces
 sequences ;
 IN: db.postgresql.statements
 
-TUPLE: postgresql-statement < statement ;
-
-M: postgresql-db-connection prepare-statement* ( statement -- )
+M: postgresql-db-connection prepare-statement*
+    dup
     [ db-connection get handle>> f ] dip
-    [ ] [ sql>> ] [ in>> ] tri
-    length f PQprepare postgresql-error
-    >>handle ;
+    [ sql>> ] [ in>> ] bi length f
+    PQprepare postgresql-error >>handle ;
 
 M: postgresql-db-connection dispose ( query -- )
+    [ handle>> PQfinish ]
+    [ f >>handle drop ] bi ;
+
+M: postgresql-db-connection dispose-statement
     dup handle>> PQclear
     f >>handle drop ;

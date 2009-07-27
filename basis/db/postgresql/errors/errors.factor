@@ -51,4 +51,3 @@ Line = "LINE " [0-9]+:line ": " .+:sql
 : postgresql-location ( line column -- obj )
     [ parse-postgresql-line-error ] dip
     set-caret-position ;
-

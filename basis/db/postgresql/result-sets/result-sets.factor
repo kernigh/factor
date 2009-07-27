@@ -1,14 +1,18 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types arrays calendar.format
-combinators db.connections db.postgresql.ffi db.postgresql.lib
-db.postgresql.statements db.postgresql.types db.result-sets
-db.statements db.types db.utils destructors io.encodings.utf8
-kernel libc math namespaces present sequences serialize
-specialized-arrays.alien specialized-arrays.uint ;
+combinators db.connections db.postgresql.connections.private
+db.postgresql.ffi db.postgresql.lib db.postgresql.statements
+db.postgresql.types db.result-sets db.statements db.types
+db.utils destructors io.encodings.utf8 kernel libc math
+namespaces present sequences serialize specialized-arrays.alien
+specialized-arrays.uint ;
 IN: db.postgresql.result-sets
 
 TUPLE: postgresql-result-set < result-set ;
+
+M: postgresql-result-set dispose
+    [ handle>> PQclear ] [ f >>handle drop ] bi ;
 
 M: postgresql-result-set #rows ( result-set -- n )
     handle>> PQntuples ;
@@ -66,6 +70,7 @@ M: postgresql-result-set more-rows? ( result-set -- ? )
 
 
 M: postgresql-db-connection statement>result-set ( statement -- result-set )
+    dup
     [
         [ db-connection get handle>> ] dip
         {
@@ -78,8 +83,6 @@ M: postgresql-db-connection statement>result-set ( statement -- result-set )
         0 PQexecParams dup postgresql-result-ok? [
             [ postgresql-result-error-message ] [ PQclear ] bi throw
         ] unless
-    ] with-destructors ;
-
-    ! postgresql-result-set new-result-set
-    ! dup init-result-set ;
-
+    ] with-destructors
+    \ postgresql-result-set new-result-set
+    init-result-set ;

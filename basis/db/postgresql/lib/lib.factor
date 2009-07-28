@@ -1,13 +1,10 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien alien.c-types alien.strings arrays ascii
-byte-arrays calendar.format combinators continuations db
-db.connections db.postgresql.ffi db.types db.utils destructors
-io io.encodings.binary io.encodings.utf8 io.streams.byte-array
-kernel libc math math.parser multiline namespaces present
-prettyprint quotations sequences serialize
-specialized-arrays.alien specialized-arrays.uint splitting
-strings summary tools.walker urls ;
+USING: accessors alien.c-types alien.strings arrays
+calendar.format combinators db.connections db.postgresql.ffi
+db.types db.utils destructors io.encodings.utf8 kernel libc
+math math.parser namespaces sequences serialize splitting
+strings summary unicode.categories urls ;
 IN: db.postgresql.lib
 
 : pq-get-is-null ( handle row column -- ? ) PQgetisnull 1 = ;

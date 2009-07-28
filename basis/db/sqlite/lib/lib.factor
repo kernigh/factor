@@ -1,9 +1,8 @@
 ! Copyright (C) 2008 Chris Double, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien.c-types arrays calendar.format
-combinators db.sqlite.errors db.connections
-io.backend io.encodings.string io.encodings.utf8 kernel math
-namespaces present sequences serialize urls db.sqlite.ffi ;
+USING: accessors alien.c-types combinators db.connections
+db.sqlite.errors db.sqlite.ffi io.encodings.string
+io.encodings.utf8 kernel math namespaces sequences ;
 IN: db.sqlite.lib
 
 : sqlite-check-result ( n -- )

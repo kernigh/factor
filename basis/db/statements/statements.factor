@@ -1,9 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors combinators.short-circuit continuations
-db.connections db.errors db.result-sets db.types db.utils
-destructors fry kernel math multiline namespaces sequences
-strings vectors ;
+USING: accessors arrays continuations db.connections db.errors
+db.result-sets db.utils destructors fry kernel sequences ;
 IN: db.statements
 
 TUPLE: statement handle sql in out type ;
@@ -31,10 +29,10 @@ TUPLE: tuple-parameter < parameter db-column ;
 : add-sql ( statement sql -- statement )
     '[ _ "" append-as ] change-sql ;
 
-: add-in-param ( statement sql -- statement ) over in>> push ;
 : add-in-params ( statement sql -- statement ) over in>> push-all ;
-: add-out-param ( statement sql -- statement ) over out>> push ;
+: add-in-param ( statement sql -- statement ) 1array add-in-params ;
 : add-out-params ( statement sql -- statement ) over out>> push-all ;
+: add-out-param ( statement sql -- statement ) 1array add-out-params ;
 
 HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: execute-statement* db-connection ( statement type -- )
@@ -72,35 +70,3 @@ M: object execute-statement* ( statement type -- )
 
 : statement>result-sequence ( statement -- sequence )
     statement>result-set [ [ sql-row ] result-set-map ] with-disposal ;
-
-
-
-/*
-: return-tuple ( result-set -- seq )
-    -1 sql-column-counter [
-        dup out>> [
-            [ nip class>> ]
-            [ binders>> sql-row-typed-count ]
-            [ nip binders>> [ setter>> ] map ] 2tri new-filled-tuple
-        ] with map
-    ] with-variable ;
-
-: return-sequence ( result-set -- seq ) sql-row-typed ;
-
-: return-tuples? ( result-set -- ? ) [ out-tuple-binder? ] all? ;
-
-: statement>typed-result-sequence ( statement -- sequence )
-    normalize-statement
-    statement>result-set
-    [
-        dup out>> return-tuples? [
-            [ return-tuple ] result-set-map
-            dup {
-                [ length 0 > ]
-                [ first length 1 = ]
-            } 1&& [ concat ] when
-        ] [
-            [ return-sequence ] result-set-map
-        ] if
-    ] with-disposal ;
-*/

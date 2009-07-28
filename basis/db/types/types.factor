@@ -1,8 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: assocs classes.parser classes.singleton db.connections
-kernel lexer namespaces parser sequences classes.mixin
-arrays combinators ;
+USING: arrays classes.mixin classes.parser classes.singleton
+combinators db.connections kernel lexer sequences ;
 IN: db.types
 
 HOOK: sql-type>string db-connection ( type -- string )

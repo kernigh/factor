@@ -1,7 +1,6 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.connections fry io.pools kernel
-namespaces ;
+USING: accessors db.connections fry io.pools kernel namespaces ;
 IN: db.pools
 
 TUPLE: db-pool < pool db ;

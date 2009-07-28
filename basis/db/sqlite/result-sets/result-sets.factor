@@ -1,8 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.result-sets db.sqlite db.sqlite.connections
-db.sqlite.lib db.sqlite.statements db.sqlite.types
-db.statements destructors kernel ;
+USING: accessors db.result-sets db.sqlite.connections
+db.sqlite.lib db.sqlite.types db.statements destructors kernel ;
 IN: db.sqlite.result-sets
 
 TUPLE: sqlite-result-set < result-set has-more? ;

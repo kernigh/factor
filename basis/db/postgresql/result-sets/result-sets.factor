@@ -90,8 +90,6 @@ M: postgresql-result-set more-rows? ( result-set -- ? )
 : param-formats ( statement -- seq )
     in>> [ type>param-format ] uint-array{ } map-as ;
 
-
-
 M: postgresql-db-connection statement>result-set ( statement -- result-set )
     dup
     [

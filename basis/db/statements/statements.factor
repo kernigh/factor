@@ -21,20 +21,12 @@ TUPLE: tuple-parameter < parameter db-column ;
     [ obj>vector ] change-out
     [ obj>vector ] change-in ;
 
-: empty-statement ( -- statement )
-    statement new
-        V{ } clone >>in
-        V{ } clone >>out ;
-
 : <statement> ( sql in out -- statement )
     statement new
         swap >>out
         swap >>in
         swap >>sql
         normalize-statement ;
-
-: <empty-statement> ( -- statement )
-    f f f <statement> ;
 
 : add-sql ( statement sql -- statement )
     '[ _ "" append-as ] change-sql ;
@@ -80,6 +72,8 @@ M: object execute-statement* ( statement type -- )
 
 : statement>result-sequence ( statement -- sequence )
     statement>result-set [ [ sql-row ] result-set-map ] with-disposal ;
+
+
 
 /*
 : return-tuple ( result-set -- seq )

@@ -10,8 +10,7 @@ specialized-arrays.alien specialized-arrays.uint splitting
 strings summary tools.walker urls ;
 IN: db.postgresql.lib
 
-: pq-get-is-null ( handle row column -- ? )
-    PQgetisnull 1 = ;
+: pq-get-is-null ( handle row column -- ? ) PQgetisnull 1 = ;
 
 : pq-get-string ( handle row column -- obj )
     3dup PQgetvalue utf8 alien>string
@@ -20,13 +19,8 @@ IN: db.postgresql.lib
 : pq-get-number ( handle row column -- obj )
     pq-get-string dup [ string>number ] when ;
 
-
 : postgresql-result-error-message ( res -- str/f )
-    dup zero? [
-        drop f
-    ] [
-        PQresultErrorMessage [ blank? ] trim
-    ] if ;
+    dup 0 = [ drop f ] [ PQresultErrorMessage [ blank? ] trim ] if ;
 
 : postgres-result-error ( res -- )
     postgresql-result-error-message [ throw ] when* ;
@@ -59,10 +53,6 @@ M: postgresql-result-null summary ( obj -- str )
     db-connection get handle>> swap sql>> PQexec dup postgresql-result-ok? [
         [ postgresql-result-error-message ] [ PQclear ] bi throw
     ] unless ;
-
-
-
-
 
 : default-param-value ( obj -- alien n )
     ?number>string dup [ utf8 malloc-string &free ] when 0 ;

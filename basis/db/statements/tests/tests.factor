@@ -44,32 +44,11 @@ IN: db.statements.tests
 
     ! [ "selectt" sql-query drop ] [ sql-syntax-error? ] must-fail-with
 
-/*
-    [ ] [
-        "insert into computer (name, os, version) values(?, ?, ?);"
-        { "clubber" "windows" "7" } f <statement> sql-bind-command
-    ] unit-test
-
-    [ { { "windows" } } ] [
-        "select os from computer where name = ?;"
-        { "clubber" } f <statement> sql-bind-query
-    ] unit-test
-*/
-
-    [ ] [
-        "insert into computer (name, os, version) values($1, $2, $3);"
-        { "clubber" "windows" "7" } f <statement> sql-bind-command
-    ] unit-test
-
-    [ { { "windows" } } ] [
-        "select os from computer where name = $1;"
-        { "clubber" } f <statement> sql-bind-query
-    ] unit-test
-
     [ "drop table default_person" sql-command ] ignore-errors
 
     [ ] [
-        "create table default_person(id SERIAL PRIMARY KEY, name TEXT, birthdate TIMESTAMP, email TEXT, homepage TEXT)" f f <statement> sql-bind-command
+        "create table default_person(id serial primary key, name text, birthdate timestamp, email text, homepage text)"
+        f f <statement> sql-bind-command
     ] unit-test ;
 
 [ test-sql-command ] test-dbs

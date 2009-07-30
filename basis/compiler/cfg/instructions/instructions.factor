@@ -6,35 +6,35 @@ compiler.constants combinators compiler.cfg.registers
 compiler.cfg.instructions.syntax ;
 IN: compiler.cfg.instructions
 
-: new-insn ( ... class -- insn ) [ f f ] dip boa ; inline
+: new-insn ( ... class -- insn ) f swap boa ; inline
 
 ! Virtual CPU instructions, used by CFG and machine IRs
 TUPLE: insn ;
 
 ! Instruction with no side effects; if 'out' is never read, we
 ! can eliminate it.
-TUPLE: ##flushable < insn { dst vreg } ;
+TUPLE: ##flushable < insn dst ;
 
 ! Instruction which is referentially transparent; we can replace
 ! repeated computation with a reference to a previous value
 TUPLE: ##pure < ##flushable ;
 
-TUPLE: ##unary < ##pure { src vreg } ;
-TUPLE: ##unary/temp < ##unary { temp vreg } ;
-TUPLE: ##binary < ##pure { src1 vreg } { src2 vreg } ;
-TUPLE: ##binary-imm < ##pure { src1 vreg } { src2 integer } ;
+TUPLE: ##unary < ##pure src ;
+TUPLE: ##unary/temp < ##unary temp ;
+TUPLE: ##binary < ##pure src1 src2 ;
+TUPLE: ##binary-imm < ##pure src1 { src2 integer } ;
 TUPLE: ##commutative < ##binary ;
 TUPLE: ##commutative-imm < ##binary-imm ;
 
 ! Instruction only used for its side effect, produces no values
-TUPLE: ##effect < insn { src vreg } ;
+TUPLE: ##effect < insn src ;
 
 ! Read/write ops: candidates for alias analysis
 TUPLE: ##read < ##flushable ;
 TUPLE: ##write < ##effect ;
 
-TUPLE: ##alien-getter < ##flushable { src vreg } ;
-TUPLE: ##alien-setter < ##effect { value vreg } ;
+TUPLE: ##alien-getter < ##flushable src ;
+TUPLE: ##alien-setter < ##effect value ;
 
 ! Stack operations
 INSN: ##load-immediate < ##pure { val integer } ;
@@ -52,7 +52,6 @@ INSN: ##inc-d { n integer } ;
 INSN: ##inc-r { n integer } ;
 
 ! Subroutine calls
-INSN: ##stack-frame stack-frame ;
 INSN: ##call word ;
 INSN: ##jump word ;
 INSN: ##return ;
@@ -64,14 +63,14 @@ INSN: ##no-tco ;
 INSN: ##dispatch src temp ;
 
 ! Slot access
-INSN: ##slot < ##read { obj vreg } { slot vreg } { tag integer } { temp vreg } ;
-INSN: ##slot-imm < ##read { obj vreg } { slot integer } { tag integer } ;
-INSN: ##set-slot < ##write { obj vreg } { slot vreg } { tag integer } { temp vreg } ;
-INSN: ##set-slot-imm < ##write { obj vreg } { slot integer } { tag integer } ;
+INSN: ##slot < ##read obj slot { tag integer } temp ;
+INSN: ##slot-imm < ##read obj { slot integer } { tag integer } ;
+INSN: ##set-slot < ##write obj slot { tag integer } temp ;
+INSN: ##set-slot-imm < ##write obj { slot integer } { tag integer } ;
 
 ! String element access
-INSN: ##string-nth < ##flushable { obj vreg } { index vreg } { temp vreg } ;
-INSN: ##set-string-nth-fast < ##effect { obj vreg } { index vreg } { temp vreg } ;
+INSN: ##string-nth < ##flushable obj index temp ;
+INSN: ##set-string-nth-fast < ##effect obj index temp ;
 
 ! Integer arithmetic
 INSN: ##add < ##commutative ;
@@ -151,7 +150,7 @@ INSN: ##set-alien-float < ##alien-setter ;
 INSN: ##set-alien-double < ##alien-setter ;
 
 ! Memory allocation
-INSN: ##allot < ##flushable size class { temp vreg } ;
+INSN: ##allot < ##flushable size class temp ;
 
 UNION: ##allocation ##allot ##box-float ##box-alien ##integer>bignum ;
 
@@ -160,9 +159,9 @@ INSN: ##write-barrier < ##effect card# table ;
 INSN: ##alien-global < ##flushable symbol library ;
 
 ! FFI
-INSN: ##alien-invoke params ;
-INSN: ##alien-indirect params ;
-INSN: ##alien-callback params ;
+INSN: ##alien-invoke params stack-frame ;
+INSN: ##alien-indirect params stack-frame ;
+INSN: ##alien-callback params stack-frame ;
 INSN: ##callback-return params ;
 
 ! Instructions used by CFG IR only.
@@ -171,15 +170,13 @@ INSN: ##epilogue ;
 
 INSN: ##branch ;
 
-INSN: ##loop-entry ;
-
 INSN: ##phi < ##pure inputs ;
 
 ! Conditionals
-TUPLE: ##conditional-branch < insn { src1 vreg } { src2 vreg } cc ;
+TUPLE: ##conditional-branch < insn src1 src2 cc ;
 
 INSN: ##compare-branch < ##conditional-branch ;
-INSN: ##compare-imm-branch { src1 vreg } { src2 integer } cc ;
+INSN: ##compare-imm-branch src1 { src2 integer } cc ;
 
 INSN: ##compare < ##binary cc temp ;
 INSN: ##compare-imm < ##binary-imm cc temp ;
@@ -188,12 +185,12 @@ INSN: ##compare-float-branch < ##conditional-branch ;
 INSN: ##compare-float < ##binary cc temp ;
 
 ! Overflowing arithmetic
-TUPLE: ##fixnum-overflow < insn { dst vreg } { src1 vreg } { src2 vreg } ;
+TUPLE: ##fixnum-overflow < insn dst src1 src2 ;
 INSN: ##fixnum-add < ##fixnum-overflow ;
 INSN: ##fixnum-sub < ##fixnum-overflow ;
 INSN: ##fixnum-mul < ##fixnum-overflow ;
 
-INSN: ##gc { temp1 vreg } { temp2 vreg } live-values ;
+INSN: ##gc temp1 temp2 live-values ;
 
 ! Instructions used by machine IR only.
 INSN: _prologue stack-frame ;
@@ -202,26 +199,27 @@ INSN: _epilogue stack-frame ;
 INSN: _label id ;
 
 INSN: _branch label ;
+INSN: _loop-entry ;
 
 INSN: _dispatch src temp ;
 INSN: _dispatch-label label ;
 
-TUPLE: _conditional-branch < insn label { src1 vreg } { src2 vreg } cc ;
+TUPLE: _conditional-branch < insn label src1 src2 cc ;
 
 INSN: _compare-branch < _conditional-branch ;
-INSN: _compare-imm-branch label { src1 vreg } { src2 integer } cc ;
+INSN: _compare-imm-branch label src1 { src2 integer } cc ;
 
 INSN: _compare-float-branch < _conditional-branch ;
 
 ! Overflowing arithmetic
-TUPLE: _fixnum-overflow < insn label { dst vreg } { src1 vreg } { src2 vreg } ;
+TUPLE: _fixnum-overflow < insn label dst src1 src2 ;
 INSN: _fixnum-add < _fixnum-overflow ;
 INSN: _fixnum-sub < _fixnum-overflow ;
 INSN: _fixnum-mul < _fixnum-overflow ;
 
 TUPLE: spill-slot n ; C: <spill-slot> spill-slot
 
-INSN: _gc { temp1 vreg } { temp2 vreg } gc-roots gc-root-count gc-root-size ;
+INSN: _gc temp1 temp2 gc-roots gc-root-count gc-root-size ;
 
 ! These instructions operate on machine registers and not
 ! virtual registers
@@ -230,19 +228,33 @@ INSN: _reload dst class n ;
 INSN: _copy dst src class ;
 INSN: _spill-counts counts ;
 
-! Instructions that poison the stack state
-UNION: poison-insn
-    ##jump
-    ##return
-    ##callback-return ;
+! Instructions that use vregs
+UNION: vreg-insn
+    ##flushable
+    ##write-barrier
+    ##dispatch
+    ##effect
+    ##fixnum-overflow
+    ##conditional-branch
+    ##compare-imm-branch
+    ##phi
+    ##gc
+    _conditional-branch
+    _compare-imm-branch
+    _dispatch ;
 
 ! Instructions that kill all live vregs
 UNION: kill-vreg-insn
-    poison-insn
-    ##stack-frame
     ##call
     ##prologue
     ##epilogue
     ##alien-invoke
     ##alien-indirect
     ##alien-callback ;
+
+! Instructions that have complex expansions and require that the
+! output registers are not equal to any of the input registers
+UNION: def-is-use-insn
+    ##integer>bignum
+    ##bignum>integer
+    ##unbox-any-c-ptr ;

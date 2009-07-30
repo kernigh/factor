@@ -30,7 +30,7 @@ ERROR: bad-peek dst loc ;
     [ dup n>> 0 < [ 2drop ] [ ##replace ] if ] each-insertion ;
 
 : visit-edge ( from to -- )
-    2dup [ [ insert-peeks ] [ insert-replaces ] 2bi ] V{ } make
+    2dup [ [ insert-replaces ] [ insert-peeks ] 2bi ] V{ } make
     [ 2drop ] [ <simple-block> insert-basic-block ] if-empty ;
 
 : visit-block ( bb -- )

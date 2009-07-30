@@ -346,3 +346,12 @@ cell 4 = [
         over rot [ drop ] [ nip ] if
     ] compile-call
 ] unit-test
+
+! Global stack analysis dataflow equations are wrong
+[ 2 t ] [
+    0 t
+    [
+        dup [ [ drop 1 ] dip ] [ [ reverse ] dip ] if
+        dup [ [ 1 fixnum+fast ] dip ] [ [ drop 1 ] dip ] if
+    ] compile-call
+] unit-test

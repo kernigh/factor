@@ -8,25 +8,29 @@ IN: compiler.cfg.stacks.global
 ! the start of a basic block.
 BACKWARD-ANALYSIS: peek
 
-M: peek-analysis transfer-set drop [ replace-set assoc-diff ] keep peek-set assoc-union ;
+M: peek-analysis transfer-set
+    drop [ replace-set assoc-diff ] keep peek-set assoc-union ;
 
 ! Replace analysis. Replace-in is the set of all locations which
 ! will be overwritten at some point after the start of a basic block.
 FORWARD-ANALYSIS: replace
 
-M: replace-analysis transfer-set drop replace-set assoc-union ;
+M: replace-analysis transfer-set
+    drop replace-set assoc-union ;
 
 ! Availability analysis. Avail-out is the set of all locations
 ! in registers at the end of a basic block.
 FORWARD-ANALYSIS: avail
 
-M: avail-analysis transfer-set drop [ peek-set ] [ replace-set ] bi assoc-union assoc-union ;
+M: avail-analysis transfer-set
+    drop [ peek-set ] [ replace-set ] bi assoc-union assoc-union ;
 
 ! Kill analysis. Kill-in is the set of all locations
 ! which are going to be overwritten.
 BACKWARD-ANALYSIS: kill
 
-M: kill-analysis transfer-set drop replace-set assoc-union ;
+M: kill-analysis transfer-set
+    drop [ replace-set assoc-union ] [ peek-set assoc-diff ] bi ;
 
 ! Main word
 : compute-global-sets ( cfg -- cfg' )

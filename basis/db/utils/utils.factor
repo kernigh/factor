@@ -1,12 +1,15 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien.c-types arrays classes
+USING: accessors alien.c-types arrays assocs classes
 combinators.short-circuit kernel libc locals math math.order
 math.parser sequences sequences.private slots slots.private
 strings vectors words ;
 IN: db.utils
 
 SLOT: slot-name
+
+: sanitize-sql-name ( string -- string' )
+    H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
 
 : malloc-byte-array/length ( byte-array -- alien length )
     [ malloc-byte-array &free ] [ length ] bi ;

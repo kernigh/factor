@@ -1,11 +1,11 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators
-combinators.short-circuit constructors db.binders db.persistent
+combinators.short-circuit constructors db.binders db.orm.persistent
 db.statements db.types db.utils destructors fry kernel locals
 make math math.parser multiline namespaces sequences splitting
 strings vectors ;
-IN: db.fql
+IN: db.orm.fql
 
 : ??first2 ( obj -- obj1 obj2 )
     dup string? [
@@ -28,7 +28,7 @@ M: object normalize-fql ( object -- fql ) ;
 GENERIC: expand-fql* ( statement object -- sequence/statement )
 
 : expand-fql ( object1 -- object2 )
-    [ empty-statement ] dip normalize-fql expand-fql* ;
+    [ statement new ] dip normalize-fql expand-fql* ;
 
 
 TUPLE: insert < fql table binders ;

@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs byte-arrays classes
 classes.tuple combinators combinators.short-circuit db
-db.binders db.connections db.errors db.fql db.persistent
+db.binders db.connections db.errors db.fql db.orm.persistent
 db.statements db.types db.utils fry kernel make math
 math.intervals math.ranges multiline random sequences
 sequences.deep strings sets continuations ;

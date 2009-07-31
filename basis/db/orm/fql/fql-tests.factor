@@ -2,7 +2,7 @@
 
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db db.tester db.persistent.tests
+USING: accessors db db.tester db.orm.persistent.tests
 kernel tools.test db.fql db.statements.tests ;
 IN: db.fql.tests
 

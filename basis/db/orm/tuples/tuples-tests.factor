@@ -3,7 +3,7 @@
 
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db db.persistent db.tester
+USING: accessors continuations db db.orm.persistent db.tester
 db.tuples db.types kernel tools.test db.binders
 db.statements multiline db.fql db.persistent.tests urls
 calendar literals sequences math math.ranges math.intervals ;

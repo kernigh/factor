@@ -26,6 +26,9 @@ GENERIC: lookup-persistent ( obj -- persistent )
 : ?lookup-persistent ( class -- persistent/f )
     raw-persistent-table get ?at [ drop f ] unless ;
 
+: lookup-persistent* ( class -- persistent/f )
+    raw-persistent-table get ?at [ not-persistent ] unless ;
+
 : check-sanitized-name ( string -- string )
     dup dup sanitize-sql-name = [ bad-table-name ] unless ;
 
@@ -54,7 +57,7 @@ TUPLE: db-column persistent slot-name column-name type modifiers getter setter ;
 
 : join-persistent-hierarchy ( class -- persistent )
     [ superclass-persistent-columns ]
-    [ ?lookup-persistent clone ] bi
+    [ lookup-persistent* clone ] bi
     [ (>>columns) ] keep ;
 
 

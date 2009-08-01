@@ -50,9 +50,20 @@ TUPLE: renamed-table table renamed ;
 :: select-tuples ( tuple -- seq )
     tuple lookup-persistent :> persistent
     persistent relation-columns :> relations
+    
+    f
+    ;
+
+
+
+
+
+
+/*
     relations [
         tuple select-tuples-plain
     ] [
         drop f
         ! select-tuples-relations
     ] if-empty ;
+*/

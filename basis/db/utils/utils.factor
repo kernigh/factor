@@ -1,9 +1,9 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types arrays assocs classes
-combinators.short-circuit kernel libc locals math math.order
-math.parser sequences sequences.private slots slots.private
-strings vectors words ;
+classes.algebra classes.tuple combinators.short-circuit kernel
+libc locals math math.order math.parser sequences
+sequences.private slots slots.private strings vectors words ;
 IN: db.utils
 
 SLOT: slot-name

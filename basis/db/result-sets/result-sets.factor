@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors kernel sequences combinators fry
-db.types math.ranges namespaces ;
+USING: accessors combinators db.types fry kernel math.ranges
+multiline namespaces sequences ;
 IN: db.result-sets
 
 SYMBOL: sql-column-counter

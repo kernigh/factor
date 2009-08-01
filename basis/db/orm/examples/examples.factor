@@ -1,6 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: db.orm.persistent db.types kernel literals sequences ;
+USING: db.orm.persistent db.types kernel literals multiline
+sequences ;
 IN: db.orm.examples
 
 TUPLE: user id name age ;
@@ -87,3 +88,26 @@ TUPLE: answer id correct? text version ;
 TUPLE: answered-question id exam question correct? version ;
 
 TUPLE: selected-answer answered-question-id answer-id version ;
+
+
+
+/*
+
+author new select-tuples
+
+comment new select-tuples
+
+thread new select-tuples
+
+
+thread new
+    COUNT >>comments
+select-tuples
+
+
+thread new
+    IGNORE >>comments
+select-tuples
+
+
+*/

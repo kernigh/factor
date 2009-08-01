@@ -272,6 +272,56 @@ M:: select expand-fql* ( statement obj -- statement )
 
 
 
+! Aggregate functions
+
+: new-aggregate-function ( column class -- obj )
+    new swap >>column ; inline
+
+TUPLE: fql-avg < aggregate-function ;
+: <fql-avg> ( column -- avg ) fql-avg new-aggregate-function ;
+
+TUPLE: fql-sum < aggregate-function ;
+: <fql-sum> ( column -- sum ) fql-sum new-aggregate-function ;
+
+TUPLE: fql-count < aggregate-function ;
+: <fql-count> ( column -- count ) fql-count new-aggregate-function ;
+
+TUPLE: fql-min < aggregate-function ;
+: <fql-min> ( column -- min ) fql-min new-aggregate-function ;
+
+TUPLE: fql-max < aggregate-function ;
+: <fql-max> ( column -- max ) fql-max new-aggregate-function ;
+
+TUPLE: fql-first < aggregate-function ;
+: <fql-first> ( column -- first ) fql-first new-aggregate-function ;
+
+TUPLE: fql-last < aggregate-function ;
+: <fql-last> ( column -- last ) fql-last new-aggregate-function ;
+
+: expand-aggregate ( obj str type -- string/binder )
+    [ [ column>> ] dip "(" append ")" surround ] dip
+    [ f f ] dip <out-typed-binder> 2array ;
+
+M: fql-avg expand-op ( obj -- string/binder )
+    "avg" REAL expand-aggregate ;
+
+M: fql-sum expand-op ( obj -- string/binder )
+    "sum" REAL expand-aggregate ;
+
+M: fql-count expand-op ( obj -- string/binder )
+    "count" INTEGER expand-aggregate ;
+
+M: fql-min expand-op ( obj -- string/binder )
+    "min" REAL expand-aggregate ;
+
+M: fql-max expand-op ( obj -- string/binder )
+    "max" REAL expand-aggregate ;
+
+M: fql-first expand-op ( obj -- string/binder )
+    "first" REAL expand-aggregate ;
+
+M: fql-last expand-op ( obj -- string/binder )
+    "last" REAL expand-aggregate ;
 
 
 
@@ -363,54 +413,4 @@ TUPLE: coalesce < fql a b ; ! a if a not null, else b
 
 TUPLE: nullif < fql a b ; ! if a == b, then null, else a
 
-! Aggregate functions
-
-: new-aggregate-function ( column class -- obj )
-    new swap >>column ; inline
-
-TUPLE: fql-avg < aggregate-function ;
-: <fql-avg> ( column -- count ) fql-avg new-aggregate-function ;
-
-TUPLE: fql-sum < aggregate-function ;
-: <fql-sum> ( column -- count ) fql-sum new-aggregate-function ;
-
-TUPLE: fql-count < aggregate-function ;
-: <fql-count> ( column -- count ) fql-count new-aggregate-function ;
-
-TUPLE: fql-min < aggregate-function ;
-: <fql-min> ( column -- count ) fql-min new-aggregate-function ;
-
-TUPLE: fql-max < aggregate-function ;
-: <fql-max> ( column -- count ) fql-max new-aggregate-function ;
-
-TUPLE: fql-first < aggregate-function ;
-: <fql-first> ( column -- count ) fql-first new-aggregate-function ;
-
-TUPLE: fql-last < aggregate-function ;
-: <fql-last> ( column -- count ) fql-last new-aggregate-function ;
-
-: expand-aggregate ( obj str -- str' binder )
-    [ column>> ] dip "(" append ")" surround "Aggregate function here" throw
-    INTEGER <return-binder> ;
-
-M: fql-avg expand-op ( obj -- string binder )
-    "avg" expand-aggregate ;
-
-M: fql-sum expand-op ( obj -- string binder )
-    "sum" expand-aggregate ;
-
-M: fql-count expand-op ( obj -- string binder )
-    "count" expand-aggregate ;
-
-M: fql-min expand-op ( obj -- string binder )
-    "min" expand-aggregate ;
-
-M: fql-max expand-op ( obj -- string binder )
-    "max" expand-aggregate ;
-
-M: fql-first expand-op ( obj -- string binder )
-    "first" expand-aggregate ;
-
-M: fql-last expand-op ( obj -- string binder )
-    "last" expand-aggregate ;
 */

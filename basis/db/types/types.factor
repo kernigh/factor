@@ -73,6 +73,8 @@ SQL-MODIFIERS: PRIMARY-KEY
 SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL ;
 PRIMARY-KEY-TYPES: +db-assigned-key+ +random-key+ ;
 
+SYMBOL: IGNORE
+
 ERROR: no-sql-type name ;
 ERROR: no-sql-modifier name ;
 

@@ -1,11 +1,24 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors classes.tuple combinators db.binders
-db.orm.fql db.orm.persistent kernel locals sequences ;
+USING: accessors arrays assocs classes.mixin classes.parser
+classes.singleton classes.tuple combinators db.binders
+db.connections db.orm.fql db.orm.persistent db.types db.utils
+fry kernel lexer locals mirrors multiline sequences ;
 IN: db.orm
 
+
+: filter-ignored-columns ( tuple -- columns' )
+    [ lookup-persistent columns>> ] [ <mirror> ] bi
+    '[ slot-name>> _ at IGNORE = not ] filter ;
+
+: filter-functions ( tuple -- columns' )
+    [ lookup-persistent columns>> ] [ <mirror> ] bi
+    '[ slot-name>> _ at \ aggregate-function subclass? not ] filter ;
+
+TUPLE: renamed-table table renamed ;
+
+
 : columns>out-tuple ( columns -- out-tuple )
-B
     [ first persistent>> [ class>> ] [ table-name>> ] bi ]
     [
         [
@@ -20,22 +33,19 @@ B
     [ columns>out-tuple prefix ] bi* ; inline
 
 : select-columns ( tuple -- seq )
-B
     lookup-persistent
     columns>> [ type>> tuple-class? ] partition columns>out-tuples ;
 
 : select-tuples-plain ( tuple -- fql )
-B
     [ select new ] dip {
         [ select-columns >>columns ]
         [ lookup-persistent table-name>> >>from ]
     } cleave ;
 
-/*
 : select-tuples-relations ( tuple -- fql )
     [ select new ] dip {
-    } 2cleave ;
-*/
+        [ select-columns >>columns ]
+    } cleave ;
 
 :: select-tuples ( tuple -- seq )
     tuple lookup-persistent :> persistent

@@ -57,8 +57,10 @@ TUPLE: db-column persistent slot-name column-name type modifiers getter setter ;
     [ ?lookup-persistent clone ] bi
     [ (>>columns) ] keep ;
 
+
 : set-persistent-slots ( persistent -- )
     dup columns>> [ (>>persistent) ] with each ;
+
 
 : set-setters ( persistent -- )
     columns>> [
@@ -66,6 +68,7 @@ TUPLE: db-column persistent slot-name column-name type modifiers getter setter ;
         [ lookup-getter 1quotation >>getter ]
         [ lookup-setter 1quotation >>setter ] bi drop
     ] each ;
+
 
 : column-primary-key? ( column -- ? )
     {
@@ -86,6 +89,7 @@ M: tuple find-primary-key ( class -- seq )
 
 : set-primary-key ( persistent -- )
     dup find-primary-key >>primary-key drop ;
+
 
 : process-persistent ( persistent -- persistent )
     {
@@ -204,11 +208,3 @@ M: sequence relation-type*
         { 2 [ first2 sequence = [ drop one:many ] [ bad-relation-type ] if ] }
         [ drop bad-relation-type ]
     } case ;
-
-/*
-: insert-tuple-case ( tuple-class -- obj )
-    lookup-persistent {
-        { [ ] [ ] }
-        [ ]
-    } cond ;
-*/

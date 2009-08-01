@@ -8,6 +8,9 @@ IN: db.utils
 
 SLOT: slot-name
 
+: subclass? ( class1 class2 -- ? )
+    { [ class<= ] [ drop tuple-class? ] } 2&& ;
+
 : sanitize-sql-name ( string -- string' )
     H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
 

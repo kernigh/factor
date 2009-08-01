@@ -88,6 +88,11 @@ TUPLE: answered-question id exam question correct? version ;
 TUPLE: selected-answer answered-question-id answer-id version ;
 
 
+TUPLE: boat year model ;
+TUPLE: owner name ;
+
+TUPLE: boat-owner boat owner ;
+
 
 /*
 

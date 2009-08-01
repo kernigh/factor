@@ -29,8 +29,8 @@ PERSISTENT: score
     } clone ;
 
 
-TUPLE: thing-container id1 id2 name thing ;
 TUPLE: thing id whatsit ;
+TUPLE: thing-container id1 id2 name thing ;
 
 PERSISTENT: thing
     { "id" +db-assigned-key+ }
@@ -67,8 +67,6 @@ PERSISTENT: thread
     { "author" author }
     { "ts" TIMESTAMP }
     { "comments" { comment sequence } } ;
-
-    ! 1 thread : many comments
 
 
 

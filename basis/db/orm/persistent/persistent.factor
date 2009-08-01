@@ -3,7 +3,7 @@
 USING: accessors annotations arrays assocs classes
 classes.tuple combinators combinators.short-circuit
 constructors db.types db.utils kernel math multiline namespaces
-parser quotations sequences sets strings words ;
+parser quotations sequences sets strings words make ;
 IN: db.orm.persistent
 
 ERROR: bad-table-name obj ;
@@ -203,6 +203,7 @@ GENERIC: relation-type* ( obj -- obj' )
 : relation-type ( column -- obj )
     type>> relation-type* ;
 
+M: object relation-type* drop f ;
 M: tuple-class relation-type* drop one:one ;
 
 M: sequence relation-type*
@@ -211,3 +212,73 @@ M: sequence relation-type*
         { 2 [ first2 sequence = [ drop one:many ] [ bad-relation-type ] if ] }
         [ drop bad-relation-type ]
     } case ;
+
+: query-shape ( class -- seq )
+    lookup-persistent columns>> [ dup relation-type ] { } map>assoc ;
+
+
+
+GENERIC: select-columns* ( obj -- )
+
+M: persistent select-columns*
+    columns>> [ select-columns* ] each ;
+
+M: db-column select-columns*
+    dup type>> {
+        { [ dup tuple-class? ] [ nip lookup-persistent select-columns* ] }
+        [ drop , ]
+    } cond ;
+
+: select-columns ( obj -- seq )
+    [ select-columns* ] { } make ;
+
+
+
+GENERIC: select-reconstructor* ( obj -- )
+
+M: persistent select-reconstructor*
+    columns>> [ select-reconstructor* ] each ;
+
+M: db-column select-reconstructor*
+    dup type>> {
+        { [ dup tuple-class? ] [
+            lookup-persistent select-reconstructor*
+            setter>> %
+        ] }
+        [ drop "next value" , setter>> % ]
+    } cond ;
+
+: select-reconstructor ( obj -- seq )
+    [ select-reconstructor* ] [ ] make ;
+
+
+: select-relation-columns ( obj relation -- obj' )
+    {
+        { one:one [ select-columns ] }
+        { one:many [ ] }
+        { f [ ] }
+        [ "error in select-relation-case" throw ]
+    } case ;
+
+: select-relation-reconstructor ( obj relation -- obj' )
+    {
+        { one:one [ select-columns ] }
+        { one:many [ ] }
+        { f [ ] }
+        [ "error in select-relation-case" throw ]
+    } case ;
+
+! : select-joins ( obj relation -- obj' ) ;
+
+
+
+
+/*
+: select-relation-case ( obj relation -- obj' )
+    {
+        { one:one [ ] }
+        { one:many [ ] }
+        { f [ ] }
+        [ "error in select-relation-case" throw ]
+    } case ;
+*/

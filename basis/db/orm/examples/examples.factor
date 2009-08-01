@@ -71,27 +71,29 @@ PERSISTENT: thread
 
 
 
+TUPLE: boat id year model ;
+TUPLE: owner id name ;
+TUPLE: boat-owner id boat owner ;
 
-TUPLE: examinee id name version ;
+PERSISTENT: boat
+    { "id" +db-assigned-key+ }
+    { "year" INTEGER }
+    { "model" VARCHAR } ;
 
-TUPLE: exam id name questions date-taken version ;
+PERSISTENT: owner
+    { "id" +db-assigned-key+ }
+    { "name" VARCHAR } ;
 
-TUPLE: question id text version ;
-
-TUPLE: answer id correct? text version ;
-
-
-! TUPLE: exam-question id exam-id question-id version ;
-
-TUPLE: answered-question id exam question correct? version ;
-
-TUPLE: selected-answer answered-question-id answer-id version ;
+PERSISTENT: boat-owner
+    { "id" +db-assigned-key+ }
+    { "boat" boat }
+    { "owner" owner } ;
 
 
-TUPLE: boat year model ;
-TUPLE: owner name ;
 
-TUPLE: boat-owner boat owner ;
+
+
+
 
 
 /*
@@ -170,5 +172,25 @@ thread new
     IGNORE >>comments
 select-tuples
 
+
+
+
+
+
+
+TUPLE: examinee id name version ;
+
+TUPLE: exam id name questions date-taken version ;
+
+TUPLE: question id text version ;
+
+TUPLE: answer id correct? text version ;
+
+
+! TUPLE: exam-question id exam-id question-id version ;
+
+TUPLE: answered-question id exam question correct? version ;
+
+TUPLE: selected-answer answered-question-id answer-id version ;
 
 */

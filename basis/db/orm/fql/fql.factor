@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators
-combinators.short-circuit constructors db.binders db.orm.persistent
+combinators.short-circuit constructors db.binders
 db.statements db.types db.utils destructors fry kernel locals
 make math math.parser multiline namespaces sequences splitting
 strings vectors ;
@@ -96,12 +96,14 @@ CONSTRUCTOR: op-gt ( left right -- obj ) ;
 TUPLE: op-gt-eq < fql-op ;
 CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
 
-TUPLE: fql-join < fql table column1 column2 ;
+TUPLE: fql-join < fql table table1 column1 table2 column2 ;
 
-: new-join ( table column1 column2 class -- join )
+: new-join ( table table1 column1 table2 column2 class -- join )
     new
         swap >>column2
+        swap >>table2
         swap >>column1
+        swap >>table1
         swap >>table
         [ ??1array ] change-column1
         [ ??1array ] change-column2 ;
@@ -116,19 +118,19 @@ TUPLE: right-join < fql-join ;
 
 TUPLE: full-join < fql-join ;
 
-: <cross-join> ( table column1 column2 -- cross-join )
+: <cross-join> ( table table1 column1 table2 column2 -- cross-join )
     cross-join new-join ;
 
-: <inner-join> ( table column1 column2 -- inner-join )
+: <inner-join> ( table table1 column1 table2 column2 -- inner-join )
     inner-join new-join ;
 
-: <left-join> ( table column1 column2 -- left-join )
+: <left-join> ( table table1 column1 table2 column2 -- left-join )
     left-join new-join ;
 
-: <right-join> ( table column1 column2  -- right-join )
+: <right-join> ( table table1 column1 table2 column2  -- right-join )
     right-join new-join ;
 
-: <full-join> ( table column1 column2 -- full-join )
+: <full-join> ( table table1 column1 table2 column2 -- full-join )
     full-join new-join ;
 
 :: table-join ( statement join string -- statement )

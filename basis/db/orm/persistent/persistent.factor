@@ -3,7 +3,7 @@
 USING: accessors annotations arrays assocs classes
 classes.tuple combinators combinators.short-circuit
 constructors db.types db.utils kernel math multiline namespaces
-parser quotations sequences sets strings words make ;
+parser quotations sequences sets strings words make db.orm.fql ;
 IN: db.orm.persistent
 
 ERROR: bad-table-name obj ;
@@ -36,7 +36,9 @@ TUPLE: persistent class table-name columns primary-key ;
 
 CONSTRUCTOR: persistent ( class table-name columns -- obj ) ;
 
-TUPLE: db-column persistent slot-name column-name type modifiers getter setter ;
+TUPLE: db-column persistent
+slot-name column-name
+type modifiers getter setter ;
 
 : <db-column> ( slot-name column-name type modifiers -- obj )
     db-column new
@@ -79,6 +81,12 @@ TUPLE: db-column persistent slot-name column-name type modifiers getter setter ;
         [ modifiers>> [ PRIMARY-KEY? ] any? ]
     } 1|| ;
 
+GENERIC: table-name ( column -- string )
+
+M: db-column table-name persistent>> table-name>> ;
+
+M: tuple-class table-name lookup-persistent table-name>> ;
+
 GENERIC: find-primary-key ( obj -- seq )
 
 M: persistent find-primary-key ( persistent -- seq )
@@ -92,6 +100,10 @@ M: tuple find-primary-key ( class -- seq )
 
 : set-primary-key ( persistent -- )
     dup find-primary-key >>primary-key drop ;
+
+: primary-key-slots ( obj -- seq )
+    lookup-persistent
+    find-primary-key [ [ table-name ] [ slot-name>> ] bi "." glue ] map ;
 
 
 : process-persistent ( persistent -- persistent )
@@ -177,10 +189,14 @@ M: sequence parse-column-modifiers
 
 
 
+SYMBOL: table-names
 
 SINGLETONS: one:one one:many ;
 
 ERROR: bad-relation-type obj ;
+ERROR: bad-relation-class obj ;
+
+
 GENERIC: relation-type? ( obj -- ? )
 
 M: sequence relation-type?
@@ -198,6 +214,8 @@ M: word relation-type? drop f ;
     lookup-persistent
     columns>> [ type>> relation-type? ] filter ;
 
+
+
 GENERIC: relation-type* ( obj -- obj' )
 
 : relation-type ( column -- obj )
@@ -212,6 +230,27 @@ M: sequence relation-type*
         { 2 [ first2 sequence = [ drop one:many ] [ bad-relation-type ] if ] }
         [ drop bad-relation-type ]
     } case ;
+
+
+
+GENERIC: relation-class* ( obj -- obj' )
+
+: relation-class ( column -- obj )
+    type>> relation-class* ;
+
+M: tuple-class relation-class* ;
+
+M: sequence relation-class*
+    dup length {
+        { 0 [ bad-relation-class ] }
+        [ drop first ]
+    } case ;
+
+
+
+
+
+
 
 : query-shape ( class -- seq )
     lookup-persistent columns>> [ dup relation-type ] { } map>assoc ;
@@ -251,29 +290,16 @@ M: db-column select-reconstructor*
 : select-reconstructor ( obj -- seq )
     [ select-reconstructor* ] [ ] make ;
 
-
-: select-relation-columns ( obj relation -- obj' )
-    {
-        { one:one [ select-columns ] }
-        { one:many [ ] }
-        { f [ ] }
-        [ "error in select-relation-case" throw ]
-    } case ;
-
-: select-relation-reconstructor ( obj relation -- obj' )
-    {
-        { one:one [ select-columns ] }
-        { one:many [ ] }
-        { f [ ] }
-        [ "error in select-relation-case" throw ]
-    } case ;
-
-! : select-joins ( obj relation -- obj' ) ;
-
-
-
-
 /*
+: select-joins ( obj -- seq )
+    query-shape
+    [ nip ] assoc-filter
+    [
+        [ B first relation-class table-name ]
+        [ B first persistent>> primary-key-slots ]
+        [ B first relation-class primary-key-slots ] tri <left-join>
+    ] map ;
+
 : select-relation-case ( obj relation -- obj' )
     {
         { one:one [ ] }

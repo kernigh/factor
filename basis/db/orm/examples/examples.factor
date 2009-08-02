@@ -117,11 +117,20 @@ select c1.id, c1.text, c1.ts, a1.id, a1.name from comment as c1
 
 
 thread new select-tuples
-select t1.id, a1.id, a1.name, t1.text, t1.ts,
-c1.id, a2.id, a2.name, c1.text, c1.ts
+select
+t1.id,
+    a1.id,
+    a1.name,
+t1.text,
+t1.ts,
+    c1.id,
+        a2.id,
+        a2.name,
+    c1.text,
+    c1.ts
  from thread as t1
- left join comment as c1 on t1.id = c1.thread_id
  left join author as a1 on t1.author_id = a1.id
+ left join comment as c1 on t1.id = c1.thread_id
  left join author as a2 on c1.author_id = a2.id ;
 
 

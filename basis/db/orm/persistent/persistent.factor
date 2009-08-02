@@ -3,7 +3,8 @@
 USING: accessors annotations arrays assocs classes
 classes.tuple combinators combinators.short-circuit
 constructors db.types db.utils kernel math multiline namespaces
-parser quotations sequences sets strings words make db.orm.fql ;
+parser quotations sequences sets strings words make db.orm.fql
+fry ;
 IN: db.orm.persistent
 
 ERROR: bad-table-name obj ;
@@ -37,8 +38,7 @@ TUPLE: persistent class table-name columns primary-key ;
 CONSTRUCTOR: persistent ( class table-name columns -- obj ) ;
 
 TUPLE: db-column persistent
-slot-name column-name
-type modifiers getter setter ;
+slot-name column-name type modifiers getter setter ;
 
 : <db-column> ( slot-name column-name type modifiers -- obj )
     db-column new
@@ -73,7 +73,6 @@ type modifiers getter setter ;
         [ lookup-getter 1quotation >>getter ]
         [ lookup-setter 1quotation >>setter ] bi drop
     ] each ;
-
 
 : column-primary-key? ( column -- ? )
     {
@@ -216,17 +215,17 @@ M: word relation-type? drop f ;
 
 
 
-GENERIC: relation-type* ( obj -- obj' )
+GENERIC: relation-type ( obj -- obj' )
 
-: relation-type ( column -- obj )
-    type>> relation-type* ;
+M: db-column relation-type
+    type>> relation-type ;
 
-M: object relation-type* drop f ;
-M: tuple-class relation-type* drop one:one ;
+M: object relation-type drop f ;
+M: tuple-class relation-type drop one:one ;
 
-M: sequence relation-type*
+M: sequence relation-type
     dup length {
-        { 1 [ first relation-type* ] }
+        { 1 [ first relation-type ] }
         { 2 [ first2 sequence = [ drop one:many ] [ bad-relation-type ] if ] }
         [ drop bad-relation-type ]
     } case ;
@@ -279,13 +278,17 @@ M: persistent select-reconstructor*
     columns>> [ select-reconstructor* ] each ;
 
 M: db-column select-reconstructor*
-    dup type>> {
-        { [ dup tuple-class? ] [
-            lookup-persistent select-reconstructor*
-            setter>> %
+    dup relation-type {
+        { one:one [
+            [ type>> lookup-persistent select-reconstructor* ]
+            [ setter>> , ] bi
         ] }
-        [ drop "next value" , setter>> % ]
-    } cond ;
+        { one:many [
+            [ relation-class lookup-persistent select-reconstructor* ]
+            [ getter>> '[ over _ push ] , ] bi
+        ] }
+        [ drop "next value" , setter>> , ]
+    } case ;
 
 : select-reconstructor ( obj -- seq )
     [ select-reconstructor* ] [ ] make ;

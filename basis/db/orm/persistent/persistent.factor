@@ -247,10 +247,6 @@ M: sequence relation-class*
 
 
 
-
-
-
-
 : query-shape ( class -- seq )
     lookup-persistent columns>> [ dup relation-type ] { } map>assoc ;
 
@@ -298,16 +294,13 @@ M: db-column select-reconstructor*
     query-shape
     [ nip ] assoc-filter
     [
-        [ B first relation-class table-name ]
-        [ B first persistent>> primary-key-slots ]
-        [ B first relation-class primary-key-slots ] tri <left-join>
+B
+        {
+            [ first relation-class table-name ]
+            [ first relation-class table-name ]
+            [ B first persistent>> primary-key-slots ]
+            [ first relation-class table-name ]
+            [ B first relation-class primary-key-slots ]
+        } cleave <left-join>
     ] map ;
-
-: select-relation-case ( obj relation -- obj' )
-    {
-        { one:one [ ] }
-        { one:many [ ] }
-        { f [ ] }
-        [ "error in select-relation-case" throw ]
-    } case ;
 */

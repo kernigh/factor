@@ -3,7 +3,7 @@
 USING: accessors arrays assocs classes.mixin classes.parser
 classes.singleton classes.tuple combinators db.binders
 db.connections db.orm.fql db.orm.persistent db.types db.utils
-fry kernel lexer locals mirrors multiline sequences ;
+fry kernel lexer locals mirrors multiline sequences db.statements ;
 IN: db.orm
 
 
@@ -26,12 +26,19 @@ TUPLE: renamed-table table renamed ;
             [ lookup-persistent table-name>> ] bi@ "_" glue
             "_join_table(id primary key serial, " append add-sql
         ]
-        [
-            [ class>primary-key-create ] bi@ ", " glue add-sql ");" add-sql
-        ]
+        [ [ class>primary-key-create ] bi@ ", " glue add-sql ");" add-sql ]
     } 2cleave ;
 
-! create table class1_class2_join(id primary-key, class1_id1, class1_id2, class2_id1, class2_id2) ;
+: create-table ( class1 -- statement )
+    [ statement new ] dip
+    {
+        [ drop "create table " add-sql ]
+        [ table-name add-sql "(" add-sql ]
+        [
+            lookup-persistent columns>>
+            [ column>create-text ] map sift ", " join add-sql ");" add-sql
+        ]
+    } cleave ;
 
 
 : columns>out-tuple ( columns -- out-tuple )

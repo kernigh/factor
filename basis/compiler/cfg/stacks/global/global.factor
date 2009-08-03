@@ -30,7 +30,7 @@ M: avail-analysis transfer-set
 BACKWARD-ANALYSIS: kill
 
 M: kill-analysis transfer-set
-    drop [ replace-set assoc-union ] [ peek-set assoc-diff ] bi ;
+    drop [ kill-set assoc-union ] [ peek-set ] bi assoc-diff ;
 
 ! Main word
 : compute-global-sets ( cfg -- cfg' )

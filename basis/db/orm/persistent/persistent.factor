@@ -232,6 +232,8 @@ M: word relation-category? drop f ;
 
 
 
+ERROR: bad-relation-type obj ;
+
 GENERIC: relation-type ( obj -- obj' )
 
 M: db-column relation-type
@@ -313,29 +315,19 @@ M: db-column select-reconstructor*
 : select-reconstructor ( obj -- seq )
     [ select-reconstructor* ] [ ] make ;
 
+: ((column>create-text)) ( db-column -- )
+    {
+        [ type>> sql-type>string % ]
+        [ modifiers>> [ " " % sql-modifiers>string % ] when* ]
+    } cleave ;
 
 : (column>create-text) ( db-column -- string )
     [
-        {
-            [ slot-name>> % " " % ]
-            [ type>> sql-type>string % ]
-            [ modifiers>> [ " " % sql-modifiers>string % ] when* ]
-        } cleave
+        [ slot-name>> % " " % ] [ ((column>create-text)) ] bi
     ] "" make ;
 
-: column>create-text ( db-column -- string )
-    dup relation-category? [ 
-        dup relation-class [
-            drop f
-        ] [
-            (column>create-text)
-        ] if
-    ] [
-        (column>create-text)
-    ] if ;
-
 : (columns>create-text) ( seq -- seq )
-    [ column>create-text ] map sift ;
+    [ (column>create-text) ] map sift ;
 
 : columns>create-text ( seq -- string )
     (columns>create-text) ", " join ;
@@ -343,6 +335,30 @@ M: db-column select-reconstructor*
 : class>primary-key-create ( class -- string )
     [ table-name ] [ find-primary-key (columns>create-text) ] bi
     [ "_" glue ] with map ", " join ;
+
+: column>create-text ( db-column -- string )
+    dup relation-type {
+        { one:one [ relation-class class>primary-key-create ] }
+        { one:many [ drop f ] }
+        { many:one [ B relation-class class>primary-key-create ] }
+        { many:many [ drop f ] }
+        { f [ (column>create-text) ] }
+        [ bad-relation-type ]
+    } case ;
+
+
+/*
+: column>create-text ( db-column -- string )
+    dup relation-category? [ 
+        dup relation-class [
+            relation-type drop f
+        ] [
+            (column>create-text)
+        ] if
+    ] [
+        (column>create-text)
+    ] if ;
+*/
 
 /*
 : select-joins ( obj -- seq )

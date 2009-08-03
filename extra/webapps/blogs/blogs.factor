@@ -80,7 +80,7 @@ M: comment entity-url
     >>comments ;
 
 : reverse-chronological-order ( seq -- sorted )
-    [ [ date>> ] compare invert-comparison ] sort ;
+    [ date>> ] inv-sort-with ;
 
 : validate-author ( -- )
     { { "author" [ v-username ] } } validate-params ;

@@ -55,11 +55,11 @@ PERSISTENT: posting
 
 : blogroll ( -- seq )
     f <blog> select-tuples
-    [ [ name>> ] compare ] sort ;
+    [ name>> ] sort-with ;
 
 : postings ( -- seq )
     posting new select-tuples
-    [ [ date>> ] compare invert-comparison ] sort ;
+    [ date>> ] inv-sort-with ;
 
 : <edit-blogroll-action> ( -- action )
     <page-action>
@@ -98,7 +98,7 @@ PERSISTENT: posting
     [ '[ _ <posting> ] map ] 2map concat ;
 
 : sort-entries ( entries -- entries' )
-    [ [ date>> ] compare invert-comparison ] sort ;
+    [ date>> ] inv-sort-with ;
 
 : update-cached-postings ( -- )
     blogroll fetch-blogroll sort-entries 8 short head [

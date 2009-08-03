@@ -71,23 +71,29 @@ PERSISTENT: thread
 
 
 
-TUPLE: boat id year model ;
-TUPLE: owner id name ;
-TUPLE: boat-owner id boat owner ;
+TUPLE: boat id year model owners ;
+TUPLE: owner id name boats ;
+
+DEFER-PERSISTENT: owner
 
 PERSISTENT: boat
     { "id" +db-assigned-key+ }
     { "year" INTEGER }
-    { "model" VARCHAR } ;
+    { "model" VARCHAR }
+    { "owners" { owner sequence } } ;
 
 PERSISTENT: owner
     { "id" +db-assigned-key+ }
-    { "name" VARCHAR } ;
+    { "name" VARCHAR }
+    { "boats" { boat sequence } } ;
 
+/*
+TUPLE: boat-owner id boat owner ;
 PERSISTENT: boat-owner
     { "id" +db-assigned-key+ }
     { "boat" boat }
     { "owner" owner } ;
+*/
 
 
 

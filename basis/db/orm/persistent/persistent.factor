@@ -4,7 +4,7 @@ USING: accessors annotations arrays assocs classes
 classes.tuple combinators combinators.short-circuit
 constructors db.types db.utils kernel math multiline namespaces
 parser quotations sequences sets strings words make db.orm.fql
-fry ;
+fry lexer ;
 IN: db.orm.persistent
 
 ERROR: bad-table-name obj ;
@@ -24,11 +24,18 @@ GENERIC: parse-column-type ( object -- string )
 GENERIC: parse-column-modifiers ( object -- string )
 GENERIC: lookup-persistent ( obj -- persistent )
 
+ERROR: deferred-persistent class ;
+
+: check-deferred-persistent ( class obj -- class )
+    dup \ deferred-persistent = [ drop deferred-persistent ] when nip ;
+
 : ?lookup-persistent ( class -- persistent/f )
-    raw-persistent-table get ?at [ drop f ] unless ;
+    dup raw-persistent-table get ?at [ drop f ] unless
+    check-deferred-persistent ;
 
 : lookup-persistent* ( class -- persistent/f )
-    raw-persistent-table get ?at [ not-persistent ] unless ;
+    dup raw-persistent-table get ?at [ not-persistent ] unless
+    check-deferred-persistent ;
 
 : check-sanitized-name ( string -- string )
     dup dup sanitize-sql-name = [ bad-table-name ] unless ;
@@ -152,6 +159,14 @@ SYNTAX: PERSISTENT:
     \ ; parse-until
     [ parse-column ] map make-persistent ;
 
+SYNTAX: DEFER-PERSISTENT:
+    \ deferred-persistent scan-object
+    raw-persistent-table get ?at [
+        2drop
+    ] [
+        raw-persistent-table get set-at
+    ] if ;
+
 M: integer parse-table-name throw ;
 
 M: sequence parse-table-name
@@ -190,7 +205,7 @@ M: sequence parse-column-modifiers
 
 SYMBOL: table-names
 
-SINGLETONS: one:one one:many ;
+SINGLETONS: one:one one:many many:one many:many ;
 
 ERROR: bad-relation-type obj ;
 ERROR: bad-relation-class obj ;
@@ -250,6 +265,9 @@ M: sequence relation-class*
 : query-shape ( class -- seq )
     lookup-persistent columns>> [ dup relation-type ] { } map>assoc ;
 
+
+: filter-persistent ( quot -- seq )
+    [ raw-persistent-table get ] dip assoc-filter ; inline
 
 
 GENERIC: select-columns* ( obj -- )

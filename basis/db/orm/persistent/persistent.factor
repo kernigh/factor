@@ -265,10 +265,14 @@ M: sequence relation-class*
 : query-shape ( class -- seq )
     lookup-persistent columns>> [ dup relation-type ] { } map>assoc ;
 
-
 : filter-persistent ( quot -- seq )
     [ raw-persistent-table get ] dip assoc-filter ; inline
 
+: find-many:many-relations ( class -- seq )
+    sequence 2array
+    '[
+        nip columns>> [ type>> _ = ] filter empty? not
+    ] filter-persistent ;
 
 GENERIC: select-columns* ( obj -- )
 

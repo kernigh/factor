@@ -87,14 +87,6 @@ PERSISTENT: owner
     { "name" VARCHAR }
     { "boats" { boat sequence } } ;
 
-/*
-TUPLE: boat-owner id boat owner ;
-PERSISTENT: boat-owner
-    { "id" +db-assigned-key+ }
-    { "boat" boat }
-    { "owner" owner } ;
-*/
-
 
 
 

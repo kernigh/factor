@@ -18,6 +18,22 @@ IN: db.orm
 TUPLE: renamed-table table renamed ;
 
 
+: create-many:many-table ( class1 class2 -- statement )
+    [ statement new ] 2dip
+    {
+        [ 2drop "create table " add-sql ]
+        [
+            [ lookup-persistent table-name>> ] bi@ "_" glue
+            "_join_table(id primary key serial, " append add-sql
+        ]
+        [
+            [ class>primary-key-create ] bi@ ", " glue add-sql ");" add-sql
+        ]
+    } 2cleave ;
+
+! create table class1_class2_join(id primary-key, class1_id1, class1_id2, class2_id1, class2_id2) ;
+
+
 : columns>out-tuple ( columns -- out-tuple )
     [ first persistent>> [ class>> ] [ table-name>> ] bi ]
     [

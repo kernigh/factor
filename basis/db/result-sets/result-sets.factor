@@ -36,6 +36,16 @@ GENERIC: get-type ( binder/word -- type )
 
 M: sql-type get-type ;
 
+SYMBOL: current-result-set
+
+/*
+: with-result-set ( result-set quot -- )
+    [ current-result-set ] dip with-variable ; inline
+
+: get-next-column ( -- obj )
+    ;
+*/
+
 /*
 SYMBOL: sql-column-counter
 

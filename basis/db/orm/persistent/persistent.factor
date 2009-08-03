@@ -207,26 +207,28 @@ SYMBOL: table-names
 
 SINGLETONS: one:one one:many many:one many:many ;
 
-ERROR: bad-relation-type obj ;
+ERROR: bad-relation-category obj ;
 ERROR: bad-relation-class obj ;
 
 
-GENERIC: relation-type? ( obj -- ? )
+GENERIC: relation-category? ( obj -- ? )
 
-M: sequence relation-type?
+M: sequence relation-category?
     dup length {
-        { 1 [ first relation-type? ] }
-        { 2 [ first relation-type? ] }
-        [ drop bad-relation-type ]
+        { 1 [ first relation-category? ] }
+        { 2 [ first relation-category? ] }
+        [ drop bad-relation-category ]
     } case ;
 
-M: tuple-class relation-type? drop t ;
+M: db-column relation-category? type>> relation-category? ;
 
-M: word relation-type? drop f ;
+M: tuple-class relation-category? drop t ;
+
+M: word relation-category? drop f ;
 
 : relation-columns ( obj -- columns )
     lookup-persistent
-    columns>> [ type>> relation-type? ] filter ;
+    columns>> [ type>> relation-category? ] filter ;
 
 
 
@@ -241,8 +243,8 @@ M: tuple-class relation-type drop one:one ;
 M: sequence relation-type
     dup length {
         { 1 [ first relation-type ] }
-        { 2 [ first2 sequence = [ drop one:many ] [ bad-relation-type ] if ] }
-        [ drop bad-relation-type ]
+        { 2 [ first2 sequence = [ drop one:many ] [ bad-relation-category ] if ] }
+        [ drop bad-relation-category ]
     } case ;
 
 
@@ -310,6 +312,37 @@ M: db-column select-reconstructor*
 
 : select-reconstructor ( obj -- seq )
     [ select-reconstructor* ] [ ] make ;
+
+
+: (column>create-text) ( db-column -- string )
+    [
+        {
+            [ slot-name>> % " " % ]
+            [ type>> sql-type>string % ]
+            [ modifiers>> [ " " % sql-modifiers>string % ] when* ]
+        } cleave
+    ] "" make ;
+
+: column>create-text ( db-column -- string )
+    dup relation-category? [ 
+        dup relation-class [
+            drop f
+        ] [
+            (column>create-text)
+        ] if
+    ] [
+        (column>create-text)
+    ] if ;
+
+: (columns>create-text) ( seq -- seq )
+    [ column>create-text ] map sift ;
+
+: columns>create-text ( seq -- string )
+    (columns>create-text) ", " join ;
+
+: class>primary-key-create ( class -- string )
+    [ table-name ] [ find-primary-key (columns>create-text) ] bi
+    [ "_" glue ] with map ", " join ;
 
 /*
 : select-joins ( obj -- seq )

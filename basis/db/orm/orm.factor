@@ -21,7 +21,7 @@ TUPLE: renamed-table table renamed ;
 : create-many:many-table ( class1 class2 -- statement )
     [ statement new ] 2dip
     {
-        [ 2drop "create table " add-sql ]
+        [ 2drop "CREATE TABLE " add-sql ]
         [
             [ lookup-persistent table-name>> ] bi@ "_" glue
             "_join_table(id primary key serial, " append add-sql
@@ -29,16 +29,21 @@ TUPLE: renamed-table table renamed ;
         [ [ class>primary-key-create ] bi@ ", " glue add-sql ");" add-sql ]
     } 2cleave ;
 
-: create-table ( class1 -- statement )
+: create-table ( class -- statement )
     [ statement new ] dip
     {
-        [ drop "create table " add-sql ]
+        [ drop "CREATE TABLE " add-sql ]
         [ table-name add-sql "(" add-sql ]
         [
             lookup-persistent columns>>
             [ column>create-text ] map sift ", " join add-sql ");" add-sql
         ]
     } cleave ;
+
+: drop-table ( class -- statement )
+    table-name [ "DROP TABLE " ] dip ";" 3append
+    statement new
+        swap >>sql ;
 
 
 : columns>out-tuple ( columns -- out-tuple )

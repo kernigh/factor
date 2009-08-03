@@ -23,7 +23,7 @@ IN: compiler.cfg.stacks.finalize
     !   at the destination
     ! - the location is pending in the source but not the destination
     from pending-out to pending-in assoc-diff
-    to dead-in to live-in to avail-in assoc-diff assoc-diff
+    to dead-in to live-in to anticip-in assoc-diff assoc-diff
     assoc-diff ;
 
 : each-insertion ( assoc bb quot: ( vreg loc -- ) -- )

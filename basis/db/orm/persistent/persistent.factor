@@ -24,23 +24,18 @@ GENERIC: parse-column-type ( object -- string )
 GENERIC: parse-column-modifiers ( object -- string )
 GENERIC: lookup-persistent ( obj -- persistent )
 
-ERROR: deferred-persistent class ;
-
-: check-deferred-persistent ( class obj -- class )
-    dup \ deferred-persistent = [ drop deferred-persistent ] when nip ;
+SYMBOL: deferred-persistent
 
 : ?lookup-persistent ( class -- persistent/f )
-    dup raw-persistent-table get ?at [ drop f ] unless
-    check-deferred-persistent ;
+    raw-persistent-table get ?at [ drop f ] unless ;
 
 : lookup-persistent* ( class -- persistent/f )
-    dup raw-persistent-table get ?at [ not-persistent ] unless
-    check-deferred-persistent ;
+    raw-persistent-table get ?at [ not-persistent ] unless ;
 
 : check-sanitized-name ( string -- string )
     dup dup sanitize-sql-name = [ bad-table-name ] unless ;
 
-TUPLE: persistent class table-name columns primary-key ;
+TUPLE: persistent class table-name columns primary-key incomplete? ;
 
 CONSTRUCTOR: persistent ( class table-name columns -- obj ) ;
 
@@ -125,6 +120,11 @@ M: tuple find-primary-key ( class -- seq )
     [ column-name>> ] map all-unique?
     [ duplicate-persistent-columns ] unless ;
 
+GENERIC: lookup-raw-persistent ( obj -- obj' )
+M: persistent lookup-raw-persistent ;
+M: tuple lookup-raw-persistent class lookup-raw-persistent ;
+M: tuple-class lookup-raw-persistent raw-persistent-table get at ;
+
 M: persistent lookup-persistent ;
 
 M: tuple lookup-persistent class lookup-persistent ;
@@ -137,7 +137,7 @@ M: tuple-class lookup-persistent
     ] cache ;
 
 : ensure-persistent ( obj -- obj )
-    dup lookup-persistent [ not-persistent ] unless ;
+    dup lookup-raw-persistent [ not-persistent ] unless ;
 
 : ensure-type ( obj -- obj )
     dup tuple-class? [ ensure-persistent ] [ ensure-sql-type ] if ;
@@ -232,19 +232,17 @@ M: word relation-category? drop f ;
 
 
 
-ERROR: bad-relation-type obj ;
+GENERIC: relation-category ( obj -- obj' )
 
-GENERIC: relation-type ( obj -- obj' )
+M: db-column relation-category
+    type>> relation-category ;
 
-M: db-column relation-type
-    type>> relation-type ;
+M: object relation-category drop f ;
+M: tuple-class relation-category drop one:one ;
 
-M: object relation-type drop f ;
-M: tuple-class relation-type drop one:one ;
-
-M: sequence relation-type
+M: sequence relation-category
     dup length {
-        { 1 [ first relation-type ] }
+        { 1 [ first relation-category ] }
         { 2 [ first2 sequence = [ drop one:many ] [ bad-relation-category ] if ] }
         [ drop bad-relation-category ]
     } case ;
@@ -267,7 +265,7 @@ M: sequence relation-class*
 
 
 : query-shape ( class -- seq )
-    lookup-persistent columns>> [ dup relation-type ] { } map>assoc ;
+    lookup-persistent columns>> [ dup relation-category ] { } map>assoc ;
 
 : filter-persistent ( quot -- seq )
     [ raw-persistent-table get ] dip assoc-filter ; inline
@@ -300,7 +298,7 @@ M: persistent select-reconstructor*
     columns>> [ select-reconstructor* ] each ;
 
 M: db-column select-reconstructor*
-    dup relation-type {
+    dup relation-category {
         { one:one [
             [ type>> lookup-persistent select-reconstructor* ]
             [ setter>> , ] bi
@@ -337,13 +335,13 @@ M: db-column select-reconstructor*
     [ "_" glue ] with map ", " join ;
 
 : column>create-text ( db-column -- string )
-    dup relation-type {
+    dup relation-category {
         { one:one [ relation-class class>primary-key-create ] }
         { one:many [ drop f ] }
         { many:one [ B relation-class class>primary-key-create ] }
         { many:many [ drop f ] }
         { f [ (column>create-text) ] }
-        [ bad-relation-type ]
+        [ bad-relation-category ]
     } case ;
 
 
@@ -351,7 +349,7 @@ M: db-column select-reconstructor*
 : column>create-text ( db-column -- string )
     dup relation-category? [ 
         dup relation-class [
-            relation-type drop f
+            relation-category drop f
         ] [
             (column>create-text)
         ] if

@@ -236,16 +236,6 @@ SYMBOL: tables
 
 GENERIC: expand-out ( obj -- names binders )
 
-M: out-tuple-binder expand-out ( obj -- names binders )
-    [
-        [ table>> ] [ binders>> ] bi
-        [ name>> "." glue ] with map
-    ] keep 1array ;
-
-    ! [ table>> ] [ binders>> ] bi
-    ! [ [ first "." glue ] with map ] [ [ first3 <out-tuple-slot-binder> ] map ] bi ;
-
-
 : select-out ( statement tuple -- statement )
     columns>> [ expand-out ] { } map>assoc
     [ keys concat ", " join add-sql ] [ values concat >>out ] bi ;
@@ -382,22 +372,6 @@ M: delete expand-fql*
 
 : lookup-persistent-slot ( string class -- slot )
     lookup-persistent columns>> [ slot-name>> = ] with find nip ;
-
-: tuple-out>tuple-binder ( tuple-out -- tuple-binder )
-    [ class>> ]
-    [
-        [ slots>> ] [ class>> ] bi
-        '[
-            _ lookup-persistent-slot
-            [ slot-name>> ] [ type>> ] bi <return-binder>
-        ] map
-    ] bi <tuple-binder> ;
-
-: expand-tuple-out ( statement tuple-out -- statement )
-    [ tuple-out>slots ", " join add-sql ] [ tuple-out>tuple-binder add-out-param ] bi ;
-
-M: tuples-out expand-fql*
-    [ expand-tuple-out ] each ;
 
 TUPLE: set-operator < fql all? selects ;
 

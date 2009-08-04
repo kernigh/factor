@@ -52,19 +52,13 @@ TUPLE: renamed-table table renamed ;
     statement new
         swap >>sql ;
 
-: columns>out-tuple ( columns -- out-tuple )
+: columns>out-tuple ( columns -- seq )
     [ first persistent>> [ class>> ] [ table-name>> ] bi ]
-    [
-        [
-            [ column-name>> ]
-            [ type>> ]
-            [ setter>> ] tri <out-tuple-slot-binder>
-        ] map
-    ] bi <out-tuple-binder> ;
+    [ [ type>> 3array ] with with map ] bi ;
 
-: columns>out-tuples ( columns column -- seq )
-    [ [ type>> lookup-persistent columns>> columns>out-tuple ] map ]
-    [ columns>out-tuple prefix ] bi* ; inline
+: columns>out-tuples ( columns1 columns2 -- seq )
+    [ [ type>> lookup-persistent columns>> columns>out-tuple ] map concat ]
+    [ columns>out-tuple prepend ] bi* ; inline
 
 : select-columns ( tuple -- seq )
     lookup-persistent
@@ -95,14 +89,3 @@ TUPLE: renamed-table table renamed ;
         dup tuple? [ canonicalize-tuple ] [ IGNORE = IGNORE f ? ] if
     ] change-each >tuple ;
 
-
-
-
-/*
-    relations [
-        tuple select-tuples-plain
-    ] [
-        drop f
-        ! select-tuples-relations
-    ] if-empty ;
-*/

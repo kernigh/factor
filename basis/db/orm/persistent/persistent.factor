@@ -372,18 +372,6 @@ M: db-column select-reconstructor*
     find-one:many-columns
     [ persistent>> class>> class>foreign-key-create ] map ", " join ;
 
-/*
-: column>create-text ( db-column -- string )
-    dup relation-category? [ 
-        dup relation-class [
-            relation-category drop f
-        ] [
-            (column>create-text)
-        ] if
-    ] [
-        (column>create-text)
-    ] if ;
-*/
 
 /*
 : select-joins ( obj -- seq )

@@ -52,7 +52,6 @@ TUPLE: renamed-table table renamed ;
     statement new
         swap >>sql ;
 
-
 : columns>out-tuple ( columns -- out-tuple )
     [ first persistent>> [ class>> ] [ table-name>> ] bi ]
     [
@@ -90,6 +89,11 @@ TUPLE: renamed-table table renamed ;
     ;
 
 
+
+: canonicalize-tuple ( tuple -- tuple' )
+    tuple>array dup rest-slice [
+        dup tuple? [ canonicalize-tuple ] [ IGNORE = IGNORE f ? ] if
+    ] change-each >tuple ;
 
 
 

@@ -36,7 +36,14 @@ TUPLE: renamed-table table renamed ;
         [ table-name add-sql "(" add-sql ]
         [
             lookup-persistent columns>>
-            [ column>create-text ] map sift ", " join add-sql ");" add-sql
+            [ column>create-text ] map sift ", " join add-sql
+        ] [
+            class>one:many-relations [
+                [ ", " ] dip [ add-sql ] bi@
+            ] unless-empty
+        ] [
+            class>primary-key-create add-sql
+            ");" add-sql
         ]
     } cleave ;
 

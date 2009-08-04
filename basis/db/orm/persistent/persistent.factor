@@ -22,6 +22,7 @@ GENERIC: parse-table-name ( object -- class table )
 GENERIC: parse-name ( object -- accessor column )
 GENERIC: parse-column-type ( object -- string )
 GENERIC: parse-column-modifiers ( object -- string )
+GENERIC: lookup-raw-persistent ( obj -- obj' )
 GENERIC: lookup-persistent ( obj -- persistent )
 
 SYMBOL: deferred-persistent
@@ -120,7 +121,6 @@ M: tuple find-primary-key ( class -- seq )
     [ column-name>> ] map all-unique?
     [ duplicate-persistent-columns ] unless ;
 
-GENERIC: lookup-raw-persistent ( obj -- obj' )
 M: persistent lookup-raw-persistent ;
 M: tuple lookup-raw-persistent class lookup-raw-persistent ;
 M: tuple-class lookup-raw-persistent raw-persistent-table get at ;
@@ -262,18 +262,25 @@ M: sequence relation-class*
         [ drop first ]
     } case ;
 
+M: object relation-class* drop f ;
 
 
 : query-shape ( class -- seq )
     lookup-persistent columns>> [ dup relation-category ] { } map>assoc ;
 
 : filter-persistent ( quot -- seq )
-    [ raw-persistent-table get ] dip assoc-filter ; inline
+    [ raw-persistent-table get values ] dip filter ; inline
+
+: map-persistent ( quot -- seq )
+    [ raw-persistent-table get values ] dip { } map-as ; inline
+
+: each-persistent ( quot -- )
+    [ raw-persistent-table get values ] dip each ; inline
 
 : find-many:many-relations ( class -- seq )
     sequence 2array
     '[
-        nip columns>> [ type>> _ = ] filter empty? not
+        columns>> [ type>> _ = ] filter empty? not
     ] filter-persistent ;
 
 GENERIC: select-columns* ( obj -- )
@@ -330,20 +337,40 @@ M: db-column select-reconstructor*
 : columns>create-text ( seq -- string )
     (columns>create-text) ", " join ;
 
-: class>primary-key-create ( class -- string )
+: class>foreign-key-create ( class -- string )
     [ table-name ] [ find-primary-key (columns>create-text) ] bi
     [ "_" glue ] with map ", " join ;
 
+: class>primary-key-create ( class -- string )
+    find-primary-key [
+        f
+    ] [
+        [ column-name>> ] map "," join
+        ", primary key(" ")" surround
+    ] if-empty ;
+
 : column>create-text ( db-column -- string )
     dup relation-category {
-        { one:one [ relation-class class>primary-key-create ] }
+        { one:one [ relation-class class>foreign-key-create ] }
         { one:many [ drop f ] }
-        { many:one [ B relation-class class>primary-key-create ] }
+        { many:one [ B relation-class class>foreign-key-create ] }
         { many:many [ drop f ] }
         { f [ (column>create-text) ] }
         [ bad-relation-category ]
     } case ;
 
+
+: find-one:many-columns ( class -- seq )
+    '[
+        columns>> [
+            [ relation-class _ = ]
+            [ relation-category one:many = ] bi and
+        ] filter
+    ] map-persistent concat ;
+
+: class>one:many-relations ( class -- string )
+    find-one:many-columns
+    [ persistent>> class>> class>foreign-key-create ] map ", " join ;
 
 /*
 : column>create-text ( db-column -- string )

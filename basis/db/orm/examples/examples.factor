@@ -72,7 +72,7 @@ PERSISTENT: thread
 
 TUPLE: author2 id name addresses ;
 
-TUPLE: address2 name street1 street2 street3 city state country zip ;
+TUPLE: address2 name street1 street2 street3 city state country zip1 zip2 ;
 
 TUPLE: comment2 id author text ts ;
 
@@ -93,7 +93,8 @@ PERSISTENT: address2
     { "city" VARCHAR }
     { "state" VARCHAR }
     { "country" VARCHAR }
-    { "zip" VARCHAR } ;
+    { "zip1" INTEGER }
+    { "zip2" INTEGER } ;
 
 PERSISTENT: comment2
     { "id" +db-assigned-key+ }

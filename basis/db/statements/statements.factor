@@ -4,7 +4,7 @@ USING: accessors arrays continuations db.connections db.errors
 db.result-sets db.utils destructors fry kernel sequences ;
 IN: db.statements
 
-TUPLE: statement handle sql in out type ;
+TUPLE: statement handle sql in out reconstructor type ;
 
 TUPLE: parameter type value ;
 

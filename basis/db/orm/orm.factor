@@ -52,17 +52,22 @@ TUPLE: renamed-table table renamed ;
     statement new
         swap >>sql ;
 
-: columns>out-tuple ( columns -- seq )
-    [ first persistent>> [ class>> ] [ table-name>> ] bi ]
-    [ [ type>> 3array ] with with map ] bi ;
+DEFER: select-columns
 
 : columns>out-tuples ( columns1 columns2 -- seq )
-    [ [ type>> lookup-persistent columns>> columns>out-tuple ] map concat ]
-    [ columns>out-tuple prepend ] bi* ; inline
+    [ [ relation-class select-columns ] map concat ]
+    [ prepend ] bi* ; inline
 
 : select-columns ( tuple -- seq )
     lookup-persistent
-    columns>> [ type>> tuple-class? ] partition columns>out-tuples ;
+    columns>> [ relation-category ] partition columns>out-tuples ;
+
+: select-joins ( tuple -- seq )
+    dup lookup-persistent {
+        [
+            [ canonicalize-tuple ] dip
+        ]
+    } 2cleave ;
 
 : select-tuples-plain ( tuple -- fql )
     [ select new ] dip {
@@ -88,4 +93,3 @@ TUPLE: renamed-table table renamed ;
     tuple>array dup rest-slice [
         dup tuple? [ canonicalize-tuple ] [ IGNORE = IGNORE f ? ] if
     ] change-each >tuple ;
-

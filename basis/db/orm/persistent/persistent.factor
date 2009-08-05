@@ -359,7 +359,6 @@ M: db-column select-reconstructor*
         [ bad-relation-category ]
     } case ;
 
-
 : find-one:many-columns ( class -- seq )
     '[
         columns>> [
@@ -371,7 +370,6 @@ M: db-column select-reconstructor*
 : class>one:many-relations ( class -- string )
     find-one:many-columns
     [ persistent>> class>> class>foreign-key-create ] map ", " join ;
-
 
 /*
 : select-joins ( obj -- seq )

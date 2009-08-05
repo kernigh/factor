@@ -74,11 +74,10 @@ DEFER: select-columns
                 3drop f
             ] [
                 [ dup relation-class new ] unless* (tuple>relations)
-
                 [
                     [
                         nip [ relation-class ]
-                        [ relation-category ] bi 2array sift
+                        [ relation-category ] bi 2array sift 1array
                     ] dip append
                 ] [
                     2drop f

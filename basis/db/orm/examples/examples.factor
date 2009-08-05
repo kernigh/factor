@@ -97,7 +97,7 @@ PERSISTENT: owner
 
 TUPLE: company id departments ;
 TUPLE: department id employees ;
-TUPLE: employee id department ;
+TUPLE: employee id name ;
 TUPLE: supervisor id employee department ;
 TUPLE: product id name ;
 TUPLE: task id decription ;
@@ -120,7 +120,7 @@ PERSISTENT: department
 
 PERSISTENT: employee
     { "id" +db-assigned-key+ }
-    { "department" department } ;
+    { "name" VARCHAR } ;
 
 PERSISTENT: supervisor
     { "id" +db-assigned-key+ }

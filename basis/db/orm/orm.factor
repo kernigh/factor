@@ -52,6 +52,11 @@ TUPLE: renamed-table table renamed ;
     statement new
         swap >>sql ;
 
+: canonicalize-tuple ( tuple -- tuple' )
+    tuple>array dup rest-slice [
+        dup tuple? [ canonicalize-tuple ] [ IGNORE = IGNORE f ? ] if
+    ] change-each >tuple ;
+
 DEFER: select-columns
 
 : columns>out-tuples ( columns1 columns2 -- seq )
@@ -62,12 +67,30 @@ DEFER: select-columns
     lookup-persistent
     columns>> [ relation-category ] partition columns>out-tuples ;
 
-: select-joins ( tuple -- seq )
-    dup lookup-persistent {
-        [
-            [ canonicalize-tuple ] dip
-        ]
-    } 2cleave ;
+: (tuple>relations) ( tuple -- seq )
+    dup lookup-persistent columns>> [
+        dup relation-category [
+            2dup getter>> call( obj -- obj' ) dup IGNORE = [
+                3drop f
+            ] [
+                [ dup relation-class new ] unless* (tuple>relations)
+
+                [
+                    [
+                        nip [ relation-class ]
+                        [ relation-category ] bi 2array sift
+                    ] dip append
+                ] [
+                    2drop f
+                ] if*
+            ] if
+        ] [
+            2drop f
+        ] if
+    ] with map harvest ;
+
+: tuple>relations ( tuple -- seq )
+    canonicalize-tuple (tuple>relations) ;
 
 : select-tuples-plain ( tuple -- fql )
     [ select new ] dip {
@@ -88,8 +111,3 @@ DEFER: select-columns
     ;
 
 
-
-: canonicalize-tuple ( tuple -- tuple' )
-    tuple>array dup rest-slice [
-        dup tuple? [ canonicalize-tuple ] [ IGNORE = IGNORE f ? ] if
-    ] change-each >tuple ;

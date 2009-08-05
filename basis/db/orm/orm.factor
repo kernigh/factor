@@ -4,7 +4,7 @@ USING: accessors arrays assocs classes.mixin classes.parser
 classes.singleton classes.tuple combinators db.binders
 db.connections db.orm.fql db.orm.persistent db.types db.utils
 fry kernel lexer locals mirrors multiline sequences db.statements
-make classes ;
+make classes shuffle ;
 IN: db.orm
 
 
@@ -68,47 +68,36 @@ DEFER: select-columns
     lookup-persistent
     columns>> [ relation-category ] partition columns>out-tuples ;
 
-: (tuple>relations) ( tuple -- )
+SYMBOL: table-counter
+
+: (tuple>relations) ( n tuple -- )
     [ ] [ lookup-persistent columns>> ] bi [
         dup relation-category [
             2dup getter>> call( obj -- obj' ) dup IGNORE = [
-                3drop
+                4drop
             ] [
                 [ dup relation-class new ] unless*
                 over relation-category [
                     swap [
-                        [ [ class ] [ relation-class ] bi* ] dip 3array ,
-                    ] dip (tuple>relations)
+                        [
+                            [ class swap 2array ]
+                            [ relation-class table-counter [ inc ] [ get ] bi 2array ] bi*
+                        ] dip 3array ,
+                    ] dip
+                    [ table-counter get ] dip (tuple>relations)
                 ] [
-                    3drop
+                    4drop
                 ] if*
             ] if
         ] [
-            2drop
+            3drop
         ] if
-    ] with each ;
-
-/*
-{
-    { thread2 author2 one:one }
-    { author2 address2 one:many }
-    { thread2 comment2 one:many }
-    { comment2 author2 one:one }
-    { author2 address2 one:many }
-}
-
-{
-    { { thread2 0 } { author2 1 } one:one }
-    { { author2 1 } { address2 2 } one:many }
-    { { thread2 0 } { comment2 3 } one:many }
-    { { comment2 3 } { author2 4 } one:one }
-    { { author2 4 } { address2 5 } one:many }
-}
-*/
-
+    ] with with each ;
 
 : tuple>relations ( tuple -- seq )
-    [ (tuple>relations) ] { } make ;
+    0 table-counter [
+        [ 0 swap (tuple>relations) ] { } make
+    ] with-variable ;
 
 : select-tuples-plain ( tuple -- fql )
     [ select new ] dip {

@@ -4,7 +4,7 @@ USING: accessors arrays assocs classes.mixin classes.parser
 classes.singleton classes.tuple combinators db.binders
 db.connections db.orm.fql db.orm.persistent db.types db.utils
 fry kernel lexer locals mirrors multiline sequences db.statements
-make ;
+make classes ;
 IN: db.orm
 
 
@@ -68,18 +68,17 @@ DEFER: select-columns
     lookup-persistent
     columns>> [ relation-category ] partition columns>out-tuples ;
 
-: (tuple>relations2) ( tuple -- )
+: (tuple>relations) ( tuple -- )
     [ ] [ lookup-persistent columns>> ] bi [
         dup relation-category [
             2dup getter>> call( obj -- obj' ) dup IGNORE = [
                 3drop
             ] [
                 [ dup relation-class new ] unless*
-
                 over relation-category [
                     swap [
                         [ [ class ] [ relation-class ] bi* ] dip 3array ,
-                    ] dip (tuple>relations2)
+                    ] dip (tuple>relations)
                 ] [
                     3drop
                 ] if*
@@ -89,8 +88,8 @@ DEFER: select-columns
         ] if
     ] with each ;
 
-: tuple>relations2 ( tuple -- seq )
-    [ (tuple>relations2) ] { } make ;
+: tuple>relations ( tuple -- seq )
+    [ (tuple>relations) ] { } make ;
 
 : select-tuples-plain ( tuple -- fql )
     [ select new ] dip {
@@ -109,5 +108,3 @@ DEFER: select-columns
     
     f
     ;
-
-

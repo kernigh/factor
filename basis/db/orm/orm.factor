@@ -88,6 +88,25 @@ DEFER: select-columns
         ] if
     ] with each ;
 
+/*
+{
+    { thread2 author2 one:one }
+    { author2 address2 one:many }
+    { thread2 comment2 one:many }
+    { comment2 author2 one:one }
+    { author2 address2 one:many }
+}
+
+{
+    { { thread2 0 } { author2 1 } one:one }
+    { { author2 1 } { address2 2 } one:many }
+    { { thread2 0 } { comment2 3 } one:many }
+    { { comment2 3 } { author2 4 } one:one }
+    { { author2 4 } { address2 5 } one:many }
+}
+*/
+
+
 : tuple>relations ( tuple -- seq )
     [ (tuple>relations) ] { } make ;
 

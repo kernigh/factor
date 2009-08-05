@@ -70,6 +70,47 @@ PERSISTENT: thread
 
 
 
+TUPLE: author2 id name addresses ;
+
+TUPLE: address2 name street1 street2 street3 city state country zip ;
+
+TUPLE: comment2 id author text ts ;
+
+TUPLE: thread2 id topic author ts comments ;
+
+DEFER-PERSISTENT: address2
+
+PERSISTENT: author2
+    { "id" +db-assigned-key+ }
+    { "name" VARCHAR }
+    { "addresses" { address2 sequence } } ;
+
+PERSISTENT: address2
+    { "id" +db-assigned-key+ }
+    { "street1" VARCHAR }
+    { "street2" VARCHAR }
+    { "street3" VARCHAR }
+    { "city" VARCHAR }
+    { "state" VARCHAR }
+    { "country" VARCHAR }
+    { "zip" VARCHAR } ;
+
+PERSISTENT: comment2
+    { "id" +db-assigned-key+ }
+    { "author" author2 }
+    { "text" VARCHAR }
+    { "ts" TIMESTAMP } ;
+
+PERSISTENT: thread2
+    { "id" +db-assigned-key+ }
+    { "topic" VARCHAR }
+    { "author" author2 }
+    { "ts" TIMESTAMP }
+    { "comments" { comment2 sequence } } ;
+
+
+
+
 
 TUPLE: vehicle id year model owners ;
 TUPLE: boat < vehicle ;
@@ -144,6 +185,11 @@ PERSISTENT: employee-product-task
     { "id" +db-assigned-key+ }
     { "employee" employee }
     { "product-task" product-task } ;
+
+
+
+
+
 
 
 

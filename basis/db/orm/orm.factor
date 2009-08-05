@@ -3,7 +3,8 @@
 USING: accessors arrays assocs classes.mixin classes.parser
 classes.singleton classes.tuple combinators db.binders
 db.connections db.orm.fql db.orm.persistent db.types db.utils
-fry kernel lexer locals mirrors multiline sequences db.statements ;
+fry kernel lexer locals mirrors multiline sequences db.statements
+make ;
 IN: db.orm
 
 
@@ -67,29 +68,29 @@ DEFER: select-columns
     lookup-persistent
     columns>> [ relation-category ] partition columns>out-tuples ;
 
-: (tuple>relations) ( tuple -- seq )
-    dup lookup-persistent columns>> [
+: (tuple>relations2) ( tuple -- )
+    [ ] [ lookup-persistent columns>> ] bi [
         dup relation-category [
             2dup getter>> call( obj -- obj' ) dup IGNORE = [
-                3drop f
+                3drop
             ] [
-                [ dup relation-class new ] unless* (tuple>relations)
-                [
-                    [
-                        nip [ relation-class ]
-                        [ relation-category ] bi 2array sift 1array
-                    ] dip append
+                [ dup relation-class new ] unless*
+
+                over relation-category [
+                    swap [
+                        [ [ class ] [ relation-class ] bi* ] dip 3array ,
+                    ] dip (tuple>relations2)
                 ] [
-                    2drop f
+                    3drop
                 ] if*
             ] if
         ] [
-            2drop f
+            2drop
         ] if
-    ] with map harvest ;
+    ] with each ;
 
-: tuple>relations ( tuple -- seq )
-    canonicalize-tuple (tuple>relations) ;
+: tuple>relations2 ( tuple -- seq )
+    [ (tuple>relations2) ] { } make ;
 
 : select-tuples-plain ( tuple -- fql )
     [ select new ] dip {

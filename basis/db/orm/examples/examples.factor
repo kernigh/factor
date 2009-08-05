@@ -71,23 +71,79 @@ PERSISTENT: thread
 
 
 
-TUPLE: boat id year model owners ;
-TUPLE: owner id name boats ;
+TUPLE: vehicle id year model owners ;
+TUPLE: boat < vehicle ;
+TUPLE: car < vehicle ;
+TUPLE: owner id name boats cars ;
 
 DEFER-PERSISTENT: owner
 
-PERSISTENT: boat
+PERSISTENT: vehicle
     { "id" +db-assigned-key+ }
     { "year" INTEGER }
     { "model" VARCHAR }
     { "owners" { owner sequence } } ;
 
+PERSISTENT: boat ;
+PERSISTENT: car ;
+
 PERSISTENT: owner
     { "id" +db-assigned-key+ }
     { "name" VARCHAR }
-    { "boats" { boat sequence } } ;
+    { "boats" { boat sequence } }
+    { "cars" { car sequence } } ;
 
 
+
+TUPLE: company id departments ;
+TUPLE: department id employees ;
+TUPLE: employee id department ;
+TUPLE: supervisor id employee department ;
+TUPLE: product id name ;
+TUPLE: task id decription ;
+TUPLE: product-task id product task ;
+TUPLE: employee-product-task id employee product-task ;
+
+DEFER-PERSISTENT: department
+DEFER-PERSISTENT: employee
+DEFER-PERSISTENT: supervisor
+DEFER-PERSISTENT: product
+DEFER-PERSISTENT: employee-product-task
+
+PERSISTENT: company
+    { "id" +db-assigned-key+ }
+    { "departments" { department sequence } } ;
+
+PERSISTENT: department
+    { "id" +db-assigned-key+ }
+    { "employees" { employee sequence } } ;
+
+PERSISTENT: employee
+    { "id" +db-assigned-key+ }
+    { "department" department } ;
+
+PERSISTENT: supervisor
+    { "id" +db-assigned-key+ }
+    { "employee" employee }
+    { "department" department } ;
+
+PERSISTENT: product
+    { "id" +db-assigned-key+ }
+    { "name" VARCHAR } ;
+
+PERSISTENT: task
+    { "id" +db-assigned-key+ }
+    { "description" VARCHAR } ;
+
+PERSISTENT: product-task
+    { "id" +db-assigned-key+ }
+    { "product" product }
+    { "task" task } ;
+
+PERSISTENT: employee-product-task
+    { "id" +db-assigned-key+ }
+    { "employee" employee }
+    { "product-task" product-task } ;
 
 
 

@@ -16,7 +16,8 @@ IN: db.orm
     [ lookup-persistent columns>> ] [ <mirror> ] bi
     '[ slot-name>> _ at \ aggregate-function subclass? not ] filter ;
 
-TUPLE: renamed-table table renamed ;
+: filter-relations ( obj -- columns )
+    lookup-persistent columns>> [ relation-category not ] filter ;
 
 
 : create-many:many-table ( class1 class2 -- statement )
@@ -103,7 +104,7 @@ SYMBOL: table-counter
     [
         first
         [ first2 [ name>> ] [ number>string ] bi* "_" glue ]
-        [ nip first lookup-persistent columns>> ] 2bi
+        [ nip first filter-relations ] 2bi
         [
             column-name>> "." glue
         ] with map ", " join
@@ -120,18 +121,13 @@ SYMBOL: table-counter
         "\n LEFT JOIN " prepend
     ] map ", " join add-sql ;
 
+! Needs tuple for filtering slots
 : relations>select ( relations -- statement )
     [ statement new ] dip {
         [ drop "SELECT " add-sql ]
         [ select-outs ]
-        [ drop " FROM " add-sql ]
+        [ drop "\n FROM " add-sql ]
         [ first first first table-name add-sql " AS " add-sql ]
         [ first first renamed-table-name add-sql ]
         [ select-joins ]
     } cleave ;
-
-:: select-tuples ( tuple -- seq )
-    tuple lookup-persistent :> persistent
-    persistent relation-columns :> relations
-    f
-    ;

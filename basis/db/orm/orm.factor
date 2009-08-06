@@ -31,6 +31,13 @@ IN: db.orm
         [ [ class>primary-key-create ] bi@ ", " glue add-sql ");" add-sql ]
     } 2cleave ;
 
+: actual-columns ( obj -- columns relation-columns )
+    [ lookup-persistent columns>> ]
+    [
+        find-one:many-columns
+        [ persistent>> class>> find-primary-key ] map concat
+    ] bi ;
+
 : create-table ( class -- statement )
     [ statement new ] dip
     {
@@ -100,14 +107,24 @@ SYMBOL: table-counter
         [ 0 swap (tuple>relations) ] { } make
     ] with-variable ;
 
+/*
 : select-outs ( statement relations -- statement' )
     [
         first
         [ first2 [ name>> ] [ number>string ] bi* "_" glue ]
         [ nip first filter-relations ] 2bi
-        [
-            column-name>> "." glue
-        ] with map ", " join
+        [ column-name>> "." glue ] with map ", " join
+    ] map ",\n " join add-sql ;
+*/
+
+: select-outs ( statement relations -- statement' )
+    [
+        first
+        [ first2 [ name>> ] [ number>string ] bi* "_" glue ]
+        [ nip first actual-columns ] 2bi
+        [ [ column-name>> "." glue ] with map ]
+        [ [ [ persistent>> table-name>> ] [ column-name>> ] bi "_" glue "." glue ] with map ]
+        bi-curry* bi [ ", " join ] bi@ [ ", " glue ] unless-empty
     ] map ",\n " join add-sql ;
 
 : renamed-table-name ( pair -- string )
@@ -131,3 +148,34 @@ SYMBOL: table-counter
         [ first first renamed-table-name add-sql ]
         [ select-joins ]
     } cleave ;
+
+
+/*
+
+SELECT thread2_0.id, thread2_0.topic, thread2_0.ts,
+ author2_1.id, author2_1.name,
+ thread2_0.id, thread2_0.topic, thread2_0.ts,
+ comment2_3.id, comment2_3.text, comment2_3.ts,
+ author2_4.id, author2_4.name
+ FROM thread2 AS thread2_0
+ LEFT JOIN thread2 ON author2 AS author2_1, 
+ LEFT JOIN author2 ON address2 AS address2_2, 
+ LEFT JOIN thread2 ON comment2 AS comment2_3, 
+ LEFT JOIN comment2 ON author2 AS author2_4, 
+ LEFT JOIN author2 ON address2 AS address2_5
+
+SELECT thread2_0.id, thread2_0.topic, thread2_0.ts,
+ author2_1.id, author2_1.name,
+ address2_2.id, ..., address2_2.author_id
+ comment2_3.id, comment2_3.text, comment2_3.ts, comment2_3.thread_id,
+ author2_4.id, author2_4.name
+ address2_5.id, ..., address2_5.author_id
+ FROM thread2 AS thread2_0
+ LEFT JOIN thread2 ON author2 AS author2_1, 
+ LEFT JOIN author2 ON address2 AS address2_2, 
+ LEFT JOIN thread2 ON comment2 AS comment2_3, 
+ LEFT JOIN comment2 ON author2 AS author2_4, 
+ LEFT JOIN author2 ON address2 AS address2_5
+
+
+*/

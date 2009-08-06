@@ -4,7 +4,7 @@ USING: accessors arrays assocs classes.mixin classes.parser
 classes.singleton classes.tuple combinators db.binders
 db.connections db.orm.fql db.orm.persistent db.types db.utils
 fry kernel lexer locals mirrors multiline sequences db.statements
-make classes shuffle ;
+make classes shuffle namespaces math.parser ;
 IN: db.orm
 
 
@@ -99,20 +99,39 @@ SYMBOL: table-counter
         [ 0 swap (tuple>relations) ] { } make
     ] with-variable ;
 
-: select-tuples-plain ( tuple -- fql )
-    [ select new ] dip {
-        [ select-columns >>columns ]
-        [ lookup-persistent table-name>> >>from ]
-    } cleave ;
+: select-outs ( statement relations -- statement' )
+    [
+        first
+        [ first2 [ name>> ] [ number>string ] bi* "_" glue ]
+        [ nip first lookup-persistent columns>> ] 2bi
+        [
+            column-name>> "." glue
+        ] with map ", " join
+    ] map ",\n " join add-sql ;
 
-: select-tuples-relations ( tuple -- fql )
-    [ select new ] dip {
-        [ select-columns >>columns ]
+: renamed-table-name ( pair -- string )
+    first2 [ table-name ] [ number>string ] bi* "_" glue ;
+
+: select-joins ( statement relations -- statement' )
+    [
+        first2
+        [ [ first table-name ] bi@ " ON " glue ]
+        [ nip renamed-table-name " AS " glue ] 2bi
+        "\n LEFT JOIN " prepend
+    ] map ", " join add-sql ;
+
+: relations>select ( relations -- statement )
+    [ statement new ] dip {
+        [ drop "SELECT " add-sql ]
+        [ select-outs ]
+        [ drop " FROM " add-sql ]
+        [ first first first table-name add-sql " AS " add-sql ]
+        [ first first renamed-table-name add-sql ]
+        [ select-joins ]
     } cleave ;
 
 :: select-tuples ( tuple -- seq )
     tuple lookup-persistent :> persistent
     persistent relation-columns :> relations
-    
     f
     ;

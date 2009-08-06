@@ -359,13 +359,9 @@ M: db-column select-reconstructor*
         [ bad-relation-category ]
     } case ;
 
-: find-one:many-columns ( obj -- seq )
-    lookup-persistent class>> '[
-        columns>> [
-            [ relation-class _ = ]
-            [ relation-category one:many = ] bi and
-        ] filter
-    ] map-persistent concat ;
+: find-one:many-columns ( obj -- seq ) lookup-persistent class>> '[
+    columns>> [ [ relation-class _ = ] [ relation-category one:many =
+    ] bi and ] filter ] map-persistent concat ;
 
 : class>one:many-relations ( class -- string )
     find-one:many-columns

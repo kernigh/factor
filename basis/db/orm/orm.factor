@@ -107,6 +107,9 @@ SYMBOL: table-counter
         [ 0 swap (tuple>relations) ] { } make
     ] with-variable ;
 
+: sort-relations ( relations -- seq )
+    [ first2 ] { } map>assoc concat prune ;
+
 /*
 : select-outs ( statement relations -- statement' )
     [
@@ -118,8 +121,7 @@ SYMBOL: table-counter
 */
 
 : select-outs ( statement relations -- statement' )
-    [
-        first
+    sort-relations [
         [ first2 [ name>> ] [ number>string ] bi* "_" glue ]
         [ nip first actual-columns ] 2bi
         [ [ column-name>> "." glue ] with map ]

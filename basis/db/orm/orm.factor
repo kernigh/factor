@@ -132,8 +132,14 @@ SYMBOL: table-counter
 : renamed-table-name ( pair -- string )
     first2 [ table-name ] [ number>string ] bi* "_" glue ;
 
+!TODO
+: primary-keys ( pair -- seq )
+    [ renamed-table-name ] [ find-primary-keys ] bi
+    [ ] with map ;
+
 : select-joins ( statement relations -- statement' )
     [
+B
         first2
         [ [ first table-name ] bi@ " ON " glue ]
         [ nip renamed-table-name " AS " glue ] 2bi

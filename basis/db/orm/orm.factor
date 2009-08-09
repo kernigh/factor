@@ -4,7 +4,7 @@ USING: accessors arrays assocs classes.mixin classes.parser
 classes.singleton classes.tuple combinators db.binders
 db.connections db.orm.fql db.orm.persistent db.types db.utils
 fry kernel lexer locals mirrors multiline sequences db.statements
-make classes shuffle namespaces math.parser ;
+make classes shuffle namespaces math.parser sets annotations ;
 IN: db.orm
 
 
@@ -133,16 +133,22 @@ SYMBOL: table-counter
     first2 [ table-name ] [ number>string ] bi* "_" glue ;
 
 !TODO
-: primary-keys ( pair -- seq )
-    [ renamed-table-name ] [ find-primary-keys ] bi
-    [ ] with map ;
+: relation-primary-keys ( pair1 pair2 -- seq )
+    {
+        [ drop [ table-name ] [ find-primary-key ] bi ]
+    } 2cleave ;
+
+    ! [ renamed-table-name ] [ first find-primary-key ] bi
+    ! [ column-name>> "." glue ] with map ;
 
 : select-joins ( statement relations -- statement' )
     [
 B
         first2
-        [ [ first table-name ] bi@ " ON " glue ]
-        [ nip renamed-table-name " AS " glue ] 2bi
+        [ nip [ first table-name ] [ renamed-table-name ] bi " AS " glue ]
+        [ 2drop ] 2bi
+        ! [ [ first table-name ] bi@ " ON " glue ]
+        ! [ nip renamed-table-name " AS " glue ] 2bi
         "\n LEFT JOIN " prepend
     ] map ", " join add-sql ;
 
@@ -159,7 +165,6 @@ B
 
 
 /*
-
 SELECT thread2_0.id, thread2_0.topic, thread2_0.ts,
  author2_1.id, author2_1.name,
  thread2_0.id, thread2_0.topic, thread2_0.ts,
@@ -184,6 +189,4 @@ SELECT thread2_0.id, thread2_0.topic, thread2_0.ts,
  LEFT JOIN thread2 ON comment2 AS comment2_3, 
  LEFT JOIN comment2 ON author2 AS author2_4, 
  LEFT JOIN author2 ON address2 AS address2_5
-
-
 */

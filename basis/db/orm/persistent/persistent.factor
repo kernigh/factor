@@ -85,6 +85,8 @@ slot-name column-name type modifiers getter setter ;
 
 GENERIC: table-name ( column -- string )
 
+M: sequence table-name first table-name ;
+
 M: db-column table-name persistent>> table-name>> ;
 
 M: tuple-class table-name lookup-persistent table-name>> ;
@@ -381,4 +383,5 @@ B
             [ B first relation-class primary-key-slots ]
         } cleave <left-join>
     ] map ;
+
 */

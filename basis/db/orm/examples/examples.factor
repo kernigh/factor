@@ -191,6 +191,34 @@ PERSISTENT: employee-product-task
 
 
 
+TUPLE: compound1 a b text ;
+TUPLE: compound2 c compound1 text ;
+
+PERSISTENT: compound1
+    { "a" INTEGER PRIMARY-KEY }
+    { "b" INTEGER PRIMARY-KEY }
+    { "text" VARCHAR } ;
+
+PERSISTENT: compound2
+    { "c" INTEGER PRIMARY-KEY }
+    { "compound1" compound1 }
+    { "text" VARCHAR } ;
+
+/*
+
+
+create table foo(a integer, b integer, text varchar, primary key(a,b));
+create table bar(c integer, a integer, b integer, text varchar, primary key(c));
+insert into foo(a,b,text) values(1,2,'lol');
+insert into bar(c,a,b,text) values(3,1,2,'omg');
+select foo.text from bar
+    left join foo on bar.a = foo.a and bar.b = foo.b;
+
+*/
+
+
+
+
 
 
 

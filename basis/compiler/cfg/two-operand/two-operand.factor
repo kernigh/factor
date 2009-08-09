@@ -44,15 +44,14 @@ UNION: two-operand-insn
 GENERIC: convert-two-operand* ( insn -- )
 
 : emit-copy ( dst src -- )
-    dup reg-class>> {
-        { int-regs [ ##copy ] }
-        { double-float-regs [ ##copy-float ] }
-    } case ; inline
+    dup rep-of ##copy ; inline
 
 M: two-operand-insn convert-two-operand*
     [ [ dst>> ] [ src1>> ] bi emit-copy ]
-    [ dup dst>> >>src1 , ]
-    bi ;
+    [
+        dup [ src1>> ] [ src2>> ] bi = [ dup dst>> >>src2 ] when
+        dup dst>> >>src1 ,
+    ] bi ;
 
 M: ##not convert-two-operand*
     [ [ dst>> ] [ src>> ] bi emit-copy ]

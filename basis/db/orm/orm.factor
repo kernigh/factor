@@ -158,10 +158,24 @@ B
         [ drop "SELECT " add-sql ]
         [ select-outs ]
         [ drop "\n FROM " add-sql ]
-        [ first first first table-name add-sql " AS " add-sql ]
-        [ first first renamed-table-name add-sql ]
+        [
+            first first
+            [ first table-name add-sql " AS " add-sql ]
+            [ renamed-table-name add-sql ] bi
+        ]
         [ select-joins ]
     } cleave ;
+
+: select-out* ( tuple -- string )
+    [ table-name ]
+    [ <mirror> [ nip IGNORE = not ] assoc-filter keys ] bi
+    [ "." glue ] with map ", " join ;
+
+: select-stuff ( tuple -- statement )
+    [ statement new ] dip dup tuple>relations {
+        [ 2drop "SELECT " add-sql ]
+        [ [ canonicalize-tuple select-out* ] [ select-outs ] if-empty ]
+    } 2cleave ;
 
 
 /*

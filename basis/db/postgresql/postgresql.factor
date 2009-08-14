@@ -19,4 +19,3 @@ TUPLE: postgresql-db host port pgopts pgtty database username password ;
     ! "db.postgresql.tuples"
     ! "db.postgresql.types"
 } [ require ] each
-

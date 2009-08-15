@@ -91,6 +91,8 @@ M: db-column table-name persistent>> table-name>> ;
 
 M: tuple-class table-name lookup-persistent table-name>> ;
 
+M: tuple table-name lookup-persistent table-name>> ;
+
 GENERIC: find-primary-key ( obj -- seq )
 
 M: persistent find-primary-key ( persistent -- seq )

@@ -109,12 +109,12 @@ ERROR: sqlite-type-error handle index type n ;
 
 M: sqlite-db-connection bind-sequence ( statement -- )
     [ in>> ] [ handle>> ] bi '[
-        [ _ ] 2dip 1+ swap sqlite-bind-text
+        [ _ ] 2dip 1 + swap sqlite-bind-text
     ] each-index ;
 
 M: sqlite-db-connection bind-typed-sequence ( statement -- )
     [ in>> ] [ handle>> ] bi '[
-        [ _ ] 2dip 1+ swap [ value>> ] [ type>> ] bi bind-next-sqlite-type
+        [ _ ] 2dip 1 + swap [ value>> ] [ type>> ] bi bind-next-sqlite-type
     ] each-index ;
 
 ERROR: no-fql-type type ;

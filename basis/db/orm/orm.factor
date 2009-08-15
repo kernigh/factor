@@ -7,7 +7,6 @@ fry kernel lexer locals mirrors multiline sequences db.statements
 make classes shuffle namespaces math.parser sets annotations ;
 IN: db.orm
 
-
 : filter-ignored-columns ( tuple -- columns' )
     [ lookup-persistent columns>> ] [ <mirror> ] bi
     '[ slot-name>> _ at IGNORE = not ] filter ;
@@ -133,6 +132,7 @@ SYMBOL: table-counter
     first2 [ table-name ] [ number>string ] bi* "_" glue ;
 
 !TODO
+/*
 : relation-primary-keys ( pair1 pair2 -- seq )
     {
         [ drop [ table-name ] [ find-primary-key ] bi ]
@@ -140,10 +140,10 @@ SYMBOL: table-counter
 
     ! [ renamed-table-name ] [ first find-primary-key ] bi
     ! [ column-name>> "." glue ] with map ;
+*/
 
 : select-joins ( statement relations -- statement' )
     [
-B
         first2
         [ nip [ first table-name ] [ renamed-table-name ] bi " AS " glue ]
         [ 2drop ] 2bi
@@ -171,11 +171,31 @@ B
     [ <mirror> [ nip IGNORE = not ] assoc-filter keys ] bi
     [ "." glue ] with map ", " join ;
 
-: select-stuff ( tuple -- statement )
-    [ statement new ] dip dup tuple>relations {
-        [ 2drop "SELECT " add-sql ]
-        [ [ canonicalize-tuple select-out* ] [ select-outs ] if-empty ]
+: select-single-outs ( statement tuple -- statement )
+
+    select-out* >>out ;
+
+: select-single-tuple ( statement tuple -- statement )
+    {
+        [ select-single-outs ]
+    } cleave ;
+
+: select-relation-tuple ( statement tuple relations -- statement )
+    {
     } 2cleave ;
+
+: select-stuff ( tuple -- statement )
+    [ statement new "SELECT " add-sql ] dip dup tuple>relations [
+        select-single-tuple
+    ] [
+        select-relation-tuple
+    ] if-empty ;
+
+
+
+
+
+
 
 
 /*

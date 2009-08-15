@@ -31,7 +31,7 @@ M: postgresql-result-set column ( result-set column -- object )
     ! [ result>handle-n ] 2dip postgresql-column-typed ;
 
 M: postgresql-result-set advance-row ( result-set -- )
-    [ 1+ ] change-n drop ;
+    [ 1 + ] change-n drop ;
 
 M: postgresql-result-set more-rows? ( result-set -- ? )
     [ n>> ] [ max>> ] bi < ;

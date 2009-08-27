@@ -21,6 +21,7 @@ HOOK: select-tuple-statement db-connection ( tuple -- statement )
 HOOK: select-tuples-statement db-connection ( tuple -- statement )
 HOOK: count-tuples-statement db-connection ( tuple -- statement )
 
+/*
 : modifiers, ( column -- )
     modifiers>> [
         sql-modifiers>string [ " " % % ] unless-empty
@@ -37,9 +38,7 @@ M: object create-table-string ( class -- statement )
         "create table " %
         [ table-name>> % "(" % ]
         [
-            { [ relation-columns>> ] [ columns>> ] } 1||
-            remove-many-relation-columns
-
+            columns>>
             [ ", " % ] [ create-column, ] interleave
         ] [ 
             find-primary-key [
@@ -74,7 +73,7 @@ M: object insert-tuple-statement ( tuple -- statement )
     [ \ insert new ] dip
     dup lookup-persistent {
         [ nip table-name>> >>table ]
-        [ insert-binders >>binders ]
+        ! [ insert-binders >>binders ]
     } 2cleave ;
 
 M: object post-insert-tuple drop ;
@@ -115,7 +114,6 @@ M: tuple where-object
         dupd filter-slots ops-out
     ] if ;
     
-/*
 M: interval where-object
     [
         from>> first2 [ \ op-gt-eq make-op ] [ \ op-gt make-op ] if
@@ -124,7 +122,6 @@ M: interval where-object
         to>> first2 [ \ op-lt-eq make-op ] [ \ op-lt make-op ] if
         REAL <simple-binder> 1array 2array ,
     ] 2bi ;
-*/
 
 M: sequence where-object
     [ \ op-eq make-op ] with map <or-sequence> , ;

@@ -82,6 +82,8 @@ IN: compiler.tree.propagation.tests
 
 [ bignum ] [ [ { bignum bignum } declare bitxor ] final-math-class ] unit-test
 
+[ bignum ] [ [ { integer } declare 123 >bignum bitand ] final-math-class ] unit-test
+
 [ float ] [ [ { float float } declare mod ] final-math-class ] unit-test
 
 [ V{ fixnum } ] [ [ 255 bitand ] final-classes ] unit-test
@@ -156,6 +158,22 @@ IN: compiler.tree.propagation.tests
 [ V{ t } ] [ [ 40 rem 0 >= ] final-literals ] unit-test
 
 [ V{ t } ] [ [ abs 40 mod 0 >= ] final-literals ] unit-test
+
+[ t ] [ [ abs ] final-info first interval>> [0,inf] = ] unit-test
+
+[ t ] [ [ absq ] final-info first interval>> [0,inf] = ] unit-test
+
+[ t ] [ [ { float } declare abs ] final-info first interval>> [0,inf] = ] unit-test
+
+[ t ] [ [ { float } declare absq ] final-info first interval>> [0,inf] = ] unit-test
+
+[ t ] [ [ { complex } declare abs ] final-info first interval>> [0,inf] = ] unit-test
+
+[ t ] [ [ { complex } declare absq ] final-info first interval>> [0,inf] = ] unit-test
+
+[ t ] [ [ [ - absq ] [ + ] 2map-reduce ] final-info first interval>> [0,inf] = ] unit-test
+
+[ t ] [ [ { double-array double-array } declare [ - absq ] [ + ] 2map-reduce ] final-info first interval>> [0,inf] = ] unit-test
 
 [ V{ string } ] [
     [ dup string? not [ "Oops" throw ] [ ] if ] final-classes
@@ -444,6 +462,13 @@ TUPLE: mixed-mutable-immutable { x integer } { y sequence read-only } ;
     ] final-classes
 ] unit-test
 
+[ V{ f { } } ] [
+    [
+        T{ mixed-mutable-immutable f 3 { } }
+        [ x>> ] [ y>> ] bi
+    ] final-literals
+] unit-test
+
 ! Recursive propagation
 : recursive-test-1 ( a -- b ) recursive-test-1 ; inline recursive
 
@@ -502,8 +527,8 @@ TUPLE: mixed-mutable-immutable { x integer } { y sequence read-only } ;
 ] unit-test
 
 GENERIC: iterate ( obj -- next-obj ? )
-M: fixnum iterate f ;
-M: array iterate first t ;
+M: fixnum iterate f ; inline
+M: array iterate first t ; inline
 
 : dead-loop ( obj -- final-obj )
     iterate [ dead-loop ] when ; inline recursive
@@ -567,7 +592,7 @@ M: array iterate first t ;
 ] unit-test
 
 GENERIC: bad-generic ( a -- b )
-M: fixnum bad-generic 1 fixnum+fast ;
+M: fixnum bad-generic 1 fixnum+fast ; inline
 : bad-behavior ( -- b ) 4 bad-generic ; inline recursive
 
 [ V{ fixnum } ] [ [ bad-behavior ] final-classes ] unit-test
@@ -740,7 +765,7 @@ TUPLE: foo bar ;
 [ t ] [ [ foo new ] { new } inlined? ] unit-test
 
 GENERIC: whatever ( x -- y )
-M: number whatever drop foo ;
+M: number whatever drop foo ; inline
 
 [ t ] [ [ 1 whatever new ] { new } inlined? ] unit-test
 
@@ -749,8 +774,8 @@ M: number whatever drop foo ;
 [ f ] [ [ that-thing new ] { new } inlined? ] unit-test
 
 GENERIC: whatever2 ( x -- y )
-M: number whatever2 drop H{ { 1 1 } { 2 2 } { 3 3 } { 4 4 } { 5 6 } } ;
-M: f whatever2 ;
+M: number whatever2 drop H{ { 1 1 } { 2 2 } { 3 3 } { 4 4 } { 5 6 } } ; inline
+M: f whatever2 ; inline
 
 [ t ] [ [ 1 whatever2 at ] { at* hashcode* } inlined? ] unit-test
 [ f ] [ [ whatever2 at ] { at* hashcode* } inlined? ] unit-test

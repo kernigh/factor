@@ -2,11 +2,12 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel effects accessors math math.private
 math.integers.private math.partial-dispatch math.intervals
-math.parser math.order layouts words sequences sequences.private
-arrays assocs classes classes.algebra combinators generic.math
-splitting fry locals classes.tuple alien.accessors
-classes.tuple.private slots.private definitions strings.private
-vectors hashtables generic quotations
+math.parser math.order math.functions math.libm layouts words
+sequences sequences.private arrays assocs classes
+classes.algebra combinators generic.math splitting fry locals
+classes.tuple alien.accessors classes.tuple.private
+slots.private definitions strings.private vectors hashtables
+generic quotations
 stack-checker.state
 compiler.tree.comparisons
 compiler.tree.propagation.info
@@ -32,14 +33,20 @@ IN: compiler.tree.propagation.known-words
 
 \ bitnot { integer } "input-classes" set-word-prop
 
-: ?change-interval ( info quot -- quot' )
-    over interval>> [ [ clone ] dip change-interval ] [ 2drop ] if ; inline
+: real-op ( info quot -- quot' )
+    [
+        dup class>> real classes-intersect?
+        [ clone ] [ drop real <class-info> ] if
+    ] dip
+    change-interval ; inline
 
 { bitnot fixnum-bitnot bignum-bitnot } [
-    [ [ interval-bitnot ] ?change-interval ] "outputs" set-word-prop
+    [ [ interval-bitnot ] real-op ] "outputs" set-word-prop
 ] each
 
-\ abs [ [ interval-abs ] ?change-interval ] "outputs" set-word-prop
+\ abs [ [ interval-abs ] real-op ] "outputs" set-word-prop
+
+\ absq [ [ interval-absq ] real-op ] "outputs" set-word-prop
 
 : math-closure ( class -- newclass )
     { fixnum bignum integer rational float real number object }
@@ -291,3 +298,8 @@ generic-comparison-ops [
         bi
     ] [ 2drop object-info ] if
 ] "outputs" set-word-prop
+
+{ facos fasin fatan fatan2 fcos fsin ftan fcosh fsinh ftanh fexp
+flog fpow fsqrt facosh fasinh fatanh } [
+    { float } "default-output-classes" set-word-prop
+] each

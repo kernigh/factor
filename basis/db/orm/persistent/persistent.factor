@@ -83,15 +83,18 @@ slot-name column-name type modifiers getter setter ;
         [ modifiers>> [ PRIMARY-KEY? ] any? ]
     } 1|| ;
 
-GENERIC: table-name ( column -- string )
+GENERIC: table-name* ( column -- string )
 
-M: sequence table-name first table-name ;
+M: sequence table-name* first table-name* ;
 
-M: db-column table-name persistent>> table-name>> ;
+M: db-column table-name* persistent>> table-name>> ;
 
-M: tuple-class table-name lookup-persistent table-name>> ;
+M: tuple-class table-name* lookup-persistent table-name>> ;
 
-M: tuple table-name lookup-persistent table-name>> ;
+M: tuple table-name* lookup-persistent table-name>> ;
+
+: table-name ( obj -- string )
+    table-name* "\"" dup surround ;
 
 GENERIC: find-primary-key ( obj -- seq )
 

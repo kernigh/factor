@@ -12,7 +12,8 @@ SLOT: slot-name
     { [ class<= ] [ drop tuple-class? ] } 2&& ;
 
 : sanitize-sql-name ( string -- string' )
-    H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
+    H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute
+    "\"" dup surround ;
 
 : malloc-byte-array/length ( byte-array -- alien length )
     [ malloc-byte-array &free ] [ length ] bi ;

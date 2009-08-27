@@ -1,3 +1,4 @@
+USING: multiline ;
 /*
 
 ! Copyright (C) 2009 Doug Coleman.

@@ -64,4 +64,5 @@ IN: compiler.cfg.tco
 
 : optimize-tail-calls ( cfg -- cfg' )
     dup [ optimize-tail-call ] each-basic-block
-    cfg-changed ;
+
+    cfg-changed predecessors-changed ;

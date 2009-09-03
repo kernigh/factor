@@ -191,6 +191,12 @@ SYMBOL: table-counter
         select-relation-tuple
     ] if-empty ;
 
+: insert-tuple ( tuple -- obj )
+    [ statement new "INSERT INTO " add-sql ] dip
+    dup lookup-persistent {
+        [ nip table-name>> add-sql " " add-sql ]
+        ! [ drop " " add-sql filter-ignored-columns [ ] "," join ]
+    } 2cleave ;
 
 
 

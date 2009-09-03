@@ -1,10 +1,11 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: db.orm.persistent db.types kernel literals multiline
-sequences ;
+sequences constructors ;
 IN: db.orm.examples
 
 TUPLE: user id name age ;
+CONSTRUCTOR: user ( name age -- obj ) ;
 TUPLE: score id user score ;
 
 PERSISTENT: user

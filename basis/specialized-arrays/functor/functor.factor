@@ -10,8 +10,11 @@ ERROR: bad-byte-array-length byte-array type ;
 M: bad-byte-array-length summary
     drop "Byte array length doesn't divide type width" ;
 
-: (c-array) ( n c-type -- array )
+: (underlying) ( n c-type -- array )
     heap-size * (byte-array) ; inline
+
+: <underlying> ( n type -- array )
+    heap-size * <byte-array> ; inline
 
 FUNCTOR: define-array ( T -- )
 
@@ -34,9 +37,9 @@ TUPLE: A
 { length array-capacity read-only }
 { underlying byte-array read-only } ;
 
-: <A> ( n -- specialized-array ) dup T <c-array> A boa ; inline
+: <A> ( n -- specialized-array ) dup T <underlying> A boa ; inline
 
-: (A) ( n -- specialized-array ) dup T (c-array) A boa ; inline
+: (A) ( n -- specialized-array ) dup T (underlying) A boa ; inline
 
 : byte-array>A ( byte-array -- specialized-array )
     dup length T heap-size /mod 0 = [ drop T bad-byte-array-length ] unless
@@ -83,6 +86,7 @@ A T c-type-boxed-class specialize-vector-words
 T c-type
     \ A >>array-class
     \ <A> >>array-constructor
+    \ (A) >>(array)-constructor
     \ S >>sequence-mixin-class
     drop
 

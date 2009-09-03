@@ -1,12 +1,13 @@
 ! (c)Joe Groff bsd license
-USING: accessors alien.c-types alien.libraries
-alien.structs.fields alien.syntax ascii classes.struct combinators
-destructors io.encodings.utf8 io.pathnames io.streams.string
-kernel libc literals math multiline namespaces prettyprint
-prettyprint.config see sequences specialized-arrays.ushort
-system tools.test compiler.tree.debugger struct-arrays
-classes.tuple.private specialized-arrays.direct.int
-compiler.units ;
+USING: accessors alien alien.c-types alien.libraries
+alien.structs.fields alien.syntax ascii assocs byte-arrays
+classes.struct classes.tuple.private combinators
+compiler.tree.debugger compiler.units destructors
+io.encodings.utf8 io.pathnames io.streams.string kernel libc
+literals math mirrors multiline namespaces prettyprint
+prettyprint.config see sequences specialized-arrays.char
+specialized-arrays.direct.int specialized-arrays.ushort
+struct-arrays system tools.test ;
 IN: classes.struct.tests
 
 <<
@@ -56,6 +57,89 @@ STRUCT: struct-test-bar
 [ 7654 ] [ S{ struct-test-foo f 98 7654 f } y>> ] unit-test
 [ 7654 ] [ S{ struct-test-foo { y 7654 } } y>> ] unit-test
 
+[ {
+    { "underlying" B{ 98 0 0 98 127 0 0 127 0 0 0 0 } }
+    { { "x" "char" } 98            }
+    { { "y" "int"  } HEX: 7F00007F }
+    { { "z" "bool" } f             }
+} ] [
+    B{ 98 0 0 98 127 0 0 127 0 0 0 0 } struct-test-foo memory>struct
+    make-mirror >alist
+] unit-test
+
+[ { { "underlying" f } } ] [
+    f struct-test-foo memory>struct
+    make-mirror >alist
+] unit-test
+
+[ 55 t ] [ S{ struct-test-foo { x 55 } } make-mirror { "x" "char" } swap at* ] unit-test
+[ 55 t ] [ S{ struct-test-foo { y 55 } } make-mirror { "y" "int"  } swap at* ] unit-test
+[ t  t ] [ S{ struct-test-foo { z t  } } make-mirror { "z" "bool" } swap at* ] unit-test
+[ f  t ] [ S{ struct-test-foo { z f  } } make-mirror { "z" "bool" } swap at* ] unit-test
+[ f  f ] [ S{ struct-test-foo } make-mirror { "nonexist" "bool" } swap at* ] unit-test
+[ f  f ] [ S{ struct-test-foo } make-mirror "nonexist" swap at* ] unit-test
+[ f  t ] [ f struct-test-foo memory>struct make-mirror "underlying" swap at* ] unit-test
+
+[ S{ struct-test-foo { x 3 } { y 2 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror [ 3 { "x" "char" } ] dip set-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 1 } { y 5 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror [ 5 { "y" "int" } ] dip set-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 1 } { y 2 } { z t } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror [ t { "z" "bool" } ] dip set-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 1 } { y 2 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror [ "nonsense" "underlying" ] dip set-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 1 } { y 2 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror [ "nonsense" "nonexist" ] dip set-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 1 } { y 2 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror [ "nonsense" { "nonexist" "int" } ] dip set-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 1 } { y 123 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror { "y" "int" } swap delete-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 0 } { y 2 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror { "x" "char" } swap delete-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 1 } { y 2 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror { "nonexist" "char" } swap delete-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 1 } { y 2 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror "underlying" swap delete-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 1 } { y 2 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z f } }
+    [ make-mirror "nonsense" swap delete-at ] keep
+] unit-test
+
+[ S{ struct-test-foo { x 0 } { y 123 } { z f } } ] [
+    S{ struct-test-foo { x 1 } { y 2 } { z t } }
+    [ make-mirror clear-assoc ] keep
+] unit-test
+
 UNION-STRUCT: struct-test-float-and-bits
     { f float }
     { bits uint } ;
@@ -63,7 +147,7 @@ UNION-STRUCT: struct-test-float-and-bits
 [ 1.0 ] [ struct-test-float-and-bits <struct> 1.0 float>bits >>bits f>> ] unit-test
 [ 4 ] [ struct-test-float-and-bits heap-size ] unit-test
 
-[ ] [ [ struct-test-foo malloc-struct &free drop ] with-destructors ] unit-test
+[ 123 ] [ [ struct-test-foo malloc-struct &free y>> ] with-destructors ] unit-test
 
 STRUCT: struct-test-string-ptr
     { x char* } ;
@@ -76,18 +160,38 @@ STRUCT: struct-test-string-ptr
     ] with-destructors
 ] unit-test
 
-[ "S{ struct-test-foo { y 7654 } }" ]
+[ "S{ struct-test-foo { x 0 } { y 7654 } { z f } }" ]
 [
-    f boa-tuples?
-    [ struct-test-foo <struct> 7654 >>y [ pprint ] with-string-writer ]
-    with-variable
+    [
+        boa-tuples? off
+        c-object-pointers? off
+        struct-test-foo <struct> 7654 >>y [ pprint ] with-string-writer
+    ] with-scope
+] unit-test
+
+[ "S@ struct-test-foo B{ 0 0 0 0 0 0 0 0 0 0 0 0 }" ]
+[
+    [
+        c-object-pointers? on
+        12 <byte-array> struct-test-foo memory>struct [ pprint ] with-string-writer
+    ] with-scope
 ] unit-test
 
 [ "S{ struct-test-foo f 0 7654 f }" ]
 [
-    t boa-tuples?
-    [ struct-test-foo <struct> 7654 >>y [ pprint ] with-string-writer ]
-    with-variable
+    [
+        boa-tuples? on
+        c-object-pointers? off
+        struct-test-foo <struct> 7654 >>y [ pprint ] with-string-writer
+    ] with-scope
+] unit-test
+
+[ "S@ struct-test-foo f" ]
+[
+    [
+        c-object-pointers? off
+        f struct-test-foo memory>struct [ pprint ] with-string-writer
+    ] with-scope
 ] unit-test
 
 [ <" USING: classes.struct ;
@@ -164,6 +268,14 @@ STRUCT: struct-test-equality-2
     ] with-destructors
 ] unit-test
 
+[ t ] [
+    [
+        struct-test-equality-1 <struct> 5 >>x
+        struct-test-equality-1 malloc-struct &free 5 >>x
+        [ hashcode ] bi@ =
+    ] with-destructors
+] unit-test
+
 STRUCT: struct-test-ffi-foo
     { x int }
     { y int } ;
@@ -187,7 +299,7 @@ STRUCT: struct-test-array-slots
 ] unit-test
 
 STRUCT: struct-test-optimization
-    { x int[3] } { y int } ;
+    { x { "int" 3 } } { y int } ;
 
 [ t ] [ [ struct-test-optimization memory>struct y>> ] { memory>struct y>> } inlined? ] unit-test
 [ t ] [
@@ -203,3 +315,28 @@ STRUCT: struct-test-optimization
 ] unit-test
 
 [ f ] [ [ memory>struct y>> ] { memory>struct y>> } inlined? ] unit-test
+
+! Test cloning structs
+STRUCT: clone-test-struct { x int } { y char[3] } ;
+
+[ 1 char-array{ 9 1 1 } ] [
+    clone-test-struct <struct>
+    1 >>x char-array{ 9 1 1 } >>y
+    clone
+    [ x>> ] [ y>> >char-array ] bi
+] unit-test
+
+[ t 1 char-array{ 9 1 1 } ] [
+    [
+        clone-test-struct malloc-struct &free
+        1 >>x char-array{ 9 1 1 } >>y
+        clone
+        [ >c-ptr byte-array? ] [ x>> ] [ y>> >char-array ] tri
+    ] with-destructors
+] unit-test
+
+STRUCT: struct-that's-a-word { x int } ;
+
+: struct-that's-a-word ( -- ) "OOPS" throw ;
+
+[ -77 ] [ S{ struct-that's-a-word { x -77 } } clone x>> ] unit-test

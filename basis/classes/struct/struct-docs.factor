@@ -9,6 +9,15 @@ HELP: <struct-boa>
 }
 { $description "This macro implements " { $link boa } " for " { $link struct } " classes. A struct of the given class is constructed, and its slots are initialized using values off the top of the datastack." } ;
 
+HELP: (struct)
+{ $values
+    { "class" class }
+    { "struct" struct }
+}
+{ $description "Allocates garbage-collected heap memory for a new " { $link struct } " of the specified " { $snippet "class" } ". The new struct's slots are left uninitialized; in most cases, the " { $link <struct> } " word, which initializes the struct's slots with their initial values, should be used instead." } ;
+
+{ (struct) (malloc-struct) } related-words
+
 HELP: <struct>
 { $values
     { "class" class }
@@ -33,6 +42,13 @@ HELP: S{
 { $values { "class" "a " { $link struct } " class word" } { "slots" "slot values" } }
 { $description "Marks the beginning of a literal struct. The syntax is identical to tuple literal syntax with " { $link POSTPONE: T{ } { $snippet " }" } "; either the assoc syntax (that is, " { $snippet "S{ class { slot value } { slot value } ... }" } ") or the simple syntax (" { $snippet "S{ class f value value ... }" } ") can be used." } ;
 
+HELP: S@
+{ $syntax "S@ class alien" }
+{ $values { "class" "a " { $link struct } " class word" } { "alien" "a literal alien" } }
+{ $description "Marks the beginning of a literal struct at a specific C address. The prettyprinter uses this syntax when the memory backing a struct object is invalid. This syntax should not generally be used in source code." } ;
+
+{ POSTPONE: S{ POSTPONE: S@ } related-words
+
 HELP: UNION-STRUCT:
 { $syntax "UNION-STRUCT: class { slot type } { slot type } ... ;" }
 { $values { "class" "a new " { $link struct } " class to define" } { "slots" "a list of slot specifiers" } }
@@ -40,13 +56,13 @@ HELP: UNION-STRUCT:
 
 HELP: define-struct-class
 { $values
-    { "class" class } { "slots" "a sequence of " { $link slot-spec } "s" }
+    { "class" class } { "slots" "a sequence of " { $link struct-slot-spec } "s" }
 }
 { $description "Defines a new " { $link struct } " class. This is the runtime equivalent of the " { $link POSTPONE: STRUCT: } " syntax." } ;
 
 HELP: define-union-struct-class
 { $values
-    { "class" class } { "slots" "a sequence of " { $link slot-spec } "s" }
+    { "class" class } { "slots" "a sequence of " { $link struct-slot-spec } "s" }
 }
 { $description "Defines a new " { $link struct } " class where all of the slots share the same storage. This is the runtime equivalent of the " { $link POSTPONE: UNION-STRUCT: } " syntax." } ;
 
@@ -55,7 +71,14 @@ HELP: malloc-struct
     { "class" class }
     { "struct" struct }
 }
-{ $description "Allocates unmanaged C heap memory for a new " { $link struct } " of the specified " { $snippet "class" } ". The new struct's slots are left uninitialized. The struct should be " { $link free } "d when it is no longer needed." } ;
+{ $description "Allocates unmanaged C heap memory for a new " { $link struct } " of the specified " { $snippet "class" } ". The new struct's slots are initialized to their initial values. The struct should be " { $link free } "d when it is no longer needed." } ;
+
+HELP: (malloc-struct)
+{ $values
+    { "class" class }
+    { "struct" struct }
+}
+{ $description "Allocates unmanaged C heap memory for a new " { $link struct } " of the specified " { $snippet "class" } ". The new struct's slots are left uninitialized; to initialize the allocated memory with the slots' initial values, use " { $link malloc-struct } ". The struct should be " { $link free } "d when it is no longer needed." } ;
 
 HELP: memory>struct
 { $values
@@ -80,6 +103,9 @@ ARTICLE: "classes.struct" "Struct classes"
 { $subsection <struct-boa> }
 { $subsection malloc-struct }
 { $subsection memory>struct }
+"When the contents of a struct will be immediately reset, faster primitive words are available that will create a struct without initializing its contents:"
+{ $subsection (struct) }
+{ $subsection (malloc-struct) }
 "Structs have literal syntax like tuples:"
 { $subsection POSTPONE: S{ }
 "Union structs are also supported, which behave like structs but share the same memory for all the type's slots."

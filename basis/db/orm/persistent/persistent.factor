@@ -360,7 +360,7 @@ M: db-column select-reconstructor*
     dup relation-category {
         { one:one [ relation-class class>foreign-key-create ] }
         { one:many [ drop f ] }
-        { many:one [ B relation-class class>foreign-key-create ] }
+        { many:one [ relation-class class>foreign-key-create ] }
         { many:many [ drop f ] }
         { f [ (column>create-text) ] }
         [ bad-relation-category ]
@@ -379,14 +379,12 @@ M: db-column select-reconstructor*
     query-shape
     [ nip ] assoc-filter
     [
-B
         {
             [ first relation-class table-name ]
             [ first relation-class table-name ]
-            [ B first persistent>> primary-key-slots ]
+            [ first persistent>> primary-key-slots ]
             [ first relation-class table-name ]
-            [ B first relation-class primary-key-slots ]
+            [ first relation-class primary-key-slots ]
         } cleave <left-join>
     ] map ;
-
 */

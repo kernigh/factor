@@ -44,7 +44,6 @@ HOOK: bind-typed-sequence db-connection ( statement -- )
 M: statement dispose dispose-statement ;
 
 : with-sql-error-handler ( quot -- )
-B
     [ dup sql-error? [ parse-sql-error ] when rethrow ] recover ; inline
 
 M: object execute-statement* ( statement type -- )

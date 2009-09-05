@@ -4,7 +4,8 @@ USING: accessors arrays assocs classes.mixin classes.parser
 classes.singleton classes.tuple combinators db.binders
 db.connections db.orm.fql db.orm.persistent db.types db.utils
 fry kernel lexer locals mirrors multiline sequences db.statements
-make classes shuffle namespaces math.parser sets annotations ;
+make classes shuffle namespaces math.parser sets annotations
+math.ranges ;
 IN: db.orm
 
 : filter-ignored-columns ( tuple -- columns' )
@@ -191,16 +192,46 @@ SYMBOL: table-counter
         select-relation-tuple
     ] if-empty ;
 
+: qualified-column-string ( persistent -- string )
+    [ table-name>> ] [ columns>> ] bi
+    [ column-name>> "." glue ] with map ", " join ;
+
+: tuple-slots ( tuple persistent -- seq )
+    columns>> [ getter>> call( obj -- obj ) ] with map ;
+
+: n-parameters ( n -- string )
+    [1,b] [ number>string "$" prepend ] map "," join ;
+
+: insert-tuple ( tuple -- obj )
+    [ insert new ] dip
+    dup lookup-persistent {
+        [ nip table-name>> >>tables ]
+        [
+            columns>> [
+                swap [
+                    {
+                        [ table-name ] [ column-name ]
+                        [ type>> ] [ getter>> ]
+                    } cleave
+                ] dip
+                [ type>> ] [ value
+            ] with map
+        ]
+    } 2cleave ;
+
+/*
 : insert-tuple ( tuple -- obj )
     [ statement new "INSERT INTO " add-sql ] dip
     dup lookup-persistent {
-        [ nip table-name>> add-sql " " add-sql ]
-        ! [ drop " " add-sql filter-ignored-columns [ ] "," join ]
+        [ nip table-name>> add-sql "(" add-sql ]
+        [ nip qualified-column-string add-sql ") values(" add-sql ]
+        [
+            nip columns>> length n-parameters add-sql
+            ");" add-sql
+        ]
+        [ tuple-slots >>in ]
     } 2cleave ;
-
-
-
-
+*/
 
 
 

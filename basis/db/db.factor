@@ -1,6 +1,6 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: db.statements destructors kernel math multiline
+USING: accessors db.statements destructors kernel math multiline
 sequences strings summary ;
 IN: db
 
@@ -18,10 +18,14 @@ GENERIC: sql-bind-typed-query ( object -- sequence )
     ! [ dup fql? [ expand-fql ] when ] change-sql ;
 
 M: string sql-command ( string -- )
-    f f <statement> sql-command ;
+    <statement>
+        swap >>sql
+    sql-command ;
 
 M: string sql-query ( string -- sequence )
-    f f <statement> sql-query ;
+    <statement>
+        swap >>sql
+    sql-query ;
 
 M: statement sql-command ( statement -- )
     [ execute-statement ] with-disposal ;

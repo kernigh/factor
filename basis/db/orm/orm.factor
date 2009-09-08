@@ -21,7 +21,7 @@ IN: db.orm
 
 
 : create-many:many-table ( class1 class2 -- statement )
-    [ statement new ] 2dip
+    [ <statement> ] 2dip
     {
         [ 2drop "CREATE TABLE " add-sql ]
         [
@@ -39,7 +39,7 @@ IN: db.orm
     ] bi ;
 
 : create-table ( class -- statement )
-    [ statement new ] dip
+    [ <statement> ] dip
     {
         [ drop "CREATE TABLE " add-sql ]
         [ table-name add-sql "(" add-sql ]
@@ -58,7 +58,7 @@ IN: db.orm
 
 : drop-table ( class -- statement )
     table-name [ "DROP TABLE " ] dip ";" 3append
-    statement new
+    <statement>
         swap >>sql ;
 
 : canonicalize-tuple ( tuple -- tuple' )
@@ -155,7 +155,7 @@ SYMBOL: table-counter
 
 ! Needs tuple for filtering slots
 : relations>select ( relations -- statement )
-    [ statement new ] dip {
+    [ <statement> ] dip {
         [ drop "SELECT " add-sql ]
         [ select-outs ]
         [ drop "\n FROM " add-sql ]
@@ -186,7 +186,7 @@ SYMBOL: table-counter
     } 2cleave ;
 
 : select-stuff ( tuple -- statement )
-    [ statement new "SELECT " add-sql ] dip dup tuple>relations [
+    [ <statement> "SELECT " add-sql ] dip dup tuple>relations [
         select-single-tuple
     ] [
         select-relation-tuple
@@ -202,6 +202,7 @@ SYMBOL: table-counter
 : n-parameters ( n -- string )
     [1,b] [ number>string "$" prepend ] map "," join ;
 
+/*
 : insert-tuple ( tuple -- obj )
     [ insert new ] dip
     dup lookup-persistent {
@@ -210,18 +211,18 @@ SYMBOL: table-counter
             columns>> [
                 swap [
                     {
-                        [ table-name ] [ column-name ]
+                        [ table-name ] [ column-name>> ]
                         [ type>> ] [ getter>> ]
                     } cleave
-                ] dip
-                [ type>> ] [ value
+                ] dip [ type>> ] [ value>> ] bi "." glue
             ] with map
         ]
     } 2cleave ;
+*/
 
 /*
 : insert-tuple ( tuple -- obj )
-    [ statement new "INSERT INTO " add-sql ] dip
+    [ <statement> "INSERT INTO " add-sql ] dip
     dup lookup-persistent {
         [ nip table-name>> add-sql "(" add-sql ]
         [ nip qualified-column-string add-sql ") values(" add-sql ]

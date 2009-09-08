@@ -1,7 +1,6 @@
 USING: accessors continuations db.pools db.sqlite
 db.sqlite.connections destructors io.directories io.files
-io.files.temp kernel math namespaces tools.test
-db.sqlite.connections ;
+io.files.temp kernel math namespaces tools.test ;
 IN: db.pools.tests
 
 { 1 0 } [ [ ] with-db-pool ] must-infer-as

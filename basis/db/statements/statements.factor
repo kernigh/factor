@@ -19,12 +19,10 @@ TUPLE: tuple-parameter < parameter db-column ;
     [ obj>vector ] change-out
     [ obj>vector ] change-in ;
 
-: <statement> ( sql in out -- statement )
+: <statement> ( -- statement )
     statement new
-        swap >>out
-        swap >>in
-        swap >>sql
-        normalize-statement ;
+        V{ } clone >>out
+        V{ } clone >>in ;
 
 : add-sql ( statement sql -- statement )
     '[ _ "" append-as ] change-sql ;

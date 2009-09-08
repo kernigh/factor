@@ -1,11 +1,33 @@
-USING: multiline ;
-/*
-
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db db.tester db.orm.persistent.tests
-kernel tools.test db.fql db.statements.tests ;
-IN: db.fql.tests
+USING: accessors db db.binders db.orm.fql db.statements
+db.statements.tests db.tester db.types kernel literals
+multiline tools.test ;
+IN: db.orm.fql.tests
+
+
+: test-fql-user ( -- )
+    [
+        $[
+            <statement>
+                "INSERT INTO TABLE user (name, age) VALUES ($1, $2);" >>sql
+                {
+                    $[ "user" "name" VARCHAR "erg" <in-binder> ]
+                    $[ "user" "age" INTEGER 28 <in-binder> ]
+                } >>in
+        ]
+    ] [
+        {
+            $[ "user" "name" VARCHAR "erg" <in-binder> ]
+            $[ "user" "age" INTEGER 28 <in-binder> ]
+        } <insert>
+        expand-fql
+    ] unit-test ;
+
+
+
+
+/*
 
 : test-fql ( -- )
     create-computer-table

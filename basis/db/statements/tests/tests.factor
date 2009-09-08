@@ -30,14 +30,16 @@ IN: db.statements.tests
     ] unit-test
 
     [ ] [
-        "insert into computer (name, os) values('vio', 'opp');"
-        f f <statement> sql-bind-command
+        <statement>
+            "insert into computer (name, os) values('vio', 'opp');" >>sql
+        sql-bind-command
     ] unit-test
     
     [ { { "rocky" "mac" } { "vio" "opp" } } ]
     [
-        "select name, os from computer;"
-        f f <statement> sql-query
+        <statement>
+            "select name, os from computer;" >>sql
+        sql-query
     ] unit-test
 
     ! [ "insert into" sql-command ] [ sql-syntax-error? ] must-fail-with
@@ -47,8 +49,9 @@ IN: db.statements.tests
     [ "drop table default_person" sql-command ] ignore-errors
 
     [ ] [
-        "create table default_person(id serial primary key, name text, birthdate timestamp, email text, homepage text)"
-        f f <statement> sql-bind-command
+        <statement>
+            "create table default_person(id serial primary key, name text, birthdate timestamp, email text, homepage text)" >>sql
+        sql-bind-command
     ] unit-test ;
 
 [ test-sql-command ] test-dbs

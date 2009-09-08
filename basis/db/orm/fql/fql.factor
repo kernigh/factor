@@ -28,12 +28,11 @@ M: object normalize-fql ( object -- fql ) ;
 GENERIC: expand-fql* ( statement object -- sequence/statement )
 
 : expand-fql ( object1 -- object2 )
-    [ statement new ] dip normalize-fql expand-fql* ;
+    [ <statement> ] dip normalize-fql expand-fql* ;
 
+TUPLE: insert < fql binders ;
 
-TUPLE: insert < fql table binders ;
-
-CONSTRUCTOR: insert ( table binders -- obj ) ;
+CONSTRUCTOR: insert ( binders -- obj ) ;
 
 M: insert normalize-fql ( insert -- insert )
     [ ??1array ] change-binders ;
@@ -179,7 +178,7 @@ M: full-join expand-fql* ( obj -- statement )
 
 M: insert expand-fql*
     {
-        [ table>> "INSERT INTO " prepend add-sql ]
+        [ binders>> first table>> "INSERT INTO " prepend add-sql ]
         [ expand-insert-names ]
     } cleave normalize-statement ;
 

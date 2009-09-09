@@ -3,8 +3,8 @@
 USING: accessors annotations arrays assocs classes
 classes.tuple combinators combinators.short-circuit
 constructors db.types db.utils kernel math multiline namespaces
-parser quotations sequences sets strings words make db.orm.fql
-fry lexer ;
+parser quotations sequences sets strings words make
+fry lexer db.binders ;
 IN: db.orm.persistent
 
 ERROR: bad-table-name obj ;
@@ -93,8 +93,12 @@ M: tuple-class table-name* lookup-persistent table-name>> ;
 
 M: tuple table-name* lookup-persistent table-name>> ;
 
+M: in-binder table-name* renamed-table>> ;
+
+M: out-binder table-name* renamed-table>> ;
+
 : table-name ( obj -- string )
-    table-name* "\"" dup surround ;
+    table-name* ; ! "\"" dup surround ;
 
 GENERIC: find-primary-key ( obj -- seq )
 

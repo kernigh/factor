@@ -1,8 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db db.binders db.orm.fql db.statements
-db.statements.tests db.tester db.types kernel literals
-multiline tools.test ;
+USING: accessors db db.binders db.orm.examples db.orm.fql
+db.statements db.statements.tests db.tester db.types kernel
+literals multiline tools.test ;
 IN: db.orm.fql.tests
 
 
@@ -12,17 +12,30 @@ IN: db.orm.fql.tests
             <statement>
                 "INSERT INTO TABLE user (name, age) VALUES ($1, $2);" >>sql
                 {
-                    $[ "user" "name" VARCHAR "erg" <in-binder> ]
-                    $[ "user" "age" INTEGER 28 <in-binder> ]
+                    $[ user "user" "name" VARCHAR "erg" <in-binder> ]
+                    $[ user "user" "age" INTEGER 28 <in-binder> ]
                 } >>in
         ]
     ] [
         {
-            $[ "user" "name" VARCHAR "erg" <in-binder> ]
-            $[ "user" "age" INTEGER 28 <in-binder> ]
+            $[ user "user" "name" VARCHAR "erg" <in-binder> ]
+            $[ user "user" "age" INTEGER 28 <in-binder> ]
         } <insert>
         expand-fql
-    ] unit-test ;
+    ] unit-test
+
+
+    [
+    ] [
+        <select>
+            $[ user "user0" "name" VARCHAR "erg" <in-binder> ] >>in
+            {
+                $[ user "user0" "name" VARCHAR <out-binder> ]
+                $[ user "user0" "age" INTEGER <out-binder> ]
+            } >>out
+        expand-fql
+    ] unit-test
+    ;
 
 
 

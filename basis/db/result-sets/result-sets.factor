@@ -47,6 +47,6 @@ SYMBOL: sql-column-counter
     ] with map ;
 
 M: out-string-binder get-type drop VARCHAR ;
-M: out-typed-binder get-type type>> ;
+M: out-binder get-type type>> ;
 M: out-tuple-slot-binder get-type type>> ;
 */

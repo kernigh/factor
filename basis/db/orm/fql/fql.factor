@@ -2,9 +2,9 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators
 combinators.short-circuit constructors db.binders
-db.statements db.types db.utils destructors fry kernel locals
-make math math.parser multiline namespaces sequences splitting
-strings vectors ;
+db.orm.persistent db.statements db.types db.utils destructors
+fry kernel locals make math math.parser multiline namespaces
+sequences sets splitting strings vectors ;
 IN: db.orm.fql
 
 : ??first2 ( obj -- obj1 obj2 )
@@ -18,6 +18,15 @@ TUPLE: fql ;
 TUPLE: fql-op < fql left right ;
 TUPLE: aggregate-function < fql column ;
 
+ERROR: in-binders-required fql ;
+
+: ensure-in ( fql -- fql )
+    dup in>> empty? [ in-binders-required ] when ;
+
+: next-bind-index ( -- string )
+    "?" ;
+
+
 : new-op ( left right class -- fql-op )
     new
         swap >>right
@@ -30,12 +39,12 @@ GENERIC: expand-fql* ( statement object -- sequence/statement )
 : expand-fql ( object1 -- object2 )
     [ <statement> ] dip normalize-fql expand-fql* ;
 
-TUPLE: insert < fql binders ;
+TUPLE: insert < fql in ;
 
-CONSTRUCTOR: insert ( binders -- obj ) ;
+CONSTRUCTOR: insert ( in -- obj ) ;
 
 M: insert normalize-fql ( insert -- insert )
-    [ ??1array ] change-binders ;
+    [ ??1array ] change-in ;
 
 TUPLE: update < fql tables keys values where order-by limit ;
 
@@ -55,18 +64,21 @@ M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 
-TUPLE: select < fql columns from join where group-by
-having order-by offset limit ;
+TUPLE: select < fql in out ;
+! columns from join where group-by
+! having order-by offset limit ;
 
 CONSTRUCTOR: select ( -- obj ) ;
 
 M: select normalize-fql ( select -- select )
-    [ ??1array ] change-columns
-    [ ??1array ] change-join
-    [ ??1array ] change-from
-    [ ??1array ] change-where
-    [ ??1array ] change-group-by
-    [ ??1array ] change-order-by ;
+    [ ??1array ] change-in
+    [ ??1array ] change-out ;
+    ! [ ??1array ] change-columns
+    ! [ ??1array ] change-join
+    ! [ ??1array ] change-from
+    ! [ ??1array ] change-where
+    ! [ ??1array ] change-group-by
+    ! [ ??1array ] change-order-by ;
 
 TUPLE: and-sequence < fql sequence ;
 CONSTRUCTOR: and-sequence ( sequence -- obj ) ;
@@ -165,7 +177,7 @@ M: full-join expand-fql* ( obj -- statement )
 
 
 : expand-insert-names ( statement insert -- statement )
-    binders>> [
+    in>> [
         [ " (" add-sql ] dip
         [ column>> ] map ", " join add-sql
         ")" add-sql
@@ -177,8 +189,9 @@ M: full-join expand-fql* ( obj -- statement )
     ] bi ;
 
 M: insert expand-fql*
+    ensure-in
     {
-        [ binders>> first table>> "INSERT INTO " prepend add-sql ]
+        [ in>> first table-name "INSERT INTO " prepend add-sql ]
         [ expand-insert-names ]
     } cleave normalize-statement ;
 
@@ -186,6 +199,7 @@ M: insert expand-fql*
 
 
 
+/*
 GENERIC: param>binder* ( obj -- obj' type )
 
 M: number param>binder*
@@ -196,8 +210,6 @@ M: sequence param>binder*
 
 M: NULL param>binder* NULL ;
 M: +db-assigned-key+ param>binder* INTEGER ;
-
-: param>binder ( obj -- pair ) param>binder* <param-in-binder> ;
 
 : vector/array? ( obj -- ? ) { [ vector? ] [ array? ] } 1|| ;
 
@@ -224,6 +236,7 @@ M: and-sequence expand-op ( obj -- strings/binders )
     sequence>> [ expand-op ] map
     [ keys " AND " join "(" ")" surround ]
     [ values concat ] bi 2array ;
+*/
 
 SYMBOL: tables
 
@@ -235,31 +248,72 @@ SYMBOL: tables
 
 GENERIC: expand-out ( obj -- names binders )
 
-: select-out ( statement tuple -- statement )
-    columns>> [ expand-out ] { } map>assoc
-    [ keys concat ", " join add-sql ] [ values concat >>out ] bi ;
+    ! columns>> [ expand-out ] { } map>assoc
+    ! [ keys concat ", " join add-sql ] [ values concat >>out ] bi ;
+
+! : binder>name ( binder -- string ) [ class>> table-name ] [ column>> ] bi "." glue ;
+
+! : binders>names ( seq -- string ) [ binder>name ] map ", " join ;
+
+: in/out ( obj -- in out )
+    { in>> out>> } slots ;
+
+: table-columns ( obj -- columns )
+    lookup-persistent columns>> ;
+
+: column>out-binder ( column -- out-binder )
+    persistent>> 
+    ;
+
+: full-table-name ( binder -- string )
+    [ class>> table-name ] [ renamed-table>> ] bi " AS " glue ;
+
+: binder>name ( binder -- string )
+    [ renamed-table>> ] [ column>> ] bi "." glue ;
+
+: binder>names ( binder -- string )
+    [ renamed-table>> ] [ class>> ] bi
+    table-columns [ column-name>> "." glue ] with map ;
+
+: binders>names ( seq -- string )
+    [ binder>name ] map prune ", " join ;
+
+: select-out ( statement select -- statement )
+    out>> binders>names add-sql ;
+
+: select-tables ( statement select -- statement )
+    in/out append [ full-table-name ] map prune ", " join add-sql ;
 
 : expand-where ( statement obj -- statement )
-    where>> [
-        [ " WHERE " add-sql ] dip
-        [ expand-op ] map
-        [ keys " AND " join add-sql ] [ values concat add-in-params ] bi
-    ] when* ;
+    [ " WHERE " add-sql ] dip
+    in>> [
+        binder>name " = " next-bind-index 3append
+    ] map ", " join add-sql ;
 
-M:: select expand-fql* ( statement obj -- statement )
-    H{ } clone tables [
-        statement obj
-        {
-            [ [ "SELECT " add-sql ] dip select-out ]
-            [ [ " FROM " add-sql ] dip from>> ", " join add-sql ]
-            [ join>> [ [ expand-fql* ] each ] when* ]
-            [ expand-where ]
-            [ group-by>> [ [ " GROUP BY " add-sql ] dip ", " join add-sql ] when* ]
-            [ order-by>> [ [ " ORDER BY " add-sql ] dip ", " join add-sql ] when* ]
-            [ offset>> [ [ " OFFSET " add-sql ] dip number>string add-sql ] when* ]
-            [ limit>> [ [ " LIMIT " add-sql ] dip number>string add-sql ] when* ]
-        } cleave normalize-statement
-    ] with-variable ;
+    ! where>> [
+        ! [ " WHERE " add-sql ] dip
+        ! [ expand-op ] map
+        ! [ keys " AND " join add-sql ] [ values concat add-in-params ] bi
+    ! ] when* ;
+
+M: select expand-fql* ( statement obj -- statement )
+    {
+        [ in>> >>in ]
+        [ out>> >>out ]
+        [ [ "SELECT " add-sql ] dip select-out ]
+        [ [ " FROM " add-sql ] dip select-tables ]
+        [ dup in>> empty? [ drop ] [ expand-where ] if ]
+    } cleave normalize-statement ;
+
+
+            ! [ [ "SELECT " add-sql ] dip select-out ]
+            ! [ [ " FROM " add-sql ] dip from>> ", " join add-sql ]
+            ! [ join>> [ [ expand-fql* ] each ] when* ]
+            ! [ expand-where ]
+            ! [ group-by>> [ [ " GROUP BY " add-sql ] dip ", " join add-sql ] when* ]
+            ! [ order-by>> [ [ " ORDER BY " add-sql ] dip ", " join add-sql ] when* ]
+            ! [ offset>> [ [ " OFFSET " add-sql ] dip number>string add-sql ] when* ]
+            ! [ limit>> [ [ " LIMIT " add-sql ] dip number>string add-sql ] when* ]
 
 
 
@@ -289,6 +343,7 @@ TUPLE: fql-first < aggregate-function ;
 TUPLE: fql-last < aggregate-function ;
 : <fql-last> ( column -- last ) fql-last new-aggregate-function ;
 
+/*
 : expand-aggregate ( obj str type -- string/binder )
     [ [ column>> ] dip "(" append ")" surround ] dip
     [ f f ] dip <out-typed-binder> 2array ;
@@ -313,6 +368,7 @@ M: fql-first expand-op ( obj -- string/binder )
 
 M: fql-last expand-op ( obj -- string/binder )
     "last" REAL expand-aggregate ;
+*/
 
 
 

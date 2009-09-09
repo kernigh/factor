@@ -1,12 +1,16 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types arrays assocs classes
-classes.algebra classes.tuple combinators.short-circuit kernel
-libc locals math math.order math.parser sequences
-sequences.private slots slots.private strings vectors words ;
+classes.algebra classes.tuple combinators
+combinators.short-circuit fry kernel libc locals macros math
+math.order math.parser quotations sequences sequences.private
+slots slots.private strings vectors words ;
 IN: db.utils
 
 SLOT: slot-name
+
+MACRO: slots ( seq -- quot )
+    [ 1quotation ] map '[ _ cleave ] ;
 
 : subclass? ( class1 class2 -- ? )
     { [ class<= ] [ drop tuple-class? ] } 2&& ;

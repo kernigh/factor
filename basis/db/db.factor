@@ -14,9 +14,6 @@ GENERIC: sql-bind-query ( object -- sequence )
 GENERIC: sql-bind-typed-command ( object -- )
 GENERIC: sql-bind-typed-query ( object -- sequence )
 
-! : maybe-expand-fql ( statement -- statement )
-    ! [ dup fql? [ expand-fql ] when ] change-sql ;
-
 M: string sql-command ( string -- )
     <statement>
         swap >>sql
@@ -54,14 +51,12 @@ M: statement sql-bind-typed-command ( statement -- )
 M: no-out-types summary
     drop "SQL types are required for the return values of this query" ;
 
-/*
 M: statement sql-bind-typed-query ( statement -- sequence )
     [
         dup out>> empty? [ no-out-types ] when
         prepare-statement
-        [ bind-typed-sequence ] [ statement>typed-result-sequence ] bi
+        [ bind-typed-sequence ] [ statement>result-sequence-typed ] bi
     ] with-disposal ;
-*/
 
 M: sequence sql-command [ sql-command ] each ;
 M: sequence sql-query [ sql-query ] map ;

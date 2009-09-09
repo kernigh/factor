@@ -68,3 +68,6 @@ M: object execute-statement* ( statement type -- )
 
 : statement>result-sequence ( statement -- sequence )
     statement>result-set [ [ sql-row ] result-set-map ] with-disposal ;
+
+: statement>result-sequence-typed ( statement -- sequence )
+    statement>result-set [ [ sql-row-typed ] result-set-map ] with-disposal ;

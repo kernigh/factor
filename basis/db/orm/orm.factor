@@ -5,7 +5,7 @@ classes.singleton classes.tuple combinators db.binders
 db.connections db.orm.fql db.orm.persistent db.types db.utils
 fry kernel lexer locals mirrors multiline sequences db.statements
 make classes shuffle namespaces math.parser sets annotations
-math.ranges ;
+math.ranges db ;
 IN: db.orm
 
 : filter-ignored-columns ( tuple -- columns' )
@@ -120,6 +120,7 @@ SYMBOL: table-counter
     ] map ",\n " join add-sql ;
 */
 
+/*
 : select-outs ( statement relations -- statement' )
     sort-relations [
         [ first2 [ name>> ] [ number>string ] bi* "_" glue ]
@@ -128,6 +129,7 @@ SYMBOL: table-counter
         [ [ [ persistent>> table-name>> ] [ column-name>> ] bi "_" glue "." glue ] with map ]
         bi-curry* bi [ ", " join ] bi@ [ ", " glue ] unless-empty
     ] map ",\n " join add-sql ;
+*/
 
 : renamed-table-name ( pair -- string )
     first2 [ table-name ] [ number>string ] bi* "_" glue ;
@@ -141,7 +143,6 @@ SYMBOL: table-counter
 
     ! [ renamed-table-name ] [ first find-primary-key ] bi
     ! [ column-name>> "." glue ] with map ;
-*/
 
 : select-joins ( statement relations -- statement' )
     [
@@ -191,6 +192,7 @@ SYMBOL: table-counter
     ] [
         select-relation-tuple
     ] if-empty ;
+*/
 
 : qualified-column-string ( persistent -- string )
     [ table-name>> ] [ columns>> ] bi
@@ -202,37 +204,42 @@ SYMBOL: table-counter
 : n-parameters ( n -- string )
     [1,b] [ number>string "$" prepend ] map "," join ;
 
-/*
-: insert-tuple ( tuple -- obj )
-    [ insert new ] dip
-    dup lookup-persistent {
-        [ nip table-name>> >>tables ]
-        [
-            columns>> [
-                swap [
-                    {
-                        [ table-name ] [ column-name>> ]
-                        [ type>> ] [ getter>> ]
-                    } cleave
-                ] dip [ type>> ] [ value>> ] bi "." glue
-            ] with map
-        ]
-    } 2cleave ;
-*/
+: column>binder ( column -- class table-name column-name type )
+    {
+        [ persistent>> class>> ]
+        [ persistent>> table-name>> ]
+        [ column-name>> ]
+        [ type>> ]
+    } cleave ;
 
-/*
-: insert-tuple ( tuple -- obj )
-    [ <statement> "INSERT INTO " add-sql ] dip
-    dup lookup-persistent {
-        [ nip table-name>> add-sql "(" add-sql ]
-        [ nip qualified-column-string add-sql ") values(" add-sql ]
-        [
-            nip columns>> length n-parameters add-sql
-            ");" add-sql
-        ]
-        [ tuple-slots >>in ]
-    } 2cleave ;
-*/
+: column>out-binder ( column -- binder )
+    column>binder <out-binder> ;
+
+: column>in-binder ( tuple column -- binder )
+    {
+        [ nip column>binder ]
+        [ getter>> call( obj -- obj ) ]
+    } 2cleave <in-binder> ;
+
+: insert-tuple ( tuple -- )
+    dup lookup-persistent
+    columns>> [ column>in-binder ] with map <insert>
+    expand-fql sql-bind-typed-command ;
+
+: select-ins ( tuple -- seq )
+    
+    ;
+
+: select-outs ( tuple -- seq )
+    filter-ignored-columns [ column>out-binder ] map ;
+
+: select-tuples ( tuple -- seq )
+    [ <select> ] dip
+    ! dup lookup-persistent
+    {
+        [ select-ins >>in ]
+        [ select-outs >>out ]
+    } cleave ;
 
 
 

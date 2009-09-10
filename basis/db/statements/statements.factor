@@ -39,7 +39,10 @@ HOOK: dispose-statement db-connection ( statement -- )
 HOOK: bind-sequence db-connection ( statement -- )
 HOOK: bind-typed-sequence db-connection ( statement -- )
 
+ERROR: no-database-in-scope ;
+
 M: statement dispose dispose-statement ;
+M: f dispose-statement no-database-in-scope ;
 
 : with-sql-error-handler ( quot -- )
     [ dup sql-error? [ parse-sql-error ] when rethrow ] recover ; inline

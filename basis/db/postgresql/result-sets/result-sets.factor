@@ -5,8 +5,10 @@ combinators db.connections db.postgresql.connections.private
 db.postgresql.ffi db.postgresql.lib db.postgresql.statements
 db.postgresql.types db.result-sets db.statements db.types
 db.utils destructors io.encodings.utf8 kernel libc math
-namespaces present sequences serialize specialized-arrays.alien
-specialized-arrays.uint strings ;
+namespaces present sequences serialize specialized-arrays
+strings ;
+SPECIALIZED-ARRAY: uint
+SPECIALIZED-ARRAY: void*
 IN: db.postgresql.result-sets
 
 TUPLE: postgresql-result-set < result-set ;

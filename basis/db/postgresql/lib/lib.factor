@@ -4,7 +4,7 @@ USING: accessors alien.c-types alien.strings arrays
 calendar.format combinators db.connections db.postgresql.ffi
 db.types db.utils destructors io.encodings.utf8 kernel libc
 math math.parser namespaces sequences serialize splitting
-strings summary unicode.categories urls ;
+strings summary unicode.categories urls specialized-arrays ;
 SPECIALIZED-ARRAY: uint
 SPECIALIZED-ARRAY: void*
 IN: db.postgresql.lib

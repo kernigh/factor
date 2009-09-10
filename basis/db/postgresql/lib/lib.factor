@@ -5,6 +5,8 @@ calendar.format combinators db.connections db.postgresql.ffi
 db.types db.utils destructors io.encodings.utf8 kernel libc
 math math.parser namespaces sequences serialize splitting
 strings summary unicode.categories urls ;
+SPECIALIZED-ARRAY: uint
+SPECIALIZED-ARRAY: void*
 IN: db.postgresql.lib
 
 : pq-get-is-null ( handle row column -- ? ) PQgetisnull 1 = ;

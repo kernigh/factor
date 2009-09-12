@@ -276,6 +276,7 @@ M: select expand-fql* ( statement obj -- statement )
     {
         [ in>> >>in ]
         [ out>> >>out ]
+        [ reconstructor>> >>reconstructor ]
         [ [ "SELECT " add-sql ] dip select-out ]
         [ [ " FROM " add-sql ] dip select-tables ]
         [ dup in>> empty? [ drop ] [ expand-where ] if ]

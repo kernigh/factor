@@ -5,7 +5,8 @@ classes.mixin classes.parser classes.singleton classes.tuple
 combinators db db.binders db.connections db.orm.fql
 db.orm.persistent db.statements db.types db.utils fry kernel
 lexer locals make math.order math.parser math.ranges mirrors
-multiline namespaces sequences sets shuffle splitting.monotonic ;
+multiline namespaces sequences sets shuffle splitting.monotonic
+constructors math ;
 IN: db.orm
 
 : filter-ignored-columns ( tuple -- columns' )
@@ -237,8 +238,14 @@ SYMBOL: table-counter
 : select-outs ( tuple -- seq )
     filter-ignored-columns [ column>out-binder ] map ;
 
+TUPLE: column-wrapper n seq ;
+
+CONSTRUCTOR: column-wrapper ( seq -- obj )
+    0 >>n ;
+
 : next-column ( obj -- n )
-    drop "OMG A COLUMN" ;
+    [ [ n>> ] [ seq>> ] bi nth ] 
+    [ [ 1 + ] change-n drop ] bi ;
 
 : reconstruct-class ( seq -- )
     [
@@ -260,7 +267,7 @@ SYMBOL: table-counter
                 [ setter>> '[ drop _ call( obj obj -- obj ) ] , ] bi
             ] each
         ] bi*
-    ] [ ] make '[ _ cleave ] ;
+    ] [ ] make '[ <column-wrapper> _ cleave ] ;
 
 : select-tuples ( tuple -- seq )
     [ <select> ] dip
@@ -268,8 +275,9 @@ SYMBOL: table-counter
         [ select-ins >>in ]
         [ select-outs >>out ]
         [ filter-ignored-columns columns>reconstructor >>reconstructor ]
-    } cleave ;
-
+    } cleave expand-fql
+    [ sql-bind-typed-query ] [ reconstructor>> ] bi
+    '[ _ call( obj -- obj ) ] map ;
 
 /*
 SELECT thread2_0.id, thread2_0.topic, thread2_0.ts,

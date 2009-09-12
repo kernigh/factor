@@ -242,10 +242,10 @@ SYMBOL: table-counter
 
 : reconstruct-class ( seq -- )
     [
-        first persistent>> class>> '[ [ drop _ new ] ] ,
+        first persistent>> class>> '[ drop _ new ] ,
     ] [
         [
-            setter>> '[ next-column _ ]
+            setter>> '[ next-column _ call( obj obj -- obj ) ]
         ] map '[ _ cleave ] ,
     ] bi ;
 
@@ -256,8 +256,8 @@ SYMBOL: table-counter
             reconstruct-class
         ] [
             [
-                [ reconstruct-class , ]
-                [ setter>> '[ [ drop _ ] ] , ] bi
+                [ reconstruct-class ]
+                [ setter>> '[ drop _ call( obj obj -- obj ) ] , ] bi
             ] each
         ] bi*
     ] [ ] make '[ _ cleave ] ;
@@ -269,7 +269,6 @@ SYMBOL: table-counter
         [ select-outs >>out ]
         [ filter-ignored-columns columns>reconstructor >>reconstructor ]
     } cleave ;
-
 
 
 /*

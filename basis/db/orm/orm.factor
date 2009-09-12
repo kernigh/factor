@@ -1,11 +1,11 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs classes.mixin classes.parser
-classes.singleton classes.tuple combinators db.binders
-db.connections db.orm.fql db.orm.persistent db.types db.utils
-fry kernel lexer locals mirrors multiline sequences db.statements
-make classes shuffle namespaces math.parser sets annotations
-math.ranges db ;
+USING: accessors annotations arrays assocs classes
+classes.mixin classes.parser classes.singleton classes.tuple
+combinators db db.binders db.connections db.orm.fql
+db.orm.persistent db.statements db.types db.utils fry kernel
+lexer locals make math.order math.parser math.ranges mirrors
+multiline namespaces sequences sets shuffle splitting.monotonic ;
 IN: db.orm
 
 : filter-ignored-columns ( tuple -- columns' )
@@ -237,12 +237,37 @@ SYMBOL: table-counter
 : select-outs ( tuple -- seq )
     filter-ignored-columns [ column>out-binder ] map ;
 
+: next-column ( obj -- n )
+    drop "OMG A COLUMN" ;
+
+: reconstruct-class ( seq -- )
+    [
+        first persistent>> class>> '[ [ drop _ new ] ] ,
+    ] [
+        [
+            setter>> '[ next-column _ ]
+        ] map '[ _ cleave ] ,
+    ] bi ;
+
+: columns>reconstructor ( seq -- quot )
+    [
+        [ [ persistent>> class>> ] compare ] monotonic-split
+        unclip swap [
+            reconstruct-class
+        ] [
+            [
+                [ reconstruct-class , ]
+                [ setter>> '[ [ drop _ ] ] , ] bi
+            ] each
+        ] bi*
+    ] [ ] make '[ _ cleave ] ;
+
 : select-tuples ( tuple -- seq )
     [ <select> ] dip
-    ! dup lookup-persistent
     {
         [ select-ins >>in ]
         [ select-outs >>out ]
+        [ filter-ignored-columns columns>reconstructor >>reconstructor ]
     } cleave ;
 
 

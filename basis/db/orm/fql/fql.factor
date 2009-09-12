@@ -62,7 +62,7 @@ M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 
-TUPLE: select < fql in out ;
+TUPLE: select < fql in out reconstructor ;
 ! columns from join where group-by
 ! having order-by offset limit ;
 

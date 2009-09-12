@@ -9,6 +9,9 @@ multiline namespaces sequences sets shuffle splitting.monotonic
 constructors math ;
 IN: db.orm
 
+HOOK: create-sql-statement db-connection ( class -- obj )
+HOOK: drop-sql-statement db-connection ( class -- obj )
+
 : filter-ignored-columns ( tuple -- columns' )
     [ lookup-persistent columns>> ] [ <mirror> ] bi
     '[ slot-name>> _ at IGNORE = not ] filter ;
@@ -38,9 +41,6 @@ IN: db.orm
         [ persistent>> class>> find-primary-key ] map concat
     ] bi ;
 
-HOOK: create-sql-statement db ( class -- obj )
-HOOK: drop-sql-statement db ( class -- obj )
-
 M: object create-sql-statement
     [ <statement> ] dip
     {
@@ -57,7 +57,7 @@ M: object create-sql-statement
             class>primary-key-create add-sql
             ");" add-sql
         ]
-    } cleave sql-command ;
+    } cleave ;
 
 : create-table ( class -- ) create-sql-statement sql-command ;
 
@@ -66,7 +66,7 @@ M: object drop-sql-statement
     <statement>
         swap >>sql ;
 
-: drop-table ( class -- statement ) drop-sql-statement sql-command ;
+: drop-table ( class -- ) drop-sql-statement sql-command ;
 
 : canonicalize-tuple ( tuple -- tuple' )
     tuple>array dup rest-slice [

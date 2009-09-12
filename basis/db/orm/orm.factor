@@ -144,56 +144,8 @@ SYMBOL: table-counter
 
     ! [ renamed-table-name ] [ first find-primary-key ] bi
     ! [ column-name>> "." glue ] with map ;
-
-: select-joins ( statement relations -- statement' )
-    [
-        first2
-        [ nip [ first table-name ] [ renamed-table-name ] bi " AS " glue ]
-        [ 2drop ] 2bi
-        ! [ [ first table-name ] bi@ " ON " glue ]
-        ! [ nip renamed-table-name " AS " glue ] 2bi
-        "\n LEFT JOIN " prepend
-    ] map ", " join add-sql ;
-
-! Needs tuple for filtering slots
-: relations>select ( relations -- statement )
-    [ <statement> ] dip {
-        [ drop "SELECT " add-sql ]
-        [ select-outs ]
-        [ drop "\n FROM " add-sql ]
-        [
-            first first
-            [ first table-name add-sql " AS " add-sql ]
-            [ renamed-table-name add-sql ] bi
-        ]
-        [ select-joins ]
-    } cleave ;
-
-: select-out* ( tuple -- string )
-    [ table-name ]
-    [ <mirror> [ nip IGNORE = not ] assoc-filter keys ] bi
-    [ "." glue ] with map ", " join ;
-
-: select-single-outs ( statement tuple -- statement )
-
-    select-out* >>out ;
-
-: select-single-tuple ( statement tuple -- statement )
-    {
-        [ select-single-outs ]
-    } cleave ;
-
-: select-relation-tuple ( statement tuple relations -- statement )
-    {
-    } 2cleave ;
-
-: select-stuff ( tuple -- statement )
-    [ <statement> "SELECT " add-sql ] dip dup tuple>relations [
-        select-single-tuple
-    ] [
-        select-relation-tuple
-    ] if-empty ;
 */
+
 
 : qualified-column-string ( persistent -- string )
     [ table-name>> ] [ columns>> ] bi
@@ -278,30 +230,3 @@ CONSTRUCTOR: column-wrapper ( seq -- obj )
     } cleave expand-fql
     [ sql-bind-typed-query ] [ reconstructor>> ] bi
     '[ _ call( obj -- obj ) ] map ;
-
-/*
-SELECT thread2_0.id, thread2_0.topic, thread2_0.ts,
- author2_1.id, author2_1.name,
- thread2_0.id, thread2_0.topic, thread2_0.ts,
- comment2_3.id, comment2_3.text, comment2_3.ts,
- author2_4.id, author2_4.name
- FROM thread2 AS thread2_0
- LEFT JOIN thread2 ON author2 AS author2_1, 
- LEFT JOIN author2 ON address2 AS address2_2, 
- LEFT JOIN thread2 ON comment2 AS comment2_3, 
- LEFT JOIN comment2 ON author2 AS author2_4, 
- LEFT JOIN author2 ON address2 AS address2_5
-
-SELECT thread2_0.id, thread2_0.topic, thread2_0.ts,
- author2_1.id, author2_1.name,
- address2_2.id, ..., address2_2.author_id
- comment2_3.id, comment2_3.text, comment2_3.ts, comment2_3.thread_id,
- author2_4.id, author2_4.name
- address2_5.id, ..., address2_5.author_id
- FROM thread2 AS thread2_0
- LEFT JOIN thread2 ON author2 AS author2_1, 
- LEFT JOIN author2 ON address2 AS address2_2, 
- LEFT JOIN thread2 ON comment2 AS comment2_3, 
- LEFT JOIN comment2 ON author2 AS author2_4, 
- LEFT JOIN author2 ON address2 AS address2_5
-*/

@@ -20,7 +20,6 @@ IN: db.orm
 : filter-relations ( obj -- columns )
     lookup-persistent columns>> [ relation-category not ] filter ;
 
-
 : create-many:many-table ( class1 class2 -- statement )
     [ <statement> ] 2dip
     {
@@ -39,7 +38,10 @@ IN: db.orm
         [ persistent>> class>> find-primary-key ] map concat
     ] bi ;
 
-: create-table ( class -- statement )
+HOOK: create-sql-statement db ( class -- obj )
+HOOK: drop-sql-statement db ( class -- obj )
+
+M: object create-sql-statement
     [ <statement> ] dip
     {
         [ drop "CREATE TABLE " add-sql ]
@@ -55,12 +57,16 @@ IN: db.orm
             class>primary-key-create add-sql
             ");" add-sql
         ]
-    } cleave ;
+    } cleave sql-command ;
 
-: drop-table ( class -- statement )
+: create-table ( class -- ) create-sql-statement sql-command ;
+
+M: object drop-sql-statement
     table-name [ "DROP TABLE " ] dip ";" 3append
     <statement>
         swap >>sql ;
+
+: drop-table ( class -- statement ) drop-sql-statement sql-command ;
 
 : canonicalize-tuple ( tuple -- tuple' )
     tuple>array dup rest-slice [
@@ -111,41 +117,8 @@ SYMBOL: table-counter
 : sort-relations ( relations -- seq )
     [ first2 ] { } map>assoc concat prune ;
 
-/*
-: select-outs ( statement relations -- statement' )
-    [
-        first
-        [ first2 [ name>> ] [ number>string ] bi* "_" glue ]
-        [ nip first filter-relations ] 2bi
-        [ column-name>> "." glue ] with map ", " join
-    ] map ",\n " join add-sql ;
-*/
-
-/*
-: select-outs ( statement relations -- statement' )
-    sort-relations [
-        [ first2 [ name>> ] [ number>string ] bi* "_" glue ]
-        [ nip first actual-columns ] 2bi
-        [ [ column-name>> "." glue ] with map ]
-        [ [ [ persistent>> table-name>> ] [ column-name>> ] bi "_" glue "." glue ] with map ]
-        bi-curry* bi [ ", " join ] bi@ [ ", " glue ] unless-empty
-    ] map ",\n " join add-sql ;
-*/
-
 : renamed-table-name ( pair -- string )
     first2 [ table-name ] [ number>string ] bi* "_" glue ;
-
-!TODO
-/*
-: relation-primary-keys ( pair1 pair2 -- seq )
-    {
-        [ drop [ table-name ] [ find-primary-key ] bi ]
-    } 2cleave ;
-
-    ! [ renamed-table-name ] [ first find-primary-key ] bi
-    ! [ column-name>> "." glue ] with map ;
-*/
-
 
 : qualified-column-string ( persistent -- string )
     [ table-name>> ] [ columns>> ] bi

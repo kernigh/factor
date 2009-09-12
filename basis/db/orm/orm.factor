@@ -226,9 +226,13 @@ SYMBOL: table-counter
     columns>> [ column>in-binder ] with map <insert>
     expand-fql sql-bind-typed-command ;
 
+: set-columns ( tuple -- seq )
+    dup lookup-persistent columns>> [
+        getter>> call( obj -- obj )
+    ] with filter ;
+
 : select-ins ( tuple -- seq )
-    
-    ;
+    dup set-columns [ column>in-binder ] with map ;
 
 : select-outs ( tuple -- seq )
     filter-ignored-columns [ column>out-binder ] map ;

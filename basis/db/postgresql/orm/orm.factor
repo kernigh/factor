@@ -1,7 +1,26 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: ;
+USING: combinators db.orm db.orm.persistent
+db.postgresql.connections.private db.statements db.types kernel
+make multiline ;
 IN: db.postgresql.orm
+
+
+: create-table-sql ( class -- statement )
+    [ <statement> ] dip
+    {
+        [ drop "CREATE TABLE " add-sql ]
+        [ table-name add-sql ]
+    } cleave ;
+
+: create-function-sql ( class -- statement )
+    ;
+
+M: postgresql-db-connection create-sql-statement
+    [
+        [ create-table-sql , ]
+        [ dup +db-assigned-key+? [ create-function-sql , ] [ drop ] if ] bi
+    ] { } make ;
 
 /*
 : create-table-sql ( class -- statement )

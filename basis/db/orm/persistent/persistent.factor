@@ -80,7 +80,7 @@ slot-name column-name type modifiers getter setter ;
 : column-primary-key? ( column -- ? )
     {
         [ type>> sql-primary-key? ]
-        [ modifiers>> [ PRIMARY-KEY? ] any? ]
+        [ modifiers>> [ +primary-key+? ] any? ]
     } 1|| ;
 
 GENERIC: table-name* ( column -- string )
@@ -110,6 +110,12 @@ M: tuple-class find-primary-key ( class -- seq )
 
 M: tuple find-primary-key ( class -- seq )
     class find-primary-key ;
+
+: db-assigned-key? ( class -- ? )
+    find-primary-key [ type>> +db-assigned-key+? ] all? ;
+
+: user-assigned-key? ( class -- ? )
+    find-primary-key [ modifiers>> +primary-key+ swap member? ] all? ;
 
 : set-primary-key ( persistent -- )
     dup find-primary-key >>primary-key drop ;

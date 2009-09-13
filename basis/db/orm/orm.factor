@@ -147,6 +147,8 @@ SYMBOL: table-counter
         [ getter>> call( obj -- obj ) ]
     } 2cleave <in-binder> ;
 
+! GENERIC: insert-tuple-statement ( 
+
 : insert-tuple ( tuple -- )
     dup lookup-persistent
     columns>> [ column>in-binder ] with map <insert>

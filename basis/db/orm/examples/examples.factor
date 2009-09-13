@@ -18,6 +18,22 @@ PERSISTENT: score
     { "user" user }
     { "score" INTEGER } ;
 
+
+TUPLE: user2 id name age ;
+CONSTRUCTOR: user2 ( name age -- obj ) ;
+TUPLE: score2 id user score ;
+
+PERSISTENT: user2
+    { "id" INTEGER +primary-key+ }
+    { "name" VARCHAR }
+    { "age" INTEGER } ;
+
+PERSISTENT: score2
+    { "id" INTEGER +primary-key+ }
+    { "id" INTEGER +primary-key+ }
+    { "user" user }
+    { "score" INTEGER } ;
+
 <<
 : user1 ( -- obj ) T{ user f 1 "erg" 27 } clone ;
 >>
@@ -38,8 +54,8 @@ PERSISTENT: thing
     { "whatsit" VARCHAR } ;
 
 PERSISTENT: thing-container
-    { "id1" INTEGER PRIMARY-KEY }
-    { "id2" INTEGER PRIMARY-KEY }
+    { "id1" INTEGER +primary-key+ }
+    { "id2" INTEGER +primary-key+ }
     { "name" VARCHAR }
     { "thing" thing } ;
 
@@ -196,12 +212,12 @@ TUPLE: compound1 a b text ;
 TUPLE: compound2 c compound1 text ;
 
 PERSISTENT: compound1
-    { "a" INTEGER PRIMARY-KEY }
-    { "b" INTEGER PRIMARY-KEY }
+    { "a" INTEGER +primary-key+ }
+    { "b" INTEGER +primary-key+ }
     { "text" VARCHAR } ;
 
 PERSISTENT: compound2
-    { "c" INTEGER PRIMARY-KEY }
+    { "c" INTEGER +primary-key+ }
     { "compound1" compound1 }
     { "text" VARCHAR } ;
 

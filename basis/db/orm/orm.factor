@@ -200,12 +200,21 @@ CONSTRUCTOR: column-wrapper ( seq -- obj )
         ] bi*
     ] [ ] make '[ <column-wrapper> _ cleave ] ;
 
-: select-tuples ( tuple -- seq )
+: select-tuple-obj ( tuple -- select )
     [ <select> ] dip
     {
         [ select-ins >>in ]
         [ select-outs >>out ]
         [ filter-ignored-columns columns>reconstructor >>reconstructor ]
-    } cleave expand-fql
+    } cleave ;
+
+: do-select-tuple ( select -- seq )
+    expand-fql
     [ sql-bind-typed-query ] [ reconstructor>> ] bi
     '[ _ call( obj -- obj ) ] map ;
+
+: select-tuples ( tuple -- seq )
+    select-tuple-obj do-select-tuple ;
+
+: select-tuple ( tuple -- seq )
+    select-tuple-obj 1 >>limit do-select-tuple ;

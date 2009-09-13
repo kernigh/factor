@@ -62,7 +62,7 @@ M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 
-TUPLE: select < fql in out reconstructor ;
+TUPLE: select < fql in out reconstructor offset limit ;
 ! columns from join where group-by
 ! having order-by offset limit ;
 
@@ -280,6 +280,8 @@ M: select expand-fql* ( statement obj -- statement )
         [ [ "SELECT " add-sql ] dip select-out ]
         [ [ " FROM " add-sql ] dip select-tables ]
         [ dup in>> empty? [ drop ] [ expand-where ] if ]
+        [ offset>> [ number>string " OFFSET " prepend add-sql ] when* ]
+        [ limit>> [ number>string " LIMIT " prepend add-sql ] when* ]
     } cleave normalize-statement ;
 
 ! Aggregate functions

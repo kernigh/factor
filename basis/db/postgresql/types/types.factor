@@ -78,6 +78,3 @@ M: postgresql-db-connection sql-create-type>string
         [ no-sql-type ]
     } case ;
 */
-
-M: postgresql-db-connection bind-typed-sequence ( statement -- )
-    ;

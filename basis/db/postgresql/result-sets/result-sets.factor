@@ -6,10 +6,10 @@ db.postgresql.ffi db.postgresql.lib db.postgresql.statements
 db.postgresql.types db.result-sets db.statements db.types
 db.utils destructors io.encodings.utf8 kernel libc math
 namespaces present sequences serialize specialized-arrays
-strings ;
+strings urls ;
+IN: db.postgresql.result-sets
 SPECIALIZED-ARRAY: uint
 SPECIALIZED-ARRAY: void*
-IN: db.postgresql.result-sets
 
 TUPLE: postgresql-result-set < result-set ;
 
@@ -109,3 +109,29 @@ M: postgresql-db-connection statement>result-set ( statement -- result-set )
     ] with-destructors
     \ postgresql-result-set new-result-set
     init-result-set ;
+
+M: postgresql-db-connection bind-typed-sequence ( statement -- )
+    drop ;
+
+M: postgresql-result-set column-typed
+    [ [ handle>> ] [ n>> ] bi ] 2dip
+    dup array? [ first ] when
+    {
+        { +db-assigned-key+ [ pq-get-number ] }
+        { +random-key+ [ pq-get-number ] }
+        { INTEGER [ pq-get-number ] }
+        { BIG-INTEGER [ pq-get-number ] }
+        { DOUBLE [ pq-get-number ] }
+        { TEXT [ pq-get-string ] }
+        { VARCHAR [ pq-get-string ] }
+        { DATE [ pq-get-string dup [ ymd>timestamp ] when ] }
+        { TIME [ pq-get-string dup [ hms>timestamp ] when ] }
+        { TIMESTAMP [ pq-get-string dup [ ymdhms>timestamp ] when ] }
+        { DATETIME [ pq-get-string dup [ ymdhms>timestamp ] when ] }
+        { BLOB [ pq-get-blob ] }
+        { URL [ pq-get-string dup [ >url ] when ] }
+        { FACTOR-BLOB [
+            pq-get-blob
+            dup [ bytes>object ] when ] }
+        [ no-sql-type ]
+    } case ;

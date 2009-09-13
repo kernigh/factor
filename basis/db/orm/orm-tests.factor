@@ -7,8 +7,8 @@ IN: db.orm.tests
     [ user drop-table ] ignore-table-exists
     [ ] [ user create-table ] unit-test
     [
-        T{ user f 1 "erg" 28 }
-    ] [ "erg" 28 <user> [ insert-tuple ] keep ] unit-test
+        ! T{ user f 1 "erg" 28 }
+    ] [ "erg" 28 <user> [ insert-tuple ] keep drop ] unit-test
     [ ] [ "mew" 6 <user> insert-tuple ] unit-test
     [
         {

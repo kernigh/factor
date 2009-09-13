@@ -5,6 +5,7 @@ combinators db.connections kernel lexer sequences ;
 IN: db.types
 
 HOOK: sql-type>string db-connection ( type -- string )
+HOOK: sql-create-type>string db-connection ( type -- string )
 HOOK: sql-modifiers>string db-connection ( modifiers -- string )
 HOOK: db-type>fql-type db-connection ( name -- table-schema )
 

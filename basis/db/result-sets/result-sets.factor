@@ -38,6 +38,8 @@ M: sql-type get-type ;
 
 M: out-binder get-type type>> ;
 
+M: out-binder-low get-type type>> ;
+
 /*
 SYMBOL: sql-column-counter
 

@@ -151,6 +151,8 @@ M: sqlite-db-connection sql-type>string
         [ no-sql-type ]
     } case ;
 
+M: sqlite-db-connection sql-create-type>string sql-type>string ;
+
 ERROR: no-sql-modifier modifier ;
 
 : sqlite-modifier>string ( symbol -- string )
@@ -159,7 +161,7 @@ ERROR: no-sql-modifier modifier ;
         { NOT-NULL [ "NOT NULL" ] }
         { SERIAL [ "SERIAL" ] }
         { AUTOINCREMENT [ "AUTOINCREMENT" ] }
-        { PRIMARY-KEY [ "" ] }
+        { +primary-key+ [ "" ] }
         [ no-sql-modifier ]
     } case ;
 

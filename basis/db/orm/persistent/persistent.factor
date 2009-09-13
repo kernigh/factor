@@ -98,7 +98,10 @@ M: in-binder table-name* renamed-table>> ;
 M: out-binder table-name* renamed-table>> ;
 
 : table-name ( obj -- string )
-    table-name* ; ! "\"" dup surround ;
+    table-name* ;
+
+: quoted-table-name ( obj -- string )
+    table-name* "\"" dup surround ;
 
 GENERIC: find-primary-key ( obj -- seq )
 
@@ -339,7 +342,7 @@ M: db-column select-reconstructor*
 
 : ((column>create-text)) ( db-column -- )
     {
-        [ type>> sql-type>string % ]
+        [ type>> sql-create-type>string % ]
         [ modifiers>> [ " " % sql-modifiers>string % ] when* ]
     } cleave ;
 

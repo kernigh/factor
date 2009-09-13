@@ -45,7 +45,7 @@ M: object create-sql-statement
     [ <statement> ] dip
     {
         [ drop "CREATE TABLE " add-sql ]
-        [ table-name add-sql "(" add-sql ]
+        [ quoted-table-name add-sql "(" add-sql ]
         [
             lookup-persistent columns>>
             [ column>create-text ] map sift ", " join add-sql
@@ -62,7 +62,7 @@ M: object create-sql-statement
 : create-table ( class -- ) create-sql-statement sql-command ;
 
 M: object drop-sql-statement
-    table-name [ "DROP TABLE " ] dip ";" 3append
+    quoted-table-name [ "DROP TABLE " ] dip ";" 3append
     <statement>
         swap >>sql ;
 
@@ -147,12 +147,16 @@ SYMBOL: table-counter
         [ getter>> call( obj -- obj ) ]
     } 2cleave <in-binder> ;
 
-! GENERIC: insert-tuple-statement ( 
+HOOK: select-id-statement db-connection ( class -- statement )
 
 : insert-tuple ( tuple -- )
-    dup lookup-persistent
-    columns>> [ column>in-binder ] with map <insert>
-    expand-fql sql-bind-typed-command ;
+    [
+        dup lookup-persistent
+        dup db-assigned-key? [
+            dup select-id-statement ,
+        ] when
+        columns>> [ column>in-binder ] with map <insert> expand-fql ,
+    ] { } make sql-bind-typed-command ;
 
 : set-columns ( tuple -- seq )
     dup lookup-persistent columns>> [

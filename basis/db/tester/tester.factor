@@ -41,7 +41,7 @@ IN: db.tester
 
 : test-dbs ( quot -- )
     {
-        ! [ test-sqlite0 ]
+        [ test-sqlite0 ]
         [ test-postgresql0 ]
     } cleave ;
 

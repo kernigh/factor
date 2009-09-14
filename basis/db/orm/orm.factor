@@ -6,7 +6,7 @@ combinators db db.binders db.connections db.orm.fql
 db.orm.persistent db.statements db.types db.utils fry kernel
 lexer locals make math.order math.parser math.ranges mirrors
 multiline namespaces sequences sets shuffle splitting.monotonic
-constructors math ;
+constructors math db.errors ;
 IN: db.orm
 
 HOOK: create-sql-statement db-connection ( class -- obj )
@@ -60,6 +60,13 @@ M: object create-sql-statement
     } cleave ;
 
 : create-table ( class -- ) create-sql-statement sql-command ;
+
+: recreate-table ( class -- )
+    [
+        '[ _ drop-sql-statement sql-command ] ignore-table-missing
+    ] [
+        create-table
+    ] bi ;
 
 M: object drop-sql-statement
     quoted-table-name [ "DROP TABLE " ] dip ";" 3append
@@ -208,4 +215,4 @@ CONSTRUCTOR: column-wrapper ( seq -- obj )
     select-tuple-obj do-select-tuple ;
 
 : select-tuple ( tuple -- seq )
-    select-tuple-obj 1 >>limit do-select-tuple ;
+    select-tuple-obj 1 >>limit do-select-tuple ?first ;

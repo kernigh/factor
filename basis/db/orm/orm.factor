@@ -147,17 +147,7 @@ SYMBOL: table-counter
         [ getter>> call( obj -- obj ) ]
     } 2cleave <in-binder> ;
 
-HOOK: select-id-statement db-connection ( class -- statement )
-
-: insert-tuple ( tuple -- )
-    [
-        dup lookup-persistent db-assigned-key? [
-            dup select-id-statement sql-bind-typed-query
-            first first set-primary-key
-        ] when
-        dup lookup-persistent columns>>
-        [ column>in-binder ] with map <insert> expand-fql ,
-    ] { } make sql-bind-typed-command ;
+HOOK: insert-tuple db-connection ( tuple -- )
 
 : set-columns ( tuple -- seq )
     dup lookup-persistent columns>> [

@@ -252,10 +252,11 @@ GENERIC: expand-out ( obj -- names binders )
     ;
 
 : full-table-name ( binder -- string )
-    [ class>> table-name ] [ renamed-table>> ] bi " AS " glue ;
+    [ class>> quoted-table-name ]
+    [ renamed-table>> "\"" dup surround ] bi " AS " glue ;
 
 : binder>name ( binder -- string )
-    [ renamed-table>> ] [ column>> ] bi "." glue ;
+    [ renamed-table>> "\"" dup surround ] [ column>> ] bi "." glue ;
 
 : binder>names ( binder -- string )
     [ renamed-table>> ] [ class>> ] bi

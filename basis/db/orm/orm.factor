@@ -244,12 +244,20 @@ SYMBOL: in-tables
 : relations>reconstructor ( relations -- reconstructor )
     ;
 
+!TODO compound primary keys
+: relations>select ( relations -- seq )
+    [
+        
+        <relation-binder>
+    ] map ;
+
 : select-tuple-obj-relations ( tuple relations -- select )
     H{ } clone in-tables set
     [ <select> ] 2dip
     {
         [ relations>ins >>in ]
         [ nip relations>outs >>out ]
+        [ nip relations>select >>relations ]
         [ nip relations>reconstructor >>reconstructor ]
     } 2cleave ;
 
@@ -278,6 +286,3 @@ SYMBOL: in-tables
 
 : select-tuple ( tuple -- seq )
     select-tuple-obj 1 >>limit do-select-tuple ?first ;
-
-: relations>select ( tuple -- seq )
-    ;

@@ -18,3 +18,5 @@ TUPLE: relation-binder
 class1 renamed-table1 column1
 class2 renamed-table2 column2
 relation-type ;
+
+CONSTRUCTOR: relation-binder ( class1 renamed-table1 column1 class2 renamed-table2 column2 relation-type -- obj ) ;

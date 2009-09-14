@@ -13,18 +13,37 @@ IN: db.tester.tests
 : author-mew ( -- author ) \ author new "mew" >>name ;
 : thread-erg ( -- thread )
     \ thread new
-        author-erg >>author
+        author-erg select-tuple >>author
         "erg's thread" >>topic ;
 
 : thread-mew ( -- thread )
     \ thread new
-        author-mew >>author
+        author-mew select-tuple >>author
         "mew's thread" >>topic ;
 
-: comment-erg-erg1 ( -- comment ) \ comment new thread-erg >>thread author-erg >>author "responding to my own thread" >>text ;
-: comment-erg-erg2 ( -- comment ) \ comment new thread-erg >>thread author-erg >>author "responding to my own thread again" >>text ;
-: comment-erg-mew1 ( -- comment ) \ comment new thread-erg >>thread author-mew >>author "i can has erg's thread?" >>text ;
-: comment-erg-mew2 ( -- comment ) \ comment new thread-erg >>thread author-mew >>author "pl0x?" >>text ;
+: comment-erg-erg1 ( -- comment )
+    \ comment new
+        thread-erg select-tuple >>thread
+        author-erg select-tuple >>author
+        "responding to my own thread" >>text ;
+
+: comment-erg-erg2 ( -- comment )
+    \ comment new
+        thread-erg select-tuple >>thread
+        author-erg select-tuple >>author
+        "responding to my own thread again" >>text ;
+
+: comment-erg-mew1 ( -- comment )
+    \ comment new
+        thread-erg select-tuple >>thread
+        author-mew select-tuple >>author
+        "i can has erg's thread?" >>text ;
+
+: comment-erg-mew2 ( -- comment )
+    \ comment new
+        thread-erg select-tuple >>thread
+        author-mew select-tuple >>author
+        "pl0x?" >>text ;
 
 : insert-authors ( -- )
     [ ] [ author-erg insert-tuple ] unit-test
@@ -62,8 +81,16 @@ IN: db.tester.tests
 
     [
         {
-            T{ thread { id 1 } { author T{ author f 1 "erg" } } { topic "erg's thread" } }
-            T{ thread { id 2 } { author T{ author f 2 "mew" } } { topic "mew's thread" } }
+            T{ thread
+                { id 1 }
+                { author T{ author f 1 "erg" } }
+                { topic "erg's thread" }
+            }
+            T{ thread
+                { id 2 }
+                { author T{ author f 2 "mew" } }
+                { topic "mew's thread" }
+            }
         }
     ] [ \ thread new select-tuples ] unit-test
 

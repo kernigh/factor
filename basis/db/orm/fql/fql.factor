@@ -4,8 +4,11 @@ USING: accessors arrays assocs combinators
 combinators.short-circuit constructors db.binders
 db.orm.persistent db.statements db.types db.utils destructors
 fry kernel locals make math math.parser multiline namespaces
-sequences sets splitting strings vectors ;
+sequences sets splitting strings vectors db.connections ;
 IN: db.orm.fql
+
+HOOK: next-bind-index db-connection ( -- string )
+HOOK: init-bind-index db-connection ( -- )
 
 : ??first2 ( obj -- obj1 obj2 )
     dup string? [
@@ -23,8 +26,6 @@ ERROR: in-binders-required fql ;
 : ensure-in ( fql -- fql )
     dup in>> empty? [ in-binders-required ] when ;
 
-: next-bind-index ( -- string ) "?" ;
-
 : new-op ( left right class -- fql-op )
     new
         swap >>right
@@ -35,7 +36,10 @@ M: object normalize-fql ( object -- fql ) ;
 GENERIC: expand-fql* ( statement object -- sequence/statement )
 
 : expand-fql ( object1 -- object2 )
-    [ <statement> ] dip normalize-fql expand-fql* ;
+    [
+        init-bind-index
+        [ <statement> ] dip normalize-fql expand-fql*
+    ] with-scope ;
 
 TUPLE: insert < fql in ;
 
@@ -180,7 +184,7 @@ M: insert expand-fql*
     ensure-in
     {
         [ in>> >>in ]
-        [ in>> first table-name "INSERT INTO " prepend add-sql ]
+        [ in>> first quoted-table-name "INSERT INTO " prepend add-sql ]
         [ expand-insert-names ]
     } cleave normalize-statement ;
 

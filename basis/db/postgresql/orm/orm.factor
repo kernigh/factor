@@ -8,6 +8,6 @@ IN: db.postgresql.orm
 M: postgresql-db-connection select-id-statement
     [ <statement> ] dip
     {
-        [ table-name "SELECT nextval FROM NEXTVAL('" "id_seq');" surround add-sql ]
+        [ table-name "SELECT nextval FROM NEXTVAL('" "_id_seq');" surround add-sql ]
         [ drop INTEGER <out-binder-low> 1array >>out ]
     } cleave ;

@@ -6,7 +6,7 @@ db.postgresql.ffi db.postgresql.lib db.postgresql.statements
 db.postgresql.types db.result-sets db.statements db.types
 db.utils destructors io.encodings.utf8 kernel libc math
 namespaces present sequences serialize specialized-arrays
-strings urls ;
+strings urls db.binders ;
 IN: db.postgresql.result-sets
 SPECIALIZED-ARRAY: uint
 SPECIALIZED-ARRAY: void*
@@ -64,6 +64,7 @@ M: postgresql-result-set more-rows? ( result-set -- ? )
     {
         { [ dup string? ] [ VARCHAR ] }
         { [ dup array? ] [ first2 ] }
+        { [ dup in-binder? ] [ [ value>> ] [ type>> ] bi ] }
         [ "omg" throw ] 
     } cond ;
 

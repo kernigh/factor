@@ -20,8 +20,14 @@ HOOK: drop-sql-statement db-connection ( class -- obj )
     [ lookup-persistent columns>> ] [ <mirror> ] bi
     '[ slot-name>> _ at \ aggregate-function subclass? not ] filter ;
 
+: setup-relations ( obj -- columns quot )
+    lookup-persistent columns>> [ relation-category not ] ; inline
+
 : filter-relations ( obj -- columns )
-    lookup-persistent columns>> [ relation-category not ] filter ;
+    setup-relations filter ;
+
+: partition-relations ( obj -- columns relation-columns )
+    setup-relations partition ;
 
 : create-many:many-table ( class1 class2 -- statement )
     [ <statement> ] 2dip

@@ -203,13 +203,64 @@ CONSTRUCTOR: column-wrapper ( seq -- obj )
         ] bi*
     ] [ ] make '[ <column-wrapper> _ cleave ] ;
 
-: select-tuple-obj ( tuple -- select )
+: (pair>out) ( pair -- out-binder )
+    [ first filter-relations [ column>out-binder ] map ]
+    [
+        second
+        '[ [ _ number>string append ] change-renamed-table ] map
+    ] bi ;
+
+SYMBOL: in-tables
+
+: pair>out ( pair -- seq/f )
+    in-tables get 2dup key? [
+        2drop f
+    ] [
+        [ dup dup ] dip set-at (pair>out)
+    ] if ;
+
+: relations>ins ( tuple relations -- seq )
+    drop
+    ;
+    ! [
+        ! {
+            ! [ first2 [ pair>out ] bi@ append ]
+        ! } 2cleave
+    ! ] with map concat ;
+
+: relations>outs ( relations -- outs )
+    [
+        {
+            [ first2 [ pair>out ] bi@ append ]
+        } cleave
+    ] map concat ;
+
+: relations>reconstructor ( relations -- reconstructor )
+    ;
+
+: select-tuple-obj-relations ( tuple relations -- select )
+    H{ } clone in-tables set
+    [ <select> ] 2dip
+    {
+        [ relations>ins >>in ]
+        [ nip relations>outs >>out ]
+        [ nip relations>reconstructor >>reconstructor ]
+    } 2cleave ;
+
+: select-tuple-obj-no-relations ( tuple -- select )
     [ <select> ] dip
     {
         [ select-ins >>in ]
         [ select-outs >>out ]
         [ filter-ignored-columns columns>reconstructor >>reconstructor ]
     } cleave ;
+
+: select-tuple-obj ( tuple -- select )
+    dup tuple>relations [
+        select-tuple-obj-no-relations
+    ] [
+        select-tuple-obj-relations
+    ] if-empty ;
 
 : do-select-tuple ( select -- seq )
     expand-fql
@@ -221,3 +272,6 @@ CONSTRUCTOR: column-wrapper ( seq -- obj )
 
 : select-tuple ( tuple -- seq )
     select-tuple-obj 1 >>limit do-select-tuple ?first ;
+
+: relations>select ( tuple -- seq )
+    ;

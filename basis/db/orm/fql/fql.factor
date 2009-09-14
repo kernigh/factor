@@ -4,7 +4,8 @@ USING: accessors arrays assocs combinators
 combinators.short-circuit constructors db.binders
 db.orm.persistent db.statements db.types db.utils destructors
 fry kernel locals make math math.parser multiline namespaces
-sequences sets splitting strings vectors db.connections ;
+sequences sets splitting strings vectors db.connections
+quoting ;
 IN: db.orm.fql
 
 HOOK: next-bind-index db-connection ( -- string )
@@ -66,7 +67,7 @@ M: delete normalize-fql ( delete -- delete )
     [ ??1array ] change-tables
     [ ??1array ] change-order-by ;
 
-TUPLE: select < fql in out reconstructor offset limit ;
+TUPLE: select < fql in out relations reconstructor offset limit ;
 ! columns from join where group-by
 ! having order-by offset limit ;
 
@@ -271,6 +272,17 @@ GENERIC: expand-out ( obj -- names binders )
 : select-tables ( statement select -- statement )
     in/out append [ full-table-name ] map prune ", " join add-sql ;
 
+: select-relations ( statement seq -- statement )
+    [
+        {
+            [ drop " LEFT JOIN " add-sql ] dip
+            [ renamed-table1>> double-quote add-sql "." add-sql ]
+            [ column1>> add-sql " ON " add-sql ]
+            [ renamed-table2>> double-quote add-sql "." add-sql ]
+            [ column2>> add-sql ]
+        } cleave
+    ] each ;
+
 : expand-where ( statement obj -- statement )
     [ " WHERE " add-sql ] dip
     in>> [
@@ -284,6 +296,7 @@ M: select expand-fql* ( statement obj -- statement )
         [ reconstructor>> >>reconstructor ]
         [ [ "SELECT " add-sql ] dip select-out ]
         [ [ " FROM " add-sql ] dip select-tables ]
+        [ relations>> select-relations ]
         [ dup in>> empty? [ drop ] [ expand-where ] if ]
         [ offset>> [ number>string " OFFSET " prepend add-sql ] when* ]
         [ limit>> [ number>string " LIMIT " prepend add-sql ] when* ]

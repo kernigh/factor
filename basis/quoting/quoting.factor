@@ -14,3 +14,6 @@ IN: quoting
 
 : unquote ( str -- newstr )
     dup quoted? [ but-last-slice rest-slice >string ] when ;
+
+: double-quote ( string -- string' )
+    "\"" dup surround ;

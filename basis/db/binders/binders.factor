@@ -13,3 +13,8 @@ TUPLE: out-binder class renamed-table column type ;
 TUPLE: out-binder-low type ;
 CONSTRUCTOR: out-binder ( class renamed-table column type -- obj ) ;
 CONSTRUCTOR: out-binder-low ( type -- obj ) ;
+
+TUPLE: relation-binder
+class1 renamed-table1 column1
+class2 renamed-table2 column2
+relation-type ;

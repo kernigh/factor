@@ -66,11 +66,11 @@ slot-name column-name type modifiers getter setter ;
     [ (>>columns) ] keep ;
 
 
-: set-persistent-slots ( persistent -- )
+: compute-persistent-slots ( persistent -- )
     dup columns>> [ (>>persistent) ] with each ;
 
 
-: set-setters ( persistent -- )
+: compute-setters ( persistent -- )
     columns>> [
         dup slot-name>>
         [ lookup-getter 1quotation >>getter ]
@@ -120,19 +120,18 @@ M: tuple find-primary-key ( class -- seq )
 : user-assigned-key? ( class -- ? )
     find-primary-key [ modifiers>> +primary-key+ swap member? ] all? ;
 
-: set-primary-key ( persistent -- )
+: compute-primary-key ( persistent -- )
     dup find-primary-key >>primary-key drop ;
 
 : primary-key-slots ( obj -- seq )
     lookup-persistent
     find-primary-key [ [ table-name ] [ slot-name>> ] bi "." glue ] map ;
 
-
 : process-persistent ( persistent -- persistent )
     {
-        [ set-persistent-slots ]
-        [ set-setters ]
-        [ set-primary-key ]
+        [ compute-persistent-slots ]
+        [ compute-setters ]
+        [ compute-primary-key ]
         [ ]
     } cleave ;
 
@@ -386,6 +385,10 @@ M: db-column select-reconstructor*
 : class>one:many-relations ( class -- string )
     find-one:many-columns
     [ persistent>> class>> class>foreign-key-create ] map ", " join ;
+
+: set-primary-key ( tuple obj -- tuple' )
+    over find-primary-key 1 ensure-length
+    first setter>> call( tuple obj -- tuple ) ;
 
 /*
 : select-joins ( obj -- seq )

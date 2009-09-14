@@ -151,11 +151,12 @@ HOOK: select-id-statement db-connection ( class -- statement )
 
 : insert-tuple ( tuple -- )
     [
-        dup lookup-persistent
-        dup db-assigned-key? [
-            dup select-id-statement ,
+        dup lookup-persistent db-assigned-key? [
+            dup select-id-statement sql-bind-typed-query
+            first first set-primary-key
         ] when
-        columns>> [ column>in-binder ] with map <insert> expand-fql ,
+        dup lookup-persistent columns>>
+        [ column>in-binder ] with map <insert> expand-fql ,
     ] { } make sql-bind-typed-command ;
 
 : set-columns ( tuple -- seq )

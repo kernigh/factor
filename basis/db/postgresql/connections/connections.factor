@@ -27,7 +27,6 @@ M: postgresql-db db-open ( db -- db-connection )
 M: postgresql-db-connection db-close ( handle -- ) handle>> PQfinish ;
 
 M: postgresql-db-connection parse-sql-error
-B
     "\n" split dup length {
         { 1 [ first parse-postgresql-sql-error ] }
         { 3 [

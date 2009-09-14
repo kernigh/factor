@@ -78,3 +78,18 @@ M: postgresql-db-connection sql-create-type>string
         [ no-sql-type ]
     } case ;
 */
+
+ERROR: no-sql-modifier modifier ;
+
+: postgresql-modifier>string ( symbol -- string )
+    {
+        { NULL [ "NULL" ] }
+        { NOT-NULL [ "NOT NULL" ] }
+        { SERIAL [ "SERIAL" ] }
+        { AUTOINCREMENT [ "AUTOINCREMENT" ] }
+        { +primary-key+ [ "" ] }
+        [ no-sql-modifier ]
+    } case ;
+
+M: postgresql-db-connection sql-modifiers>string
+    [ postgresql-modifier>string ] map " " join ;

@@ -1,18 +1,26 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.tester kernel multiline sequences
-tools.test ;
+USING: accessors db.orm db.orm.examples db.tester kernel
+multiline sequences tools.test ;
 IN: db.tester.tests
 
-! [ ] [ sqlite-test-db db-tester ] unit-test
-! [ ] [ sqlite-test-db db-tester2 ] unit-test
+[ ] [ sqlite-test-db db-tester ] unit-test
+[ ] [ sqlite-test-db db-tester2 ] unit-test
+[ ] [ postgresql-test-db db-tester ] unit-test
+[ ] [ postgresql-test-db db-tester2 ] unit-test
 
-
-/*
 : author-erg ( -- author ) \ author new "erg" >>name ;
 : author-mew ( -- author ) \ author new "mew" >>name ;
-: thread-erg ( -- thread ) \ thread new author-erg >>author "erg's thread" >>topic ;
-: thread-mew ( -- thread ) \ thread new author-mew >>author "mew's thread" >>topic ;
+: thread-erg ( -- thread )
+    \ thread new
+        author-erg >>author
+        "erg's thread" >>topic ;
+
+: thread-mew ( -- thread )
+    \ thread new
+        author-mew >>author
+        "mew's thread" >>topic ;
+
 : comment-erg-erg1 ( -- comment ) \ comment new thread-erg >>thread author-erg >>author "responding to my own thread" >>text ;
 : comment-erg-erg2 ( -- comment ) \ comment new thread-erg >>thread author-erg >>author "responding to my own thread again" >>text ;
 : comment-erg-mew1 ( -- comment ) \ comment new thread-erg >>thread author-mew >>author "i can has erg's thread?" >>text ;
@@ -42,7 +50,7 @@ IN: db.tester.tests
     [ T{ author f 2 "mew" } ] [ \ author new "mew" >>name select-tuple ] unit-test
 
     [
-        V{
+        {
             T{ author f 1 "erg" }
             T{ author f 2 "mew" }
         }
@@ -60,6 +68,7 @@ IN: db.tester.tests
     ] [ \ thread new select-tuples ] unit-test
 
 
+/*
     ! Comments
     insert-comments
 
@@ -67,8 +76,8 @@ IN: db.tester.tests
     ] [
         \ comment new select-tuples
     ] unit-test
+*/
     
     ;
 
-[ ] [ [ test-comments ] test-sqlite ] unit-test
-*/
+[ ] [ [ test-comments ] test-dbs ] unit-test

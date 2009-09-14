@@ -6,7 +6,7 @@ db.postgresql.ffi db.postgresql.lib db.postgresql.statements
 db.postgresql.types db.result-sets db.statements db.types
 db.utils destructors io.encodings.utf8 kernel libc math
 namespaces present sequences serialize specialized-arrays
-strings urls db.binders ;
+strings urls db.binders db.errors ;
 IN: db.postgresql.result-sets
 SPECIALIZED-ARRAY: uint
 SPECIALIZED-ARRAY: void*
@@ -105,7 +105,7 @@ M: postgresql-db-connection statement>result-set ( statement -- result-set )
             [ param-formats ]
         } cleave
         0 PQexecParams dup postgresql-result-ok? [
-            [ postgresql-result-error-message ] [ PQclear ] bi throw
+            [ postgresql-result-error-message parse-sql-error ] [ PQclear ] bi throw
         ] unless
     ] with-destructors
     \ postgresql-result-set new-result-set

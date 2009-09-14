@@ -68,6 +68,11 @@ M: object create-sql-statement
         create-table
     ] bi ;
 
+: ensure-table ( class -- )
+    '[ _ create-table ] ignore-table-exists ;
+
+: ensure-tables ( classes -- ) [ ensure-table ] each ;
+
 M: object drop-sql-statement
     quoted-table-name [ "DROP TABLE " ] dip ";" 3append
     <statement>

@@ -217,7 +217,7 @@ SYMBOL: traversing-tables
     [ first filter-relations [ column>out-binder ] map ]
     [
         second
-        '[ [ _ number>string append ] change-renamed-table ] map
+        '[ [ _ number>string append ] change-table-name ] map
     ] bi ;
 
 : pair>out ( pair -- seq/f )
@@ -225,18 +225,6 @@ SYMBOL: traversing-tables
         2drop f
     ] [
         [ dup dup ] dip set-at (pair>out)
-    ] if ;
-
-
-: (pair>out2) ( pair -- column )
-    [ first filter-relations ]
-    [ drop ] bi ;
-
-: pair>out2 ( pair -- seq/f )
-    in-tables get 2dup key? [
-        2drop f
-    ] [
-        [ dup dup ] dip set-at (pair>out2)
     ] if ;
 
 ! TUPLE: new-tuple class ;
@@ -266,7 +254,7 @@ SYMBOL: traversing-tables
     ! ] with map concat ;
 
 : relations>outs ( relations -- outs )
-    [ [ pair>out2 ] bi@ append ] { } assoc>map concat ;
+    [ [ pair>out ] bi@ append ] { } assoc>map concat ;
 
 : out>reconstructor ( relations -- reconstructor )
     ;

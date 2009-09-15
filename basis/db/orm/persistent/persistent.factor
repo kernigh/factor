@@ -93,9 +93,9 @@ M: tuple-class table-name* lookup-persistent table-name>> ;
 
 M: tuple table-name* lookup-persistent table-name>> ;
 
-M: in-binder table-name* renamed-table>> ;
+M: in-binder table-name* table-name>> ;
 
-M: out-binder table-name* renamed-table>> ;
+M: out-binder table-name* table-name>> ;
 
 : table-name ( obj -- string )
     table-name* ;

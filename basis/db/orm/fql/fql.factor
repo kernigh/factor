@@ -174,7 +174,7 @@ M: full-join expand-fql* ( obj -- statement )
 : expand-insert-names ( statement insert -- statement )
     in>> [
         [ " (" add-sql ] dip
-        [ column>> ] map ", " join add-sql
+        [ column-name>> ] map ", " join add-sql
         ")" add-sql
     ] [
         [ " VALUES (" add-sql ] dip
@@ -254,13 +254,13 @@ GENERIC: expand-out ( obj -- names binders )
 
 : full-table-name ( binder -- string )
     [ class>> quoted-table-name ]
-    [ renamed-table>> "\"" dup surround ] bi " AS " glue ;
+    [ table-name>> "\"" dup surround ] bi " AS " glue ;
 
 : binder>name ( binder -- string )
-    [ renamed-table>> "\"" dup surround ] [ column>> ] bi "." glue ;
+    [ table-name>> "\"" dup surround ] [ column-name>> ] bi "." glue ;
 
 : binder>names ( binder -- string )
-    [ renamed-table>> ] [ class>> ] bi
+    [ table-name>> ] [ class>> ] bi
     table-columns [ column-name>> "." glue ] with map ;
 
 : binders>names ( seq -- string )
@@ -276,10 +276,10 @@ GENERIC: expand-out ( obj -- names binders )
     [
         {
             [ drop " LEFT JOIN " add-sql ] dip
-            [ renamed-table1>> double-quote add-sql "." add-sql ]
-            [ column1>> add-sql " ON " add-sql ]
-            [ renamed-table2>> double-quote add-sql "." add-sql ]
-            [ column2>> add-sql ]
+            [ table-name1>> double-quote add-sql "." add-sql ]
+            [ column-name1>> add-sql " ON " add-sql ]
+            [ table-name2>> double-quote add-sql "." add-sql ]
+            [ column-name2>> add-sql ]
         } cleave
     ] each ;
 

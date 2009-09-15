@@ -12,8 +12,8 @@ IN: db.orm.fql.tests
 
     [ ] [
         {
-            $[ user "user" "name" VARCHAR "erg" <in-binder> ]
-            $[ user "user" "age" INTEGER 28 <in-binder> ]
+            $[ user "user" "name" VARCHAR "erg" f <in-binder> ]
+            $[ user "user" "age" INTEGER 28 f <in-binder> ]
         } <insert>
         expand-fql sql-bind-typed-command
     ] unit-test
@@ -21,10 +21,10 @@ IN: db.orm.fql.tests
 
     [ ] [
         <select>
-            $[ user "user0" "name" VARCHAR "erg" <in-binder> ] >>in
+            $[ user "user0" "name" VARCHAR "erg" f <in-binder> ] >>in
             {
-                $[ user "user0" "name" VARCHAR <out-binder> ]
-                $[ user "user0" "age" INTEGER <out-binder> ]
+                $[ user "user0" "name" VARCHAR f <out-binder> ]
+                $[ user "user0" "age" INTEGER f <out-binder> ]
             } >>out
         expand-fql sql-bind-typed-query
     ] unit-test
@@ -33,10 +33,10 @@ IN: db.orm.fql.tests
         { { "erg" 28 } }
     ] [
         <select>
-            $[ user "user0" "name" VARCHAR "erg" <in-binder> ] >>in
+            $[ user "user0" "name" VARCHAR "erg" f <in-binder> ] >>in
             {
-                $[ user "user0" "name" VARCHAR <out-binder> ]
-                $[ user "user0" "age" INTEGER <out-binder> ]
+                $[ user "user0" "name" VARCHAR f <out-binder> ]
+                $[ user "user0" "age" INTEGER f <out-binder> ]
             } >>out
         expand-fql sql-bind-typed-query
     ] unit-test

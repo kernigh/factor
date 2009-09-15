@@ -157,12 +157,13 @@ SYMBOL: table-counter
     } cleave ;
 
 : column>out-binder ( column -- binder )
-    column>binder <out-binder> ;
+    [ column>binder ] keep <out-binder> ;
 
 : column>in-binder ( tuple column -- binder )
     {
         [ nip column>binder ]
         [ getter>> call( obj -- obj ) ]
+        [ nip ]
     } 2cleave <in-binder> ;
 
 HOOK: insert-tuple db-connection ( tuple -- )
@@ -209,6 +210,9 @@ CONSTRUCTOR: column-wrapper ( seq -- obj )
         ] bi*
     ] [ ] make '[ <column-wrapper> _ cleave ] ;
 
+SYMBOL: in-tables
+SYMBOL: traversing-tables
+
 : (pair>out) ( pair -- out-binder )
     [ first filter-relations [ column>out-binder ] map ]
     [
@@ -216,14 +220,41 @@ CONSTRUCTOR: column-wrapper ( seq -- obj )
         '[ [ _ number>string append ] change-renamed-table ] map
     ] bi ;
 
-SYMBOL: in-tables
-
 : pair>out ( pair -- seq/f )
     in-tables get 2dup key? [
         2drop f
     ] [
         [ dup dup ] dip set-at (pair>out)
     ] if ;
+
+
+: (pair>out2) ( pair -- column )
+    [ first filter-relations ]
+    [ drop ] bi ;
+
+: pair>out2 ( pair -- seq/f )
+    in-tables get 2dup key? [
+        2drop f
+    ] [
+        [ dup dup ] dip set-at (pair>out2)
+    ] if ;
+
+! TUPLE: new-tuple class ;
+! TUPLE: set-tuple-slot slot ;
+! TUPLE: next-column slot ;
+
+: traverse-columns ( relations -- seq )
+    traversing-tables get 2dup key? [
+        2drop f
+    ] [
+        [ dup dup ] dip set-at
+        [
+            first filter-relations [ column>out-binder ] map
+        ] [
+            second
+            '[ [ _ number>string append ] change-renamed-table ] map
+        ] bi
+    ] if ; inline
 
 : relations>ins ( tuple relations -- seq )
     drop
@@ -235,20 +266,15 @@ SYMBOL: in-tables
     ! ] with map concat ;
 
 : relations>outs ( relations -- outs )
-    [
-        {
-            [ first2 [ pair>out ] bi@ append ]
-        } cleave
-    ] map concat ;
+    [ [ pair>out2 ] bi@ append ] { } assoc>map concat ;
 
-: relations>reconstructor ( relations -- reconstructor )
+: out>reconstructor ( relations -- reconstructor )
     ;
 
 !TODO compound primary keys
 : relations>select ( relations -- seq )
     [
-        
-        <relation-binder>
+        ! <relation-binder>
     ] map ;
 
 : select-tuple-obj-relations ( tuple relations -- select )
@@ -258,8 +284,11 @@ SYMBOL: in-tables
         [ relations>ins >>in ]
         [ nip relations>outs >>out ]
         [ nip relations>select >>relations ]
-        [ nip relations>reconstructor >>reconstructor ]
+        [ 2drop dup out>> out>reconstructor >>reconstructor ]
     } 2cleave ;
+
+
+
 
 : select-tuple-obj-no-relations ( tuple -- select )
     [ <select> ] dip

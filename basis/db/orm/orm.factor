@@ -240,7 +240,7 @@ SYMBOL: traversing-tables
             first filter-relations [ column>out-binder ] map
         ] [
             second
-            '[ [ _ number>string append ] change-renamed-table ] map
+            '[ [ _ number>string append ] change-table-name ] map
         ] bi
     ] if ; inline
 

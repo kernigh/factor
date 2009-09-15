@@ -17,5 +17,7 @@ TUPLE: postgresql-db host port pgopts pgtty database username password ;
     "db.postgresql.result-sets"
     ! "db.postgresql.statements"
     ! "db.postgresql.tuples"
-    ! "db.postgresql.types"
+    "db.postgresql.types"
+    "db.postgresql.fql"
+    "db.postgresql.orm"
 } [ require ] each

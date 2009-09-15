@@ -74,7 +74,7 @@ M: form clone
     [ value ] dip '[
         [
             begin-form
-            1+ "index" set-value
+            1 + "index" set-value
             [ qualified-from-object ] each
             @
         ] with-scope

@@ -59,13 +59,12 @@ M: update normalize-fql ( update -- update )
     [ ??1array ] change-values
     [ ??1array ] change-order-by ;
 
-TUPLE: delete < fql tables where order-by limit ;
+TUPLE: delete < fql in ;
 
-CONSTRUCTOR: delete ( tables keys values where -- obj ) ;
+CONSTRUCTOR: delete ( -- obj ) ;
 
 M: delete normalize-fql ( delete -- delete )
-    [ ??1array ] change-tables
-    [ ??1array ] change-order-by ;
+    [ ??1array ] change-in ;
 
 TUPLE: select < fql in out relations reconstructor offset limit ;
 ! columns from join where group-by

@@ -1,7 +1,7 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs db.persistent db.tuples db.types
-destructors furnace.cache kernel ;
+USING: accessors assocs classes.tuple.private db.orm.persistent
+db.types destructors furnace.cache kernel ;
 IN: furnace.scopes
 
 TUPLE: scope < server-state namespace changed? ;

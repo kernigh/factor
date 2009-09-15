@@ -1,8 +1,8 @@
 ! Copyright (C) 2008 Doug Coleman, Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alarms assocs calendar combinators
-combinators.short-circuit continuations db db.persistent
-db.tuples db.types destructors fry furnace.cache
+combinators.short-circuit continuations db db.orm
+db.orm.persistent db.types destructors fry furnace.cache
 furnace.scopes furnace.utilities hashtables http http.server
 http.server.dispatchers http.server.filters io.sockets kernel
 math.intervals math.parser namespaces quotations random

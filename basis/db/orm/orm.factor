@@ -303,3 +303,17 @@ SYMBOL: traversing-tables
 
 : select-tuple ( tuple -- seq )
     select-tuple-obj 1 >>limit do-select-tuple ?first ;
+
+/*
+: delete-tuples ( tuple -- )
+    [ <delete> ] dip
+        select-ins >>in expand-fql sql-bind-typed-command ;
+
+: update-tuple ( tuple -- )
+    [ <update> ] dip
+        select-ins >>in expand-fql sql-bind-typed-command ;
+
+: update-tuple ( tuple -- )
+    [ <update> ] dip
+        select-ins >>in expand-fql sql-bind-typed-command ;
+*/

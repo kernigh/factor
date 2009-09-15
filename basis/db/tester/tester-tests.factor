@@ -107,4 +107,4 @@ IN: db.tester.tests
     
     ;
 
-[ ] [ [ test-comments ] test-dbs ] unit-test
+! [ ] [ [ test-comments ] test-dbs ] unit-test

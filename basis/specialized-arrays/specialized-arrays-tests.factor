@@ -4,7 +4,8 @@ specialized-arrays.private sequences alien.c-types accessors
 kernel arrays combinators compiler compiler.units classes.struct
 combinators.smart compiler.tree.debugger math libc destructors
 sequences.private multiline eval words vocabs namespaces
-assocs prettyprint ;
+assocs prettyprint alien.data ;
+FROM: alien.c-types => float ;
 
 SPECIALIZED-ARRAY: int
 SPECIALIZED-ARRAY: bool
@@ -124,22 +125,22 @@ SPECIALIZED-ARRAY: fixed-string
 ] unit-test
 
 [
-    <"
+    """
 IN: specialized-arrays.tests
 USING: specialized-arrays ;
 
-SPECIALIZED-ARRAY: __does_not_exist__ "> eval( -- )
+SPECIALIZED-ARRAY: __does_not_exist__ """ eval( -- )
 ] must-fail
 
 [ ] [
-    <"
+    """
 IN: specialized-arrays.tests
 USING: classes.struct specialized-arrays ;
 
 STRUCT: __does_not_exist__ { x int } ;
 
 SPECIALIZED-ARRAY: __does_not_exist__
-"> eval( -- )
+""" eval( -- )
 ] unit-test
 
 [ f ] [

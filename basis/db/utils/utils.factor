@@ -1,6 +1,6 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien.c-types arrays assocs classes
+USING: accessors alien.c-types alien.data arrays assocs classes
 classes.algebra classes.tuple combinators
 combinators.short-circuit fry kernel libc locals macros math
 math.order math.parser quotations sequences sequences.private

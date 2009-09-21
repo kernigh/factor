@@ -1,10 +1,12 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien.c-types alien.strings arrays
-calendar.format combinators db.connections db.postgresql.ffi
-db.types db.utils destructors io.encodings.utf8 kernel libc
-math math.parser namespaces sequences serialize splitting
-strings summary unicode.categories urls specialized-arrays ;
+USING: arrays continuations db io kernel math namespaces
+quotations sequences db.postgresql.ffi alien alien.c-types
+alien.data db.types tools.walker ascii splitting math.parser
+combinators libc calendar.format byte-arrays destructors
+prettyprint accessors strings serialize io.encodings.binary
+io.encodings.utf8 alien.strings io.streams.byte-array summary
+present urls specialized-arrays db.utils db.connections ;
 SPECIALIZED-ARRAY: uint
 SPECIALIZED-ARRAY: void*
 IN: db.postgresql.lib

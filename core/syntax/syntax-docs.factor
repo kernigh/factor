@@ -532,7 +532,7 @@ HELP: CHAR:
 HELP: "
 { $syntax "\"string...\"" }
 { $values { "string" "literal and escaped characters" } }
-{ $description "Reads from the input string until the next occurrence of " { $link POSTPONE: " } ", and appends the resulting string to the parse tree. String literals cannot span multiple lines. Strings containing the " { $link POSTPONE: " } " character and various other special characters can be read by inserting " { $link "escape" } "." }
+{ $description "Reads from the input string until the next occurrence of " { $link POSTPONE: " } ", and appends the resulting string to the parse tree. String literals can span multiple lines. Strings containing the " { $link POSTPONE: " } " character and various other special characters can be read by inserting " { $link "escape" } "." }
 { $examples
   "A string with a newline in it:"
   { $example "USE: io" "\"Hello\\nworld\" print" "Hello\nworld" }
@@ -593,10 +593,13 @@ HELP: #!
 { $description "Discards all input until the end of the line." } ;
 
 HELP: HEX:
-{ $syntax "HEX: integer" }
-{ $values { "integer" "hexadecimal digits (0-9, a-f, A-F)" } }
-{ $description "Adds an integer read from a hexadecimal literal to the parse tree." }
-{ $examples { $example "USE: prettyprint" "HEX: ff ." "255" } } ;
+{ $syntax "HEX: NNN" "HEX: NNN.NNNpEEE" }
+{ $values { "N" "hexadecimal digit (0-9, a-f, A-F)" } { "pEEE" "decimal exponent value" } }
+{ $description "Adds an integer or floating-point value read from a hexadecimal literal to the parse tree." }
+{ $examples
+    { $example "USE: prettyprint" "HEX: ff ." "255" }
+    { $example "USE: prettyprint" "HEX: 1.8p5 ." "48.0" }
+} ;
 
 HELP: OCT:
 { $syntax "OCT: integer" }

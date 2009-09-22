@@ -1,8 +1,9 @@
-USING: accessors alien arrays definitions generic generic.standard
-generic.math assocs hashtables io kernel math namespaces parser
-prettyprint sequences strings tools.test vectors words
-quotations classes classes.algebra classes.tuple continuations
-layouts classes.union sorting compiler.units eval io.streams.string ;
+USING: accessors alien arrays assocs classes classes.algebra
+classes.tuple classes.union compiler.units continuations
+definitions eval generic generic.math generic.standard
+hashtables io io.streams.string kernel layouts math math.order
+namespaces parser prettyprint quotations sequences sorting
+strings tools.test vectors words ;
 IN: generic.tests
 
 GENERIC: foobar ( x -- y )
@@ -179,3 +180,20 @@ GENERIC: move-method-generic ( a -- b )
 [ ] [ "IN: generic.tests.a" <string-reader> "move-method-test-1" parse-stream drop ] unit-test
 
 [ { string } ] [ \ move-method-generic order ] unit-test
+
+GENERIC: foozul ( a -- b )
+M: reversed foozul ;
+M: integer foozul ;
+M: slice foozul ;
+
+[ t ] [
+    reversed \ foozul method-for-class
+    reversed \ foozul method
+    eq?
+] unit-test
+
+[ t ] [
+    fixnum \ <=> method-for-class
+    real \ <=> method
+    eq?
+] unit-test

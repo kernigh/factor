@@ -4,7 +4,6 @@ USING: constructors sequences vocabs.loader ;
 IN: db.sqlite
 
 TUPLE: sqlite-db path ;
-CONSTRUCTOR: sqlite-db ( path -- sqlite-db ) ;
 
 {
     "db.sqlite.connections"

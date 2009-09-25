@@ -22,24 +22,57 @@ SINGLETONS: float-rep double-rep ;
 
 ! On x86, floating point registers are really vector registers
 SINGLETONS:
-float-4-rep
-double-2-rep
 char-16-rep
 uchar-16-rep
 short-8-rep
 ushort-8-rep
 int-4-rep
-uint-4-rep ;
+uint-4-rep
+longlong-2-rep
+ulonglong-2-rep ;
+
+! Scalar values in the high component of a vector register
+SINGLETONS:
+char-scalar-rep
+uchar-scalar-rep
+short-scalar-rep
+ushort-scalar-rep
+int-scalar-rep
+uint-scalar-rep
+longlong-scalar-rep
+ulonglong-scalar-rep ;
+
+SINGLETONS:
+float-4-rep
+double-2-rep ;
+
+UNION: int-vector-rep
+char-16-rep
+uchar-16-rep
+short-8-rep
+ushort-8-rep
+int-4-rep
+uint-4-rep
+longlong-2-rep
+ulonglong-2-rep ;
+
+UNION: scalar-rep
+char-scalar-rep
+uchar-scalar-rep
+short-scalar-rep
+ushort-scalar-rep
+int-scalar-rep
+uint-scalar-rep
+longlong-scalar-rep
+ulonglong-scalar-rep ;
+
+UNION: float-vector-rep
+float-4-rep
+double-2-rep ;
 
 UNION: vector-rep
-float-4-rep
-double-2-rep
-char-16-rep
-uchar-16-rep
-short-8-rep
-ushort-8-rep
-int-4-rep
-uint-4-rep ;
+int-vector-rep
+float-vector-rep ;
 
 UNION: representation
 any-rep
@@ -47,7 +80,8 @@ tagged-rep
 int-rep
 float-rep
 double-rep
-vector-rep ;
+vector-rep
+scalar-rep ;
 
 ! Register classes
 SINGLETONS: int-regs float-regs ;
@@ -58,13 +92,18 @@ CONSTANT: reg-classes { int-regs float-regs }
 ! A pseudo-register class for parameters spilled on the stack
 SINGLETON: stack-params
 
+! On x86, vectors and floats are stored in the same register bank
+! On PowerPC they are distinct
+HOOK: vector-regs cpu ( -- reg-class )
+
 GENERIC: reg-class-of ( rep -- reg-class )
 
 M: tagged-rep reg-class-of drop int-regs ;
 M: int-rep reg-class-of drop int-regs ;
 M: float-rep reg-class-of drop float-regs ;
 M: double-rep reg-class-of drop float-regs ;
-M: vector-rep reg-class-of drop float-regs ;
+M: vector-rep reg-class-of drop vector-regs ;
+M: scalar-rep reg-class-of drop vector-regs ;
 M: stack-params reg-class-of drop stack-params ;
 
 GENERIC: rep-size ( rep -- n ) foldable
@@ -76,10 +115,22 @@ M: double-rep rep-size drop 8 ;
 M: stack-params rep-size drop cell ;
 M: vector-rep rep-size drop 16 ;
 
+GENERIC: rep-component-type ( rep -- n )
+
+! Methods defined in alien.c-types
+
 GENERIC: scalar-rep-of ( rep -- rep' )
 
 M: float-4-rep scalar-rep-of drop float-rep ;
 M: double-2-rep scalar-rep-of drop double-rep ;
+M: char-16-rep scalar-rep-of drop char-scalar-rep ;
+M: uchar-16-rep scalar-rep-of drop uchar-scalar-rep ;
+M: short-8-rep scalar-rep-of drop short-scalar-rep ;
+M: ushort-8-rep scalar-rep-of drop ushort-scalar-rep ;
+M: int-4-rep scalar-rep-of drop int-scalar-rep ;
+M: uint-4-rep scalar-rep-of drop uint-scalar-rep ;
+M: longlong-2-rep scalar-rep-of drop longlong-scalar-rep ;
+M: ulonglong-2-rep scalar-rep-of drop ulonglong-scalar-rep ;
 
 ! Mapping from register class to machine registers
 HOOK: machine-registers cpu ( -- assoc )
@@ -167,15 +218,49 @@ HOOK: %unbox-vector cpu ( dst src rep -- )
 HOOK: %broadcast-vector cpu ( dst src rep -- )
 HOOK: %gather-vector-2 cpu ( dst src1 src2 rep -- )
 HOOK: %gather-vector-4 cpu ( dst src1 src2 src3 src4 rep -- )
-
 HOOK: %add-vector cpu ( dst src1 src2 rep -- )
+HOOK: %saturated-add-vector cpu ( dst src1 src2 rep -- )
+HOOK: %add-sub-vector cpu ( dst src1 src2 rep -- )
 HOOK: %sub-vector cpu ( dst src1 src2 rep -- )
+HOOK: %saturated-sub-vector cpu ( dst src1 src2 rep -- )
 HOOK: %mul-vector cpu ( dst src1 src2 rep -- )
+HOOK: %saturated-mul-vector cpu ( dst src1 src2 rep -- )
 HOOK: %div-vector cpu ( dst src1 src2 rep -- )
 HOOK: %min-vector cpu ( dst src1 src2 rep -- )
 HOOK: %max-vector cpu ( dst src1 src2 rep -- )
 HOOK: %sqrt-vector cpu ( dst src rep -- )
 HOOK: %horizontal-add-vector cpu ( dst src rep -- )
+HOOK: %abs-vector cpu ( dst src rep -- )
+HOOK: %and-vector cpu ( dst src1 src2 rep -- )
+HOOK: %or-vector cpu ( dst src1 src2 rep -- )
+HOOK: %xor-vector cpu ( dst src1 src2 rep -- )
+HOOK: %shl-vector cpu ( dst src1 src2 rep -- )
+HOOK: %shr-vector cpu ( dst src1 src2 rep -- )
+
+HOOK: %integer>scalar cpu ( dst src rep -- )
+HOOK: %scalar>integer cpu ( dst src rep -- )
+
+HOOK: %broadcast-vector-reps cpu ( -- reps )
+HOOK: %gather-vector-2-reps cpu ( -- reps )
+HOOK: %gather-vector-4-reps cpu ( -- reps )
+HOOK: %add-vector-reps cpu ( -- reps )
+HOOK: %saturated-add-vector-reps cpu ( -- reps )
+HOOK: %add-sub-vector-reps cpu ( -- reps )
+HOOK: %sub-vector-reps cpu ( -- reps )
+HOOK: %saturated-sub-vector-reps cpu ( -- reps )
+HOOK: %mul-vector-reps cpu ( -- reps )
+HOOK: %saturated-mul-vector-reps cpu ( -- reps )
+HOOK: %div-vector-reps cpu ( -- reps )
+HOOK: %min-vector-reps cpu ( -- reps )
+HOOK: %max-vector-reps cpu ( -- reps )
+HOOK: %sqrt-vector-reps cpu ( -- reps )
+HOOK: %horizontal-add-vector-reps cpu ( -- reps )
+HOOK: %abs-vector-reps cpu ( -- reps )
+HOOK: %and-vector-reps cpu ( -- reps )
+HOOK: %or-vector-reps cpu ( -- reps )
+HOOK: %xor-vector-reps cpu ( -- reps )
+HOOK: %shl-vector-reps cpu ( -- reps )
+HOOK: %shr-vector-reps cpu ( -- reps )
 
 HOOK: %unbox-alien cpu ( dst src -- )
 HOOK: %unbox-any-c-ptr cpu ( dst src temp -- )

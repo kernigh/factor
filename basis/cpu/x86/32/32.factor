@@ -40,6 +40,7 @@ M:: x86.32 %dispatch ( src temp -- )
 ! Registers for fastcall
 M: x86.32 param-reg-1 EAX ;
 M: x86.32 param-reg-2 EDX ;
+M: x86.32 param-reg-3 ECX ;
 
 M: x86.32 pic-tail-reg EBX ;
 
@@ -322,4 +323,4 @@ os windows? [
     4 "double" c-type (>>align)
 ] unless
 
-"cpu.x86.features" require
+check-sse

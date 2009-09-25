@@ -181,7 +181,7 @@ furnace.actions furnace.auth furnace.auth.login furnace.db
 io.servers.connection io.files io.files.temp io.directories io
 threads
 http.server.responses http.server.redirection furnace.redirection
-http.server.dispatchers db.tuples ;
+http.server.dispatchers ;
 
 : add-quit-action ( responder -- responder )
     <action>

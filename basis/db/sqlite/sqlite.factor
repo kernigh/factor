@@ -5,6 +5,8 @@ IN: db.sqlite
 
 TUPLE: sqlite-db path ;
 
+CONSTRUCTOR: sqlite-db ( path -- db ) ;
+
 {
     "db.sqlite.connections"
     "db.sqlite.errors"

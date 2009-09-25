@@ -347,7 +347,8 @@ M: db-column select-reconstructor*
 
 : (column>create-text) ( db-column -- string )
     [
-        [ slot-name>> % " " % ] [ ((column>create-text)) ] bi
+        [ slot-name>> sanitize-sql-name % " " % ]
+        [ ((column>create-text)) ] bi
     ] "" make ;
 
 : (columns>create-text) ( seq -- seq )

@@ -1,5 +1,5 @@
-USING: accessors combinators.short-circuit
-db.persistent db.tuples db.types furnace.auth furnace.cache
+USING: accessors combinators.short-circuit db.orm
+db.orm.persistent db.types furnace.auth furnace.cache
 furnace.sessions kernel namespaces ;
 IN: furnace.auth.login.permits
 
@@ -7,7 +7,7 @@ TUPLE: permit < server-state session uid ;
 
 PERSISTENT: permit
     { "session" BIG-INTEGER NOT-NULL }
-    { "uid" { VARCHAR 255 } NOT-NULL } ;
+    { "uid" VARCHAR NOT-NULL } ;
 
 : touch-permit ( permit -- )
     realm get touch-state ;

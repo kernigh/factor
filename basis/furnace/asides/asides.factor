@@ -1,6 +1,6 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs combinators db.persistent db.tuples
+USING: accessors assocs combinators db.orm db.orm.persistent
 db.types fry furnace.cache furnace.redirection
 furnace.sessions furnace.utilities hashtables
 html.templates.chloe.syntax http http.server
@@ -16,7 +16,7 @@ session method url post-data ;
 
 PERSISTENT: aside
     { "session" BIG-INTEGER NOT-NULL }
-    { "method" { VARCHAR 10 } }
+    { "method" VARCHAR }
     { "url" URL }
     { "post-data" FACTOR-BLOB } ;
 

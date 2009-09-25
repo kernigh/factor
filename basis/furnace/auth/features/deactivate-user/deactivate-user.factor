@@ -1,6 +1,6 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs db db.tuples furnace.actions
+USING: accessors assocs db furnace.actions
 furnace.asides furnace.auth furnace.auth.providers
 http.server.dispatchers kernel namespaces urls ;
 IN: furnace.auth.features.deactivate-user

@@ -49,23 +49,6 @@ CONSTRUCTOR: insert ( in -- obj ) ;
 M: insert normalize-fql ( insert -- insert )
     [ ??1array ] change-in ;
 
-TUPLE: update < fql tables keys values where order-by limit ;
-
-CONSTRUCTOR: update ( tables keys values where -- obj ) ;
-
-M: update normalize-fql ( update -- update )
-    [ ??1array ] change-tables
-    [ ??1array ] change-keys
-    [ ??1array ] change-values
-    [ ??1array ] change-order-by ;
-
-TUPLE: delete < fql in ;
-
-CONSTRUCTOR: delete ( -- obj ) ;
-
-M: delete normalize-fql ( delete -- delete )
-    [ ??1array ] change-in ;
-
 TUPLE: select < fql in out relations reconstructor offset limit ;
 ! columns from join where group-by
 ! having order-by offset limit ;
@@ -268,8 +251,14 @@ GENERIC: expand-out ( obj -- names binders )
 : select-out ( statement select -- statement )
     out>> binders>names add-sql ;
 
+: seq>tables ( statement seq -- tables )
+    [ full-table-name ] map prune ", " join add-sql ;
+
 : select-tables ( statement select -- statement )
-    in/out append [ full-table-name ] map prune ", " join add-sql ;
+    in/out append seq>tables ;
+
+: delete-tables ( statement select -- statement )
+    in>> [ table-name>> ] map prune ", " join add-sql ;
 
 : select-relations ( statement seq -- statement )
     [
@@ -300,6 +289,50 @@ M: select expand-fql* ( statement obj -- statement )
         [ offset>> [ number>string " OFFSET " prepend add-sql ] when* ]
         [ limit>> [ number>string " LIMIT " prepend add-sql ] when* ]
     } cleave normalize-statement ;
+
+
+TUPLE: delete < fql in ;
+
+CONSTRUCTOR: delete ( -- obj ) ;
+
+M: delete normalize-fql ( delete -- delete )
+    [ ??1array ] change-in ;
+
+M: delete expand-fql* ( statement obj -- statement' )
+    {
+        [ [ "DELETE FROM " add-sql ] dip delete-tables ]
+        [ dup in>> empty? [ drop ] [ expand-where ] if ]
+        [ in>> >>in ]
+    } cleave ;
+
+
+TUPLE: update < fql in ;
+
+CONSTRUCTOR: update ( -- obj ) ;
+
+M: update normalize-fql ( update -- update )
+    [ ??1array ] change-in ;
+
+M: update expand-fql* ( statement obj -- statement' )
+    {
+        [ [ "UPDATE " add-sql ] dip delete-tables ]
+        [ dup in>> empty? [ drop ] [ expand-where ] if ]
+        [ in>> >>in ]
+    } cleave ;
+
+/*
+    {
+        [ in>> >>in ]
+        [ out>> >>out ]
+        [ reconstructor>> >>reconstructor ]
+        [ [ "SELECT " add-sql ] dip select-out ]
+        [ [ " FROM " add-sql ] dip select-tables ]
+        [ relations>> select-relations ]
+        [ dup in>> empty? [ drop ] [ expand-where ] if ]
+        [ offset>> [ number>string " OFFSET " prepend add-sql ] when* ]
+        [ limit>> [ number>string " LIMIT " prepend add-sql ] when* ]
+    } cleave normalize-statement ;
+*/
 
 ! Aggregate functions
 

@@ -1,13 +1,10 @@
 ! Copyright (C) 2007, 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs calendar calendar.format combinators
-db db.persistent db.transactions db.tuples db.types
-furnace furnace.actions furnace.auth furnace.auth.login
+USING: accessors calendar db.orm db.orm.persistent
+db.transactions db.types furnace.actions furnace.auth
 furnace.boilerplate furnace.redirection furnace.syndication
-hashtables html.components html.forms html.templates.chloe
-http.server http.server.dispatchers http.server.redirection
-kernel math.order math.parser namespaces sequences sorting
-syndication urls validators xml.writer xmode.catalog ;
+html.forms http.server.dispatchers http.server.responses kernel
+math.parser sequences sorting urls validators xmode.catalog ;
 IN: webapps.pastebin
 
 TUPLE: pastebin < dispatcher ;
@@ -24,9 +21,9 @@ TUPLE: entity id summary author mode date contents ;
 
 PERSISTENT: entity
     { "id" +db-assigned-key+ }
-    { "summary" { VARCHAR 256 } NOT-NULL }
-    { "author" { VARCHAR 256 } NOT-NULL }
-    { "mode" { VARCHAR 256 } NOT-NULL }
+    { "summary" VARCHAR NOT-NULL }
+    { "author" VARCHAR NOT-NULL }
+    { "mode" VARCHAR NOT-NULL }
     { "date" DATETIME NOT-NULL }
     { "contents" TEXT NOT-NULL } ;
 

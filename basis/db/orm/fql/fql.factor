@@ -278,7 +278,7 @@ GENERIC: expand-out ( obj -- names binders )
     [ " WHERE " add-sql ] dip
     in>> [
         binder>name " = " next-bind-index 3append
-    ] map ", " join add-sql ;
+    ] map " and " join add-sql ;
 
 : in>primary-key ( in -- column )
     [ column>> column-primary-key? ] filter ;

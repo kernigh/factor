@@ -19,9 +19,8 @@ IN: db.orm.tests
     ] [ user new select-tuples ] unit-test
 
     [
-        T{ user { id 1 } { name "erg" } { age 28 } }
+        T{ user { id 1 } { name "erg" } { age 29 } }
     ] [
-B
         user new "erg" >>name select-tuple
         29 >>age update-tuple
         user new "erg" >>name select-tuple

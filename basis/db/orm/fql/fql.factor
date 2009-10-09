@@ -234,12 +234,15 @@ GENERIC: expand-out ( obj -- names binders )
     persistent>> 
     ;
 
+: 'table-name' ( binder -- string )
+    table-name>> "\"" dup surround ;
+
 : full-table-name ( binder -- string )
     [ class>> quoted-table-name ]
-    [ table-name>> "\"" dup surround ] bi " AS " glue ;
+    [ 'table-name' ] bi " AS " glue ;
 
 : binder>name ( binder -- string )
-    [ table-name>> "\"" dup surround ] [ column-name>> ] bi "." glue ;
+    [ 'table-name' ] [ column-name>> ] bi "." glue ;
 
 : binder>names ( binder -- string )
     [ table-name>> ] [ class>> ] bi
@@ -258,7 +261,7 @@ GENERIC: expand-out ( obj -- names binders )
     in/out append seq>tables ;
 
 : delete-tables ( statement select -- statement )
-    in>> [ table-name>> ] map prune ", " join add-sql ;
+    in>> [ 'table-name' ] map prune ", " join add-sql ;
 
 : select-relations ( statement seq -- statement )
     [
@@ -276,6 +279,27 @@ GENERIC: expand-out ( obj -- names binders )
     in>> [
         binder>name " = " next-bind-index 3append
     ] map ", " join add-sql ;
+
+: in>primary-key ( in -- column )
+    [ column>> column-primary-key? ] filter ;
+
+: in>columns ( in -- column )
+    [ column>> column-primary-key? not ] filter ;
+
+: write-qualified-binders ( statement seq -- statement )
+    [
+        binder>name " = " next-bind-index 3append
+    ] map ", " join add-sql ;
+
+: write-binders ( statement seq -- statement )
+    [
+        column-name>> " = " next-bind-index 3append
+    ] map ", " join add-sql ;
+
+: expand-where-primary-key ( statement obj -- statement )
+    [ " WHERE " add-sql ] dip
+    in>> in>primary-key
+    write-binders ;
 
 M: select expand-fql* ( statement obj -- statement )
     {
@@ -316,8 +340,9 @@ M: update normalize-fql ( update -- update )
 M: update expand-fql* ( statement obj -- statement' )
     {
         [ [ "UPDATE " add-sql ] dip delete-tables ]
-        [ dup in>> empty? [ drop ] [ expand-where ] if ]
-        [ in>> >>in ]
+        [ [ " SET " add-sql ] dip in>> in>columns write-binders ]
+        [ dup in>> empty? [ drop ] [ expand-where-primary-key ] if ]
+        [ in>> [ in>columns ] [ in>primary-key ] bi append >>in ]
     } cleave ;
 
 /*

@@ -5,7 +5,7 @@ struct quotation_jit : public jit {
 	gc_root<array> elements;
 	bool compiling, relocate;
 
-	quotation_jit(cell quot, bool compiling_, bool relocate_, factor_vm *vm)
+	explicit quotation_jit(cell quot, bool compiling_, bool relocate_, factor_vm *vm)
 		: jit(QUOTATION_TYPE,quot,vm),
 		  elements(owner.as<quotation>().untagged()->array,vm),
 		  compiling(compiling_),
@@ -13,6 +13,8 @@ struct quotation_jit : public jit {
 
 	void emit_mega_cache_lookup(cell methods, fixnum index, cell cache);
 	bool primitive_call_p(cell i, cell length);
+	bool trivial_quotation_p(array *elements);
+	void emit_quot(cell quot);
 	bool fast_if_p(cell i, cell length);
 	bool fast_dip_p(cell i, cell length);
 	bool fast_2dip_p(cell i, cell length);
@@ -23,13 +25,6 @@ struct quotation_jit : public jit {
 	void iterate_quotation();
 };
 
-PRIMITIVE(jit_compile);
-
-PRIMITIVE(array_to_quotation);
-PRIMITIVE(quotation_xt);
-
 VM_ASM_API cell lazy_jit_compile_impl(cell quot, stack_frame *stack, factor_vm *myvm);
-
-PRIMITIVE(quot_compiled_p);
 
 }

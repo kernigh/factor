@@ -1,11 +1,12 @@
 ! Copyright (C) 2005, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs classes colors.constants
+USING: accessors arrays assocs classes colors colors.constants
 combinators definitions definitions.icons effects fry generic
 hashtables help.stylesheet help.topics io io.styles kernel make
 math namespaces parser present prettyprint
 prettyprint.stylesheet quotations see sequences sets slots
-sorting splitting strings vectors vocabs vocabs.loader words ;
+sorting splitting strings vectors vocabs vocabs.loader words
+words.symbol ;
 FROM: prettyprint.sections => with-pprint ;
 IN: help.markup
 
@@ -15,9 +16,19 @@ PREDICATE: simple-element < array
 SYMBOL: last-element
 SYMBOL: span
 SYMBOL: block
+SYMBOL: blank-line
 
 : last-span? ( -- ? ) last-element get span eq? ;
 : last-block? ( -- ? ) last-element get block eq? ;
+: last-blank-line? ( -- ? ) last-element get blank-line eq? ;
+
+: ?nl ( -- )
+    last-element get
+    last-blank-line? not
+    and [ nl ] when ;
+
+: ($blank-line) ( -- )
+    nl nl blank-line last-element set ;
 
 : ($span) ( quot -- )
     last-block? [ nl ] when
@@ -37,7 +48,6 @@ M: f print-element drop ;
 
 : with-default-style ( quot -- )
     default-span-style get [
-        last-element off
         default-block-style get swap with-nesting
     ] with-style ; inline
 
@@ -45,7 +55,7 @@ M: f print-element drop ;
     [ print-element ] with-default-style ;
 
 : ($block) ( quot -- )
-    last-element get [ nl ] when
+    ?nl
     span last-element set
     call
     block last-element set ; inline
@@ -71,11 +81,12 @@ ALIAS: $slot $snippet
     ] ($span) ;
 
 : $nl ( children -- )
-    nl last-block? [ nl ] unless drop ;
+    drop nl last-element get [ nl ] when
+    blank-line last-element set ;
 
 ! Some blocks
 : ($heading) ( children quot -- )
-    last-element get [ nl ] when ($block) ; inline
+    ?nl ($block) ; inline
 
 : $heading ( element -- )
     [ heading-style get print-element* ] ($heading) ;
@@ -154,6 +165,9 @@ ALIAS: $slot $snippet
     1array \ $image prefix ;
 
 ! Some links
+
+<PRIVATE
+
 : write-link ( string object -- )
     link-style get [ write-object ] with-style ;
 
@@ -163,38 +177,48 @@ ALIAS: $slot $snippet
 : link-text ( topic -- )
     [ article-name ] keep write-link ;
 
-: link-effect ( topic -- )
-    dup word? [
-        stack-effect [ effect>string ] [ effect-style ] bi
-        [ write ] with-style
-    ] [ drop ] if ;
+GENERIC: link-long-text ( topic -- )
 
-: inter-cleave ( x seq between -- )
-    [ [ call( x -- ) ] with ] dip swap interleave ; inline
+M: topic link-long-text
+    [ article-title ] keep write-link ;
 
-: (($link)) ( topic words -- )
-    [ dup topic? [ >link ] unless ] dip
-    [ [ bl ] inter-cleave ] ($span) ; inline
+GENERIC: link-effect? ( word -- ? )
 
-: ($link) ( topic -- )
-    { [ link-text ] } (($link)) ;
+M: parsing-word link-effect? drop f ;
+M: symbol link-effect? drop f ;
+M: word link-effect? drop t ;
 
+: $effect ( effect -- )
+    effect>string stack-effect-style get format ;
+
+M: word link-long-text
+    dup presented associate [
+        [ article-name link-style get format ]
+        [
+            dup link-effect? [
+                bl stack-effect $effect
+            ] [ drop ] if
+        ] bi
+    ] with-nesting ;
+
+: >topic ( obj -- topic ) dup topic? [ >link ] unless ;
+
+: topic-span ( topic quot -- ) [ >topic ] dip ($span) ; inline
+
+PRIVATE>
+
+: ($link) ( topic -- ) [ link-text ] topic-span ;
 : $link ( element -- ) first ($link) ;
 
-: ($long-link) ( topic -- )
-    { [ link-text ] [ link-effect ] } (($link)) ;
-
+: ($long-link) ( topic -- ) [ link-long-text ] topic-span ;
 : $long-link ( element -- ) first ($long-link) ;
 
 : ($pretty-link) ( topic -- )
-    { [ link-icon ] [ link-text ] } (($link)) ;
-
+    [ [ link-icon ] [ drop bl ] [ link-text ] tri ] topic-span ;
 : $pretty-link ( element -- ) first ($pretty-link) ;
 
 : ($long-pretty-link) ( topic -- )
-    { [ link-icon ] [ link-text ] [ link-effect ] } (($link)) ;
-
-: $long-pretty-link ( element -- ) first ($long-pretty-link) ;
+    [ [ link-icon ] [ drop bl ] [ link-long-text ] tri ] topic-span ;
 
 : <$pretty-link> ( definition -- element )
     1array \ $pretty-link prefix ;
@@ -210,7 +234,7 @@ ALIAS: $slot $snippet
     ] ($subsection) ;
 
 : $subsections ( children -- )
-    [ $subsection* ] each nl ;
+    [ $subsection* ] each ($blank-line) ;
 
 : $subsection ( element -- )
     first $subsection* ;

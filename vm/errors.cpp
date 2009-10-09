@@ -3,33 +3,33 @@
 namespace factor
 {
 
-void factor_vm::out_of_memory()
-{
-	print_string("Out of memory\n\n");
-	dump_generations();
-	exit(1);
-}
-
-void fatal_error(const char* msg, cell tagged)
+void fatal_error(const char *msg, cell tagged)
 {
 	print_string("fatal_error: "); print_string(msg);
 	print_string(": "); print_cell_hex(tagged); nl();
 	exit(1);
 }
 
-void factor_vm::critical_error(const char* msg, cell tagged)
+void critical_error(const char *msg, cell tagged)
 {
 	print_string("You have triggered a bug in Factor. Please report.\n");
 	print_string("critical_error: "); print_string(msg);
 	print_string(": "); print_cell_hex(tagged); nl();
-	factorbug();
+	SIGNAL_VM_PTR()->factorbug();
+}
+
+void out_of_memory()
+{
+	print_string("Out of memory\n\n");
+	SIGNAL_VM_PTR()->dump_generations();
+	exit(1);
 }
 
 void factor_vm::throw_error(cell error, stack_frame *callstack_top)
 {
 	/* If the error handler is set, we rewind any C stack frames and
 	pass the error to user-space. */
-	if(userenv[BREAK_ENV] != F)
+	if(!current_gc && userenv[BREAK_ENV] != F)
 	{
 		/* If error was thrown during heap scan, we re-enable the GC */
 		gc_off = false;
@@ -128,20 +128,16 @@ void factor_vm::fp_trap_error(unsigned int fpu_status, stack_frame *signal_calls
 	general_error(ERROR_FP_TRAP,tag_fixnum(fpu_status),F,signal_callstack_top);
 }
 
-inline void factor_vm::primitive_call_clear()
+void factor_vm::primitive_call_clear()
 {
 	throw_impl(dpop(),stack_chain->callstack_bottom,this);
 }
 
-PRIMITIVE_FORWARD(call_clear)
-
 /* For testing purposes */
-inline void factor_vm::primitive_unimplemented()
+void factor_vm::primitive_unimplemented()
 {
 	not_implemented_error();
 }
-
-PRIMITIVE_FORWARD(unimplemented)
 
 void factor_vm::memory_signal_handler_impl()
 {

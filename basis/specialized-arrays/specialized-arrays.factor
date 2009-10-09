@@ -54,14 +54,18 @@ TUPLE: A
 
 : <direct-A> ( alien len -- specialized-array ) A boa ; inline
 
-: <A> ( n -- specialized-array ) [ \ T <underlying> ] keep <direct-A> ; inline
+: <A> ( n -- specialized-array )
+    [ \ T <underlying> ] keep <direct-A> ; inline
 
-: (A) ( n -- specialized-array ) [ \ T (underlying) ] keep <direct-A> ; inline
+: (A) ( n -- specialized-array )
+    [ \ T (underlying) ] keep <direct-A> ; inline
 
-: malloc-A ( len -- specialized-array ) [ \ T heap-size calloc ] keep <direct-A> ; inline
+: malloc-A ( len -- specialized-array )
+    [ \ T heap-size calloc ] keep <direct-A> ; inline
 
 : byte-array>A ( byte-array -- specialized-array )
-    dup length \ T heap-size /mod 0 = [ drop \ T bad-byte-array-length ] unless
+    >c-ptr dup length \ T heap-size /mod 0 =
+    [ drop \ T bad-byte-array-length ] unless
     <direct-A> ; inline
 
 M: A clone [ underlying>> clone ] [ length>> ] bi <direct-A> ; inline
@@ -149,6 +153,9 @@ M: c-type-name c-direct-array-constructor
     underlying-type-name
     dup [ "<direct-" "-array>" surround ] [ specialized-array-vocab ] bi lookup
     [ ] [ specialized-array-vocab-not-loaded ] ?if ; foldable
+
+SYNTAX: SPECIALIZED-ARRAYS:
+    ";" parse-tokens [ parse-c-type define-array-vocab use-vocab ] each ;
 
 SYNTAX: SPECIALIZED-ARRAY:
     scan-c-type define-array-vocab use-vocab ;

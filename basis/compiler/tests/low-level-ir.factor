@@ -46,20 +46,6 @@ IN: compiler.tests.low-level-ir
     } compile-test-bb
 ] unit-test
 
-! ##copy on floats. We can only run this test if float intrinsics
-! are enabled.
-\ float+ "intrinsic" word-prop [
-    [ 1.5 ] [
-        V{
-            T{ ##load-reference f 4 1.5 }
-            T{ ##unbox-float f 1 4 }
-            T{ ##copy f 2 1 double-rep }
-            T{ ##box-float f 3 2 }
-            T{ ##copy f 0 3 int-rep }
-        } compile-test-bb
-    ] unit-test
-] when
-
 ! make sure slot access works when the destination is
 ! one of the sources
 [ t ] [
@@ -132,24 +118,3 @@ IN: compiler.tests.low-level-ir
         T{ ##add-imm f 0 0 -8 }
     } compile-test-bb
 ] unit-test
-
-! These are def-is-use-insns
-USE: multiline
-
-/*
-
-[ 100 ] [
-    V{
-        T{ ##load-immediate f 0 100 }
-        T{ ##integer>bignum f 0 0 1 }
-    } compile-test-bb
-] unit-test
-
-[ 1 ] [
-    V{
-        T{ ##load-reference f 0 ALIEN: 8 }
-        T{ ##unbox-any-c-ptr f 0 0 1 }
-    } compile-test-bb
-] unit-test
-
-*/

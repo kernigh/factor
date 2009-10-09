@@ -33,7 +33,9 @@ void register_vm_with_thread(factor_vm *vm)
 
 factor_vm *tls_vm()
 {
-	return (factor_vm*)pthread_getspecific(tlsKey);
+	factor_vm *vm = (factor_vm*)pthread_getspecific(tlsKey);
+	assert(vm != NULL);
+	return vm;
 }
 
 static void *null_dll;
@@ -74,18 +76,15 @@ void factor_vm::ffi_dlclose(dll *dll)
 	dll->dll = NULL;
 }
 
-inline void factor_vm::primitive_existsp()
+void factor_vm::primitive_existsp()
 {
 	struct stat sb;
 	char *path = (char *)(untag_check<byte_array>(dpop()) + 1);
 	box_boolean(stat(path,&sb) >= 0);
 }
 
-PRIMITIVE_FORWARD(existsp)
-
-segment::segment(factor_vm *myvm_, cell size_)
+segment::segment(cell size_)
 {
-	myvm = myvm_;
 	size = size_;
 
 	int pagesize = getpagesize();
@@ -94,8 +93,7 @@ segment::segment(factor_vm *myvm_, cell size_)
 		PROT_READ | PROT_WRITE | PROT_EXEC,
 		MAP_ANON | MAP_PRIVATE,-1,0);
 
-	if(array == (char*)-1)
-		myvm->out_of_memory();
+	if(array == (char*)-1) out_of_memory();
 
 	if(mprotect(array,pagesize,PROT_NONE) == -1)
 		fatal_error("Cannot protect low guard page",(cell)array);
@@ -131,7 +129,6 @@ stack_frame *factor_vm::uap_stack_pointer(void *uap)
 	else
 		return NULL;
 }
-
 
 void factor_vm::memory_signal_handler(int signal, siginfo_t *siginfo, void *uap)
 {

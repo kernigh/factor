@@ -2,11 +2,12 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: words kernel make sequences effects sets kernel.private
 accessors combinators math math.intervals math.vectors
+math.vectors.conversion.backend
 namespaces assocs fry splitting classes.algebra generalizations
 locals compiler.tree.propagation.info ;
 IN: math.vectors.specialization
 
-SYMBOLS: -> +vector+ +scalar+ +nonnegative+ ;
+SYMBOLS: -> +vector+ +scalar+ +nonnegative+ +literal+ ;
 
 : signature-for-schema ( array-type elt-type schema -- signature )
     [
@@ -14,6 +15,7 @@ SYMBOLS: -> +vector+ +scalar+ +nonnegative+ ;
             { +vector+ [ drop ] }
             { +scalar+ [ nip ] }
             { +nonnegative+ [ nip ] }
+            { +literal+ [ 2drop f ] }
         } case
     ] with with map ;
 
@@ -82,10 +84,38 @@ H{
     { vabs { +vector+ -> +vector+ } }
     { vsqrt { +vector+ -> +vector+ } }
     { vbitand { +vector+ +vector+ -> +vector+ } }
+    { vbitandn { +vector+ +vector+ -> +vector+ } }
     { vbitor { +vector+ +vector+ -> +vector+ } }
     { vbitxor { +vector+ +vector+ -> +vector+ } }
+    { vbitnot { +vector+ -> +vector+ } }
+    { vand { +vector+ +vector+ -> +vector+ } }
+    { vandn { +vector+ +vector+ -> +vector+ } }
+    { vor { +vector+ +vector+ -> +vector+ } }
+    { vxor { +vector+ +vector+ -> +vector+ } }
+    { vnot { +vector+ -> +vector+ } }
     { vlshift { +vector+ +scalar+ -> +vector+ } }
     { vrshift { +vector+ +scalar+ -> +vector+ } }
+    { hlshift { +vector+ +literal+ -> +vector+ } }
+    { hrshift { +vector+ +literal+ -> +vector+ } }
+    { vshuffle { +vector+ +literal+ -> +vector+ } }
+    { vbroadcast { +vector+ +literal+ -> +vector+ } }
+    { (vmerge-head) { +vector+ +vector+ -> +vector+ } }
+    { (vmerge-tail) { +vector+ +vector+ -> +vector+ } }
+    { (v>float) { +vector+ +literal+ -> +vector+ } }
+    { (v>integer) { +vector+ +literal+ -> +vector+ } }
+    { (vpack-signed) { +vector+ +vector+ +literal+ -> +vector+ } }
+    { (vpack-unsigned) { +vector+ +vector+ +literal+ -> +vector+ } }
+    { (vunpack-head) { +vector+ +literal+ -> +vector+ } }
+    { (vunpack-tail) { +vector+ +literal+ -> +vector+ } }
+    { v<= { +vector+ +vector+ -> +vector+ } }
+    { v< { +vector+ +vector+ -> +vector+ } }
+    { v= { +vector+ +vector+ -> +vector+ } }
+    { v> { +vector+ +vector+ -> +vector+ } }
+    { v>= { +vector+ +vector+ -> +vector+ } }
+    { vunordered? { +vector+ +vector+ -> +vector+ } }
+    { vany? { +vector+ -> +scalar+ } }
+    { vall? { +vector+ -> +scalar+ } }
+    { vnone? { +vector+ -> +scalar+ } }
 }
 
 PREDICATE: vector-word < word vector-words key? ;
@@ -99,7 +129,10 @@ M: vector-word subwords specializations values [ word? ] filter ;
 : add-specialization ( new-word signature word -- )
     specializations set-at ;
 
-: word-schema ( word -- schema ) vector-words at ;
+ERROR: bad-vector-word word ;
+
+: word-schema ( word -- schema )
+    vector-words ?at [ bad-vector-word ] unless ;
 
 : inputs ( schema -- seq ) { -> } split first ;
 
@@ -116,7 +149,7 @@ M: vector-word subwords specializations values [ word? ] filter ;
 :: input-signature ( word array-type elt-type -- signature )
     array-type elt-type word word-schema inputs signature-for-schema ;
 
-: vector-words-for-type ( elt-type -- alist )
+: vector-words-for-type ( elt-type -- words )
     {
         ! Can't do shifts on floats
         { [ dup float class<= ] [ vector-words keys { vlshift vrshift } diff ] }
@@ -125,23 +158,34 @@ M: vector-word subwords specializations values [ word? ] filter ;
         ! Can't compute square root of complex numbers (vsqrt uses fsqrt not sqrt)
         { [ dup complex class<= ] [ vector-words keys { vsqrt } diff ] }
         [ { } ]
-    } cond nip ;
+    } cond
+    ! Don't specialize horizontal shifts, shuffles, and conversions at all, they're only for SIMD
+    {
+        hlshift hrshift vshuffle vbroadcast
+        (v>integer) (v>float)
+        (vpack-signed) (vpack-unsigned)
+        (vunpack-head) (vunpack-tail)
+    } diff
+    nip ;
 
 :: specialize-vector-words ( array-type elt-type simd -- )
-    elt-type vector-words-for-type [
+    elt-type vector-words-for-type simd keys union [
         [ array-type elt-type simd specialize-vector-word ]
         [ array-type elt-type input-signature ]
         [ ]
         tri add-specialization
     ] each ;
 
+: specialization-matches? ( value-infos signature -- ? )
+    [ [ [ class>> ] dip class<= ] [ literal?>> ] if* ] 2all? ;
+
 : find-specialization ( classes word -- word/f )
     specializations
-    [ first [ class<= ] 2all? ] with find
+    [ first specialization-matches? ] with find
     swap [ second ] when ;
 
 : vector-word-custom-inlining ( #call -- word/f )
-    [ in-d>> [ value-info class>> ] map ] [ word>> ] bi
+    [ in-d>> [ value-info ] map ] [ word>> ] bi
     find-specialization ;
 
 vector-words keys [

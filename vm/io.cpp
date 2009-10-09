@@ -31,7 +31,7 @@ void factor_vm::io_error()
 	general_error(ERROR_IO,tag_fixnum(errno),F,NULL);
 }
 
-inline void factor_vm::primitive_fopen()
+void factor_vm::primitive_fopen()
 {
 	gc_root<byte_array> mode(dpop(),this);
 	gc_root<byte_array> path(dpop(),this);
@@ -52,9 +52,7 @@ inline void factor_vm::primitive_fopen()
 	}
 }
 
-PRIMITIVE_FORWARD(fopen)
-
-inline void factor_vm::primitive_fgetc()
+void factor_vm::primitive_fgetc()
 {
 	FILE *file = (FILE *)unbox_alien();
 
@@ -79,9 +77,7 @@ inline void factor_vm::primitive_fgetc()
 	}
 }
 
-PRIMITIVE_FORWARD(fgetc)
-
-inline void factor_vm::primitive_fread()
+void factor_vm::primitive_fread()
 {
 	FILE *file = (FILE *)unbox_alien();
 	fixnum size = unbox_array_size();
@@ -121,9 +117,7 @@ inline void factor_vm::primitive_fread()
 	}
 }
 
-PRIMITIVE_FORWARD(fread)
-
-inline void factor_vm::primitive_fputc()
+void factor_vm::primitive_fputc()
 {
 	FILE *file = (FILE *)unbox_alien();
 	fixnum ch = to_fixnum(dpop());
@@ -141,9 +135,7 @@ inline void factor_vm::primitive_fputc()
 	}
 }
 
-PRIMITIVE_FORWARD(fputc)
-
-inline void factor_vm::primitive_fwrite()
+void factor_vm::primitive_fwrite()
 {
 	FILE *file = (FILE *)unbox_alien();
 	byte_array *text = untag_check<byte_array>(dpop());
@@ -172,9 +164,18 @@ inline void factor_vm::primitive_fwrite()
 	}
 }
 
-PRIMITIVE_FORWARD(fwrite)
+void factor_vm::primitive_ftell()
+{
+	FILE *file = (FILE *)unbox_alien();
+	off_t offset;
 
-inline void factor_vm::primitive_fseek()
+	if((offset = FTELL(file)) == -1)
+		io_error();
+
+	box_signed_8(offset);
+}
+
+void factor_vm::primitive_fseek()
 {
 	int whence = to_fixnum(dpop());
 	FILE *file = (FILE *)unbox_alien();
@@ -199,9 +200,7 @@ inline void factor_vm::primitive_fseek()
 	}
 }
 
-PRIMITIVE_FORWARD(fseek)
-
-inline void factor_vm::primitive_fflush()
+void factor_vm::primitive_fflush()
 {
 	FILE *file = (FILE *)unbox_alien();
 	for(;;)
@@ -213,9 +212,7 @@ inline void factor_vm::primitive_fflush()
 	}
 }
 
-PRIMITIVE_FORWARD(fflush)
-
-inline void factor_vm::primitive_fclose()
+void factor_vm::primitive_fclose()
 {
 	FILE *file = (FILE *)unbox_alien();
 	for(;;)
@@ -226,8 +223,6 @@ inline void factor_vm::primitive_fclose()
 			break;
 	}
 }
-
-PRIMITIVE_FORWARD(fclose)
 
 /* This function is used by FFI I/O. Accessing the errno global directly is
 not portable, since on some libc's errno is not a global but a funky macro that

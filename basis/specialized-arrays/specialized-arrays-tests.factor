@@ -8,12 +8,7 @@ assocs prettyprint alien.data math.vectors ;
 FROM: alien.c-types => float ;
 
 SPECIALIZED-ARRAY: int
-SPECIALIZED-ARRAY: bool
-SPECIALIZED-ARRAY: ushort
-SPECIALIZED-ARRAY: char
-SPECIALIZED-ARRAY: uint
-SPECIALIZED-ARRAY: float
-SPECIALIZED-ARRAY: ulonglong
+SPECIALIZED-ARRAYS: bool ushort char uint float ulonglong ;
 
 [ ulonglong ] [ ulonglong-array{ } element-type ] unit-test
 
@@ -138,7 +133,7 @@ SPECIALIZED-ARRAY: __does_not_exist__ """ eval( -- )
 [ ] [
     """
 IN: specialized-arrays.tests
-USING: classes.struct specialized-arrays ;
+USING: alien.c-types classes.struct specialized-arrays ;
 
 STRUCT: __does_not_exist__ { x int } ;
 

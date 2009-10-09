@@ -43,15 +43,12 @@ void factor_vm::set_profiling(bool profiling)
 		update_word_xt(word.value());
 	}
 
-	/* Update XTs in code heap */
-	iterate_code_heap(factor::relocate_code_block);
+	update_code_heap_words();
 }
 
-inline void factor_vm::primitive_profiling()
+void factor_vm::primitive_profiling()
 {
 	set_profiling(to_boolean(dpop()));
 }
-
-PRIMITIVE_FORWARD(profiling)
 
 }

@@ -87,8 +87,6 @@ enum special_object {
 	THREADS_ENV         = 64,
 	RUN_QUEUE_ENV       = 65,
 	SLEEP_QUEUE_ENV     = 66,
-
-	STACK_TRACES_ENV    = 67,
 };
 
 #define FIRST_SAVE_ENV BOOT_ENV
@@ -96,17 +94,8 @@ enum special_object {
 
 inline static bool save_env_p(cell i)
 {
-	return (i >= FIRST_SAVE_ENV && i <= LAST_SAVE_ENV) || i == STACK_TRACES_ENV;
+	return (i >= FIRST_SAVE_ENV && i <= LAST_SAVE_ENV);
 }
-
-PRIMITIVE(getenv);
-PRIMITIVE(setenv);
-PRIMITIVE(exit);
-PRIMITIVE(micros);
-PRIMITIVE(sleep);
-PRIMITIVE(set_slot);
-PRIMITIVE(load_locals);
-PRIMITIVE(clone);
 
 }
 

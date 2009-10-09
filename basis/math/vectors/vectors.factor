@@ -1,11 +1,13 @@
 ! Copyright (C) 2005, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: arrays alien.c-types kernel sequences math math.functions
-hints math.order math.libm fry combinators ;
+USING: arrays alien.c-types assocs kernel sequences math math.functions
+hints math.order math.libm fry combinators byte-arrays accessors
+locals ;
 QUALIFIED-WITH: alien.c-types c
 IN: math.vectors
 
 GENERIC: element-type ( obj -- c-type )
+M: object element-type drop f ; inline
 
 : vneg ( u -- v ) [ neg ] map ;
 
@@ -51,7 +53,7 @@ PRIVATE>
 : fp-bitwise-op ( x y seq quot -- z )
     swap element-type {
         { c:double [ [ [ double>bits ] bi@ ] dip call bits>double ] }
-        { c:float [ [ [ float>bits ] bi@ ] dip call bits>float ] }
+        { c:float  [ [ [ float>bits ] bi@ ] dip call bits>float   ] }
         [ drop call ]
     } case ; inline
 
@@ -62,29 +64,62 @@ PRIVATE>
         [ drop call ]
     } case ; inline
 
+: element>bool ( x seq -- ? )
+    element-type [ [ f ] when-zero ] when ; inline
+
+: bitandn ( x y -- z ) [ bitnot ] dip bitand ; inline
+
+GENERIC: new-underlying ( underlying seq -- seq' )
+
+: change-underlying ( seq quot -- seq' )
+    '[ underlying>> @ ] keep new-underlying ; inline
+
 PRIVATE>
 
 : vbitand ( u v -- w ) over '[ _ [ bitand ] fp-bitwise-op ] 2map ;
+: vbitandn ( u v -- w ) over '[ _ [ bitandn ] fp-bitwise-op ] 2map ;
 : vbitor ( u v -- w ) over '[ _ [ bitor ] fp-bitwise-op ] 2map ;
 : vbitxor ( u v -- w ) over '[ _ [ bitxor ] fp-bitwise-op ] 2map ;
 : vbitnot ( u -- w ) dup '[ _ [ bitnot ] fp-bitwise-unary ] map ;
 
-: vand ( u v -- w ) [ and ] 2map ;
-: vor  ( u v -- w ) [ or  ] 2map ;
-: vxor ( u v -- w ) [ xor ] 2map ;
-: vnot ( u -- w )   [ not ] map ;
-
-: v<  ( u v -- w ) [ <   ] { } 2map-as ;
-: v<= ( u v -- w ) [ <=  ] { } 2map-as ;
-: v>= ( u v -- w ) [ >=  ] { } 2map-as ;
-: v>  ( u v -- w ) [ >   ] { } 2map-as ;
-: vunordered? ( u v -- w ) [ unordered? ] { } 2map-as ;
-: v=  ( u v -- w ) [ =   ] { } 2map-as ;
-
-: v?   ( ? u v -- w ) [ ? ] pick 3map-as ;
+:: vbroadcast ( u n -- v ) u length n u nth <repetition> u like ;
+: vshuffle ( u perm -- v ) swap [ '[ _ nth ] ] keep map-as ;
 
 : vlshift ( u n -- w ) '[ _ shift ] map ;
 : vrshift ( u n -- w ) neg '[ _ shift ] map ;
+
+: hlshift ( u n -- w ) '[ _ <byte-array> prepend 16 head ] change-underlying ;
+: hrshift ( u n -- w ) '[ _ <byte-array> append 16 tail* ] change-underlying ;
+
+: (vmerge-head) ( u v -- h )
+    over length 2 /i '[ _ head-slice ] bi@ [ zip ] keep concat-as ;
+: (vmerge-tail) ( u v -- t )
+    over length 2 /i '[ _ tail-slice ] bi@ [ zip ] keep concat-as ;
+
+: (vmerge) ( u v -- h t )
+    [ (vmerge-head) ] [ (vmerge-tail) ] 2bi ; inline
+
+: vmerge ( u v -- w ) [ zip ] keep concat-as ;
+
+: vand ( u v -- w )  over '[ [ _ element>bool ] bi@ and ] 2map ;
+: vandn ( u v -- w ) over '[ [ _ element>bool ] bi@ [ not ] dip and ] 2map ;
+: vor  ( u v -- w )  over '[ [ _ element>bool ] bi@ or  ] 2map ;
+: vxor ( u v -- w )  over '[ [ _ element>bool ] bi@ xor ] 2map ;
+: vnot ( u -- w )    dup '[ _ element>bool not ] map ;
+
+: vall? ( v -- ? ) [ ] all? ;
+: vany? ( v -- ? ) [ ] any? ;
+: vnone? ( v -- ? ) [ not ] all? ;
+
+: v<  ( u v -- w ) [ <   ] 2map ;
+: v<= ( u v -- w ) [ <=  ] 2map ;
+: v>= ( u v -- w ) [ >=  ] 2map ;
+: v>  ( u v -- w ) [ >   ] 2map ;
+: vunordered? ( u v -- w ) [ unordered? ] 2map ;
+: v=  ( u v -- w ) [ =   ] 2map ;
+
+: v? ( mask true false -- w )
+    [ vand ] [ vandn ] bi-curry* bi vor ; inline
 
 : vfloor    ( u -- v ) [ floor ] map ;
 : vceiling  ( u -- v ) [ ceiling ] map ;

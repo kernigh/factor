@@ -1,5 +1,6 @@
 IN: alien.syntax
-USING: alien alien.c-types alien.parser classes.struct help.markup help.syntax see ;
+USING: alien alien.c-types alien.parser alien.libraries
+classes.struct help.markup help.syntax see ;
 
 HELP: DLL"
 { $syntax "DLL\" path\"" }
@@ -13,13 +14,16 @@ HELP: ALIEN:
 { $notes "Alien objects are invalidated between image saves and loads, and hence source files should not contain alien literals; this word is for interactive use only. See " { $link "alien-expiry" } " for details." } ;
 
 ARTICLE: "syntax-aliens" "Alien object literal syntax"
-{ $subsection POSTPONE: ALIEN: }
-{ $subsection POSTPONE: DLL" } ;
+{ $subsections
+    POSTPONE: ALIEN:
+    POSTPONE: DLL"
+} ;
 
 HELP: LIBRARY:
 { $syntax "LIBRARY: name" }
 { $values { "name" "a logical library name" } }
-{ $description "Sets the logical library for consequent " { $link POSTPONE: FUNCTION: } " definitions that follow." } ;
+{ $description "Sets the logical library for consequent " { $link POSTPONE: FUNCTION: } ", " { $link POSTPONE: C-GLOBAL: } " and " { $link POSTPONE: CALLBACK: } " definitions, as well as " { $link POSTPONE: &: } " forms." }
+{ $notes "Logical library names are defined with the " { $link add-library } " word." } ;
 
 HELP: FUNCTION:
 { $syntax "FUNCTION: return name ( parameters )" }
@@ -78,7 +82,7 @@ STRUCT: forward { x backward* } ; """ } }
 HELP: CALLBACK:
 { $syntax "CALLBACK: return type ( parameters ) ;" }
 { $values { "return" "a C return type" } { "type" "a type name" } { "parameters" "a comma-separated sequence of type/name pairs; " { $snippet "type1 arg1, type2 arg2, ..." } } }
-{ $description "Defines a new function pointer C type word " { $snippet "type" } ". The newly defined word works both as a C type and as a wrapper for " { $link alien-callback } " for callbacks that accept the given return type and parameters with the " { $snippet "\"cdecl\"" } " ABI." }
+{ $description "Defines a new function pointer C type word " { $snippet "type" } ". The newly defined word works both as a C type and as a wrapper for " { $link alien-callback } " for callbacks that accept the given return type and parameters. The ABI of the callback is decided from the ABI of the active " { $link POSTPONE: LIBRARY: } " declaration." }
 { $examples
     { $code
         "CALLBACK: bool FakeCallback ( int message, void* payload ) ;"
@@ -92,42 +96,28 @@ HELP: CALLBACK:
     }
 } ;
 
-HELP: STDCALL-CALLBACK:
-{ $syntax "STDCALL-CALLBACK: return type ( parameters ) ;" }
-{ $values { "return" "a C return type" } { "type" "a type name" } { "parameters" "a comma-separated sequence of type/name pairs; " { $snippet "type1 arg1, type2 arg2, ..." } } }
-{ $description "Defines a new function pointer C type word " { $snippet "type" } ". The newly defined word works both as a C type and as a wrapper for " { $link alien-callback } " for callbacks that accept the given return type and parameters with the " { $snippet "\"stdcall\"" } " ABI." }
-{ $examples
-    { $code
-        "STDCALL-CALLBACK: bool FakeCallback ( int message, void* payload ) ;"
-        ": MyFakeCallback ( -- alien )"
-        "    [| message payload |"
-        "        \"message #\" write"
-        "        message number>string write"
-        "        \" received\" write nl"
-        "        t"
-        "    ] FakeCallback ;"
-    }
-} ;
-
-{ POSTPONE: CALLBACK: POSTPONE: STDCALL-CALLBACK: } related-words 
-
 HELP: &:
 { $syntax "&: symbol" }
-{ $values { "symbol" "A C library symbol name" } }
+{ $values { "symbol" "A C global variable name" } }
 { $description "Pushes the address of a symbol named " { $snippet "symbol" } " from the current library, set with " { $link POSTPONE: LIBRARY: } "." } ;
 
 HELP: typedef
-{ $values { "old" "a string" } { "new" "a string" } }
+{ $values { "old" "a C type" } { "new" "a C type" } }
 { $description "Aliases the C type " { $snippet "old" } " under the name " { $snippet "new" } "." }
 { $notes "Using this word in the same source file which defines C bindings can cause problems, because words are compiled before top-level forms are run. Use the " { $link POSTPONE: TYPEDEF: } " word instead." } ;
 
 { POSTPONE: TYPEDEF: typedef } related-words
 
 HELP: c-struct?
-{ $values { "c-type" "a C type name" } { "?" "a boolean" } }
+{ $values { "c-type" "a C type" } { "?" "a boolean" } }
 { $description "Tests if a C type is a structure defined by " { $link POSTPONE: STRUCT: } "." } ;
 
 HELP: define-function
 { $values { "return" "a C return type" } { "library" "a logical library name" } { "function" "a C function name" } { "parameters" "a sequence of C parameter types" } }
 { $description "Defines a word named " { $snippet "function" } " in the current vocabulary (see " { $link "vocabularies" } "). The word calls " { $link alien-invoke } " with the specified parameters." }
 { $notes "This word is used to implement the " { $link POSTPONE: FUNCTION: } " parsing word." } ;
+
+HELP: C-GLOBAL:
+{ $syntax "C-GLOBAL: type name" }
+{ $values { "type" "a C type" } { "name" "a C global variable name" } }
+{ $description "Defines a new word named " { $snippet "name" } " which accesses a global variable in the current library, set with " { $link POSTPONE: LIBRARY: } "." } ;

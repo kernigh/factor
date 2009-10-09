@@ -6,6 +6,10 @@ namespace factor
 void factor_vm::init_inline_caching(int max_size)
 {
 	max_pic_size = max_size;
+	cold_call_to_ic_transitions = 0;
+	ic_to_pic_transitions = 0;
+	pic_to_mega_transitions = 0;
+	for(int i = 0; i < 4; i++) pic_counts[i] = 0;
 }
 
 void factor_vm::deallocate_inline_cache(cell return_address)
@@ -15,7 +19,7 @@ void factor_vm::deallocate_inline_cache(cell return_address)
 	check_code_pointer((cell)old_xt);
 
 	code_block *old_block = (code_block *)old_xt - 1;
-	cell old_type = old_block->type;
+	cell old_type = old_block->type();
 
 #ifdef FACTOR_DEBUG
 	/* The call target was either another PIC,
@@ -24,7 +28,7 @@ void factor_vm::deallocate_inline_cache(cell return_address)
 #endif
 
 	if(old_type == PIC_TYPE)
-		code->heap_free(old_block);
+		code->code_heap_free(old_block);
 }
 
 /* Figure out what kind of type check the PIC needs based on the methods
@@ -74,7 +78,7 @@ void factor_vm::update_pic_count(cell type)
 struct inline_cache_jit : public jit {
 	fixnum index;
 
-	inline_cache_jit(cell generic_word_,factor_vm *vm) : jit(PIC_TYPE,generic_word_,vm) {};
+	explicit inline_cache_jit(cell generic_word_,factor_vm *vm) : jit(PIC_TYPE,generic_word_,vm) {};
 
 	void emit_check(cell klass);
 	void compile_inline_cache(fixnum index,
@@ -250,16 +254,14 @@ VM_C_API void *inline_cache_miss(cell return_address, factor_vm *myvm)
 	return VM_PTR->inline_cache_miss(return_address);
 }
 
-inline void factor_vm::primitive_reset_inline_cache_stats()
+void factor_vm::primitive_reset_inline_cache_stats()
 {
 	cold_call_to_ic_transitions = ic_to_pic_transitions = pic_to_mega_transitions = 0;
 	cell i;
 	for(i = 0; i < 4; i++) pic_counts[i] = 0;
 }
 
-PRIMITIVE_FORWARD(reset_inline_cache_stats)
-
-inline void factor_vm::primitive_inline_cache_stats()
+void factor_vm::primitive_inline_cache_stats()
 {
 	growable_array stats(this);
 	stats.add(allot_cell(cold_call_to_ic_transitions));
@@ -271,7 +273,5 @@ inline void factor_vm::primitive_inline_cache_stats()
 	stats.trim();
 	dpush(stats.elements.value());
 }
-
-PRIMITIVE_FORWARD(inline_cache_stats)
 
 }

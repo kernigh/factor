@@ -90,17 +90,14 @@ const vm_char *factor_vm::vm_executable_path()
 	return safe_strdup(full_path);
 }
 
-inline void factor_vm::primitive_existsp()
+void factor_vm::primitive_existsp()
 {
 	vm_char *path = untag_check<byte_array>(dpop())->data<vm_char>();
 	box_boolean(windows_stat(path));
 }
 
-PRIMITIVE_FORWARD(existsp)
-
-segment::segment(factor_vm *myvm_, cell size_)
+segment::segment(cell size_)
 {
-	myvm = myvm_;
 	size = size_;
 
 	char *mem;
@@ -108,7 +105,7 @@ segment::segment(factor_vm *myvm_, cell size_)
 
 	if((mem = (char *)VirtualAlloc(NULL, getpagesize() * 2 + size,
 		MEM_COMMIT, PAGE_EXECUTE_READWRITE)) == 0)
-		myvm->out_of_memory();
+		out_of_memory();
 
 	if (!VirtualProtect(mem, getpagesize(), PAGE_NOACCESS, &ignore))
 		fatal_error("Cannot allocate low guard page", (cell)mem);

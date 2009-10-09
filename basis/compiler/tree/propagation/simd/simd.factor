@@ -17,26 +17,61 @@ IN: compiler.tree.propagation.simd
     (simd-vabs)
     (simd-vsqrt)
     (simd-vbitand)
+    (simd-vbitandn)
     (simd-vbitor)
     (simd-vbitxor)
+    (simd-vbitnot)
+    (simd-vand)
+    (simd-vandn)
+    (simd-vor)
+    (simd-vxor)
+    (simd-vnot)
     (simd-vlshift)
     (simd-vrshift)
-    (simd-broadcast)
+    (simd-hlshift)
+    (simd-hrshift)
+    (simd-vshuffle)
+    (simd-(vmerge-head))
+    (simd-(vmerge-tail))
+    (simd-(v>float))
+    (simd-(v>integer))
+    (simd-(vpack-signed))
+    (simd-(vpack-unsigned))
+    (simd-(vunpack-head))
+    (simd-(vunpack-tail))
+    (simd-v<=)
+    (simd-v<)
+    (simd-v=)
+    (simd-v>)
+    (simd-v>=)
+    (simd-vunordered?)
+    (simd-with)
     (simd-gather-2)
     (simd-gather-4)
     alien-vector
 } [ { byte-array } "default-output-classes" set-word-prop ] each
 
-\ (simd-sum) [
-    nip dup literal?>> [
+: scalar-output-class ( rep -- class )
+    dup literal?>> [
         literal>> scalar-rep-of {
             { float-rep [ float ] }
             { double-rep [ float ] }
-            [ integer ]
+            [ drop integer ]
         } case
     ] [ drop real ] if
-    <class-info>
-] "outputs" set-word-prop
+    <class-info> ;
+
+\ (simd-sum) [ nip scalar-output-class ] "outputs" set-word-prop
+
+\ (simd-v.) [ 2nip scalar-output-class ] "outputs" set-word-prop
+
+{
+    (simd-vany?)
+    (simd-vall?)
+    (simd-vnone?)
+} [ { boolean } "default-output-classes" set-word-prop ] each
+
+\ (simd-select) [ 2nip scalar-output-class ] "outputs" set-word-prop
 
 \ assert-positive [
     real [0,inf] <class/interval-info> value-info-intersect

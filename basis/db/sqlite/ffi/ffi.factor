@@ -1,7 +1,8 @@
 ! Copyright (C) 2005 Chris Double, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 ! Not all functions have been wrapped.
-USING: alien alien.libraries alien.syntax combinators system ;
+USING: alien alien.c-types alien.libraries alien.syntax
+combinators system ;
 IN: db.sqlite.ffi
 
 << "sqlite" {

@@ -1,6 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: db.errors db.orm db.orm.examples kernel tools.test ;
+USING: accessors db.errors db.orm db.orm.examples db.tester
+kernel tools.test ;
 IN: db.orm.tests
 
 : test-orm-users ( -- )
@@ -16,5 +17,14 @@ IN: db.orm.tests
             T{ user { id 2 } { name "mew" } { age 6 } }
         }
     ] [ user new select-tuples ] unit-test
-    
-    ;
+
+    [
+        T{ user { id 1 } { name "erg" } { age 28 } }
+    ] [
+B
+        user new "erg" >>name select-tuple
+        29 >>age update-tuple
+        user new "erg" >>name select-tuple
+    ] unit-test ;
+
+[ test-orm-users ] test-dbs

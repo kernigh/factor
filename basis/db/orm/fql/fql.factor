@@ -86,43 +86,6 @@ CONSTRUCTOR: op-gt ( left right -- obj ) ;
 TUPLE: op-gt-eq < fql-op ;
 CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
 
-TUPLE: fql-join < fql table table1 column1 table2 column2 ;
-
-: new-join ( table table1 column1 table2 column2 class -- join )
-    new
-        swap >>column2
-        swap >>table2
-        swap >>column1
-        swap >>table1
-        swap >>table
-        [ ??1array ] change-column1
-        [ ??1array ] change-column2 ;
-
-TUPLE: cross-join < fql-join ;
-
-TUPLE: inner-join < fql-join ;
-
-TUPLE: left-join < fql-join ;
-
-TUPLE: right-join < fql-join ;
-
-TUPLE: full-join < fql-join ;
-
-: <cross-join> ( table table1 column1 table2 column2 -- cross-join )
-    cross-join new-join ;
-
-: <inner-join> ( table table1 column1 table2 column2 -- inner-join )
-    inner-join new-join ;
-
-: <left-join> ( table table1 column1 table2 column2 -- left-join )
-    left-join new-join ;
-
-: <right-join> ( table table1 column1 table2 column2  -- right-join )
-    right-join new-join ;
-
-: <full-join> ( table table1 column1 table2 column2 -- full-join )
-    full-join new-join ;
-
 :: table-join ( statement join string -- statement )
     statement
     [
@@ -135,21 +98,6 @@ TUPLE: full-join < fql-join ;
             " ON " % [ % ] dip " = " % %
         ] 2interleave
     ] "" make add-sql ;
-
-M: cross-join expand-fql*
-    " CROSS JOIN " table-join ;
-
-M: inner-join expand-fql* ( obj -- statement )
-    " INNER JOIN " table-join ;
-
-M: left-join expand-fql* ( obj -- statement )
-    " LEFT JOIN " table-join ;
-
-M: right-join expand-fql* ( obj -- statement )
-    " RIGHT JOIN " table-join ;
-
-M: full-join expand-fql* ( obj -- statement )
-    " FULL JOIN " table-join ;
 
 
 
@@ -487,3 +435,56 @@ TUPLE: coalesce < fql a b ; ! a if a not null, else b
 TUPLE: nullif < fql a b ; ! if a == b, then null, else a
 
 */
+
+TUPLE: fql-join < fql table table1 column1 table2 column2 ;
+
+: new-join ( table table1 column1 table2 column2 class -- join )
+    new
+        swap >>column2
+        swap >>table2
+        swap >>column1
+        swap >>table1
+        swap >>table
+        [ ??1array ] change-column1
+        [ ??1array ] change-column2 ;
+
+TUPLE: cross-join < fql-join ;
+
+TUPLE: inner-join < fql-join ;
+
+TUPLE: left-join < fql-join ;
+
+TUPLE: right-join < fql-join ;
+
+TUPLE: full-join < fql-join ;
+
+: <cross-join> ( table table1 column1 table2 column2 -- cross-join )
+    cross-join new-join ;
+
+: <inner-join> ( table table1 column1 table2 column2 -- inner-join )
+    inner-join new-join ;
+
+: <left-join> ( table table1 column1 table2 column2 -- left-join )
+    left-join new-join ;
+
+: <right-join> ( table table1 column1 table2 column2  -- right-join )
+    right-join new-join ;
+
+: <full-join> ( table table1 column1 table2 column2 -- full-join )
+    full-join new-join ;
+
+M: cross-join expand-fql*
+    " CROSS JOIN " table-join ;
+
+M: inner-join expand-fql* ( obj -- statement )
+    " INNER JOIN " table-join ;
+
+M: left-join expand-fql* ( obj -- statement )
+    " LEFT JOIN " table-join ;
+
+M: right-join expand-fql* ( obj -- statement )
+    " RIGHT JOIN " table-join ;
+
+M: full-join expand-fql* ( obj -- statement )
+    " FULL JOIN " table-join ;
+

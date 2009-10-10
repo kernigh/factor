@@ -221,6 +221,15 @@ PERSISTENT: compound2
     { "compound1" compound1 }
     { "text" VARCHAR } ;
 
+
+TUPLE: lottery-ball n ;
+
+PERSISTENT: lottery-ball
+    { "id" +random-key+ } ;
+
+
+
+
 /*
 
 
@@ -231,19 +240,6 @@ insert into bar(c,a,b,text) values(3,1,2,'omg');
 select foo.text from bar
     left join foo on bar.a = foo.a and bar.b = foo.b;
 
-*/
-
-
-
-
-
-
-
-
-
-
-/*
-
 author new select-tuples
 select a1.id, a1.name from author as a1;
 
@@ -252,15 +248,9 @@ author new
     >>id
     >>name
 
-
-
-
 comment new select-tuples
 select c1.id, c1.text, c1.ts, a1.id, a1.name from comment as c1
  left join author as a1 on c1.author_id = a1.id;
-
-
-
 
 thread new select-tuples
 select
@@ -279,7 +269,6 @@ t1.ts,
  left join comment as c1 on t1.id = c1.thread_id
  left join author as a2 on c1.author_id = a2.id ;
 
-
 reconstruct:
 thread new
     >>id
@@ -297,7 +286,6 @@ thread new
             >>text
             >>ts
     over comments>> push
-
 
 thread new
     COUNT >>comments
@@ -328,11 +316,6 @@ thread new
 select-tuples
 
 
-
-
-
-
-
 TUPLE: examinee id name version ;
 
 TUPLE: exam id name questions date-taken version ;
@@ -349,3 +332,4 @@ TUPLE: answered-question id exam question correct? version ;
 TUPLE: selected-answer answered-question-id answer-id version ;
 
 */
+

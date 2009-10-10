@@ -111,6 +111,10 @@ CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
         length [ next-bind-index ] replicate ", " join add-sql ")" add-sql
     ] bi ;
 
+: primary-key-random? ( obj -- ? )
+    
+    ;
+
 M: insert expand-fql*
     ensure-in
     {

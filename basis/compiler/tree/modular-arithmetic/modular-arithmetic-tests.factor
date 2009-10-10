@@ -134,7 +134,7 @@ TUPLE: declared-fixnum { x fixnum } ;
     ] { mod fixnum-mod rem } inlined?
 ] unit-test
 
-[ [ >fixnum 255 >R R> fixnum-bitand ] ]
+[ [ >fixnum 255 fixnum-bitand ] ]
 [ [ >integer 256 rem ] test-modular-arithmetic ] unit-test
 
 [ t ] [

@@ -1,6 +1,6 @@
-! Copyright (C) 2008 Slava Pestov.
+! Copyright (C) 2008 Slava Pestov, Daniel Ehrenberg.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel accessors sequences combinators fry
+USING: kernel accessors sequences combinators fry sets
 classes.algebra namespaces assocs words math math.private
 math.partial-dispatch math.intervals classes classes.tuple
 classes.tuple.private layouts definitions stack-checker.state
@@ -50,6 +50,29 @@ GENERIC: cleanup* ( node -- node/nodes )
     ]
     [ in-d>> #drop ]
     tri prefix ;
+
+: cut-literals ( values -- literals non-literals )
+    dup [ value-info literal?>> not ] find-last drop
+    [ 1 + cut swap ] [ { } ] if* ;
+
+: filter-mapping ( literals mapping -- mapping' )
+    swap unique '[ first _ key? not ] filter ;
+
+: cleanup-shuffle ( #shuffle -- nodes )
+    ! If a shuffle node pushes known constants on the stack,
+    ! drop these and push them again so they don't have
+    ! to be stored on the stack between subroutine calls.
+    clone
+    [ cut-literals ] change-out-d
+    [ dupd filter-mapping ] change-mapping
+    [ [ [ value-info literal>> ] keep #push ] map ] dip
+    prefix ;
+
+M: #shuffle cleanup*
+    dup out-d>> [
+        last value-info literal?>>
+        [ cleanup-shuffle ] when
+    ] unless-empty ;
 
 : add-method-dependency ( #call -- )
     dup method>> word? [

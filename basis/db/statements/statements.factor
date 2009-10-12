@@ -4,16 +4,7 @@ USING: accessors arrays continuations db.connections db.errors
 db.result-sets db.utils destructors fry kernel sequences ;
 IN: db.statements
 
-TUPLE: statement handle sql in out reconstructor type ;
-
-TUPLE: parameter type value ;
-
-TUPLE: tuple-parameter < parameter db-column ;
-
-: <tuple-parameter> ( value db-column -- obj )
-    tuple-parameter new
-        swap >>db-column
-        swap >>value ;
+TUPLE: statement handle sql in out reconstructor type retries ;
 
 : normalize-statement ( statement -- statement )  
     [ obj>vector ] change-out

@@ -36,21 +36,6 @@ GENERIC: cleanup* ( node -- node/nodes )
     #! do it since the logic is a bit more involved
     [ cleanup* ] map-flat ;
 
-: cleanup-folding? ( #call -- ? )
-    node-output-infos
-    [ f ] [ [ literal?>> ] all? ] if-empty ;
-
-: cleanup-folding ( #call -- nodes )
-    #! Replace a #call having a known result with a #drop of its
-    #! inputs followed by #push nodes for the outputs.
-    [ word>> inlined-dependency depends-on ]
-    [
-        [ node-output-infos ] [ out-d>> ] bi
-        [ [ literal>> ] dip #push ] 2map
-    ]
-    [ in-d>> #drop ]
-    tri prefix ;
-
 : cut-literals ( values -- literals non-literals )
     dup [ value-info literal?>> not ] find-last drop
     [ 1 + cut swap ] [ { } ] if* ;
@@ -73,6 +58,21 @@ M: #shuffle cleanup*
         last value-info literal?>>
         [ cleanup-shuffle ] when
     ] unless-empty ;
+
+: cleanup-folding? ( #call -- ? )
+    node-output-infos
+    [ f ] [ [ literal?>> ] all? ] if-empty ;
+
+: cleanup-folding ( #call -- nodes )
+    #! Replace a #call having a known result with a #drop of its
+    #! inputs followed by #push nodes for the outputs.
+    [ word>> inlined-dependency depends-on ]
+    [
+        [ node-output-infos ] [ out-d>> ] bi
+        [ [ literal>> ] dip #push ] 2map
+    ]
+    [ in-d>> #drop ]
+    tri prefix ;
 
 : add-method-dependency ( #call -- )
     dup method>> word? [

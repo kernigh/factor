@@ -148,9 +148,19 @@ M: #dispatch emit-node
     ds-pop ^^offset>slot next-vreg ##dispatch emit-if ;
 
 ! #call
+: redundantly-load-literals ( #call -- )
+    ! Copying literals to just before an intrinsic call
+    [ in-d>> reverse ] [ info>> ] bi '[
+        swap _ at dup literal?>> [
+            literal>> ^^load-literal
+            swap <ds-loc> replace-loc
+        ] [ 2drop ] if
+    ] each-index ;
+
 M: #call emit-node
     dup word>> dup "intrinsic" word-prop
-    [ emit-intrinsic ] [ swap call-height emit-call ] if ;
+    [ [ redundantly-load-literals ] swap '[ _ emit-intrinsic ] bi ]
+    [ swap call-height emit-call ] if ;
 
 ! #call-recursive
 M: #call-recursive emit-node [ label>> id>> ] [ call-height ] bi emit-call ;

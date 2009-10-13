@@ -147,7 +147,7 @@ M: sqlite-db-connection sql-type>string
         { FACTOR-BLOB [ "BLOB" ] }
         { URL [ "TEXT" ] }
         { +db-assigned-key+ [ "INTEGER" ] }
-        { +random-key+ [ "INTEGER" ] }
+        { +random-key+ [ "INTEGER unique" ] }
         [ no-sql-type ]
     } case ;
 

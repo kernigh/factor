@@ -1,19 +1,22 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays continuations db.connections db.errors
-db.result-sets db.utils destructors fry kernel sequences ;
+db.result-sets db.utils destructors fry kernel sequences math ;
+
 IN: db.statements
 
-TUPLE: statement handle sql in out reconstructor type retries ;
+TUPLE: statement handle sql in out reconstructor type
+retries errors retry-quotation ;
 
-: normalize-statement ( statement -- statement )  
+: normalize-statement ( statement -- statement )
     [ obj>vector ] change-out
     [ obj>vector ] change-in ;
 
 : <statement> ( -- statement )
     statement new
         V{ } clone >>out
-        V{ } clone >>in ;
+        V{ } clone >>in
+        V{ } clone >>errors ;
 
 : add-sql ( statement sql -- statement )
     '[ _ "" append-as ] change-sql ;
@@ -23,8 +26,16 @@ TUPLE: statement handle sql in out reconstructor type retries ;
 : add-out-params ( statement sql -- statement ) over out>> push-all ;
 : add-out-param ( statement sql -- statement ) 1array add-out-params ;
 
+! Statement types
+
+SINGLETON: retryable
+ERROR: retryable-failed statement ;
+
+: execute-retry-quotation ( statement -- statement )
+    dup retry-quotation>> call( statement -- statement ) ;
+ 
+GENERIC: execute-statement-type ( statement type -- )
 HOOK: statement>result-set db-connection ( statement -- result-set )
-HOOK: execute-statement* db-connection ( statement type -- )
 HOOK: prepare-statement* db-connection ( statement -- statement' )
 HOOK: dispose-statement db-connection ( statement -- )
 HOOK: bind-sequence db-connection ( statement -- )
@@ -38,11 +49,31 @@ M: f dispose-statement no-database-in-scope ;
 : with-sql-error-handler ( quot -- )
     [ dup sql-error? [ parse-sql-error ] when rethrow ] recover ; inline
 
-M: object execute-statement* ( statement type -- )
+M: object execute-statement-type ( statement type -- )
     drop statement>result-set dispose ;
 
+M: retryable execute-statement-type ( statement type -- )
+B
+2drop ;
+
+: lol ( -- )
+    drop
+    dup retries>> 0 > [
+        [ 1 - ] change-retries
+        '[
+            _ f execute-statement-type
+        ] [
+            drop
+            ! over errors>> push
+            execute-retry-quotation
+            retryable execute-statement-type
+        ] recover
+    ] [
+        retryable-failed
+    ] if ; inline
+
 : execute-one-statement ( statement -- )
-    dup type>> execute-statement* ;
+    dup type>> execute-statement-type ;
 
 : execute-statement ( statement -- )
     dup sequence?
@@ -60,8 +91,12 @@ M: object execute-statement* ( statement type -- )
 : result-set-map ( statement quot -- sequence )
     accumulator [ result-set-each ] dip { } like ; inline
 
+: statement>sequence ( statement word -- sequence )
+    [ statement>result-set ] dip
+    '[ [ _ execute ] result-set-map ] with-disposal ; inline
+
 : statement>result-sequence ( statement -- sequence )
-    statement>result-set [ [ sql-row ] result-set-map ] with-disposal ;
+    \ sql-row statement>sequence ;
 
 : statement>result-sequence-typed ( statement -- sequence )
-    statement>result-set [ [ sql-row-typed ] result-set-map ] with-disposal ;
+    \ sql-row-typed statement>sequence ;

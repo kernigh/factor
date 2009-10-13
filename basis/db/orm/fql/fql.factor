@@ -5,7 +5,7 @@ combinators.short-circuit constructors db.binders
 db.orm.persistent db.statements db.types db.utils destructors
 fry kernel locals make math math.parser multiline namespaces
 sequences sets splitting strings vectors db.connections
-quoting ;
+quoting random db.statements.retryable ;
 IN: db.orm.fql
 
 HOOK: next-bind-index db-connection ( -- string )
@@ -111,21 +111,36 @@ CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
         length [ next-bind-index ] replicate ", " join add-sql ")" add-sql
     ] bi ;
 
-: primary-key-random? ( obj -- ? )
-    
-    ;
+: find-random-key-in-binders ( obj -- seq )
+    in>> [ type>> +random-key+ = ] filter f like ;
 
-M: insert expand-fql*
-    ensure-in
+: insert-random ( statement obj column -- statement' )
+    '[
+        [
+            _ [ 64 random-bits >>value drop ] each
+            ! _ [ 64 >>value drop ] each
+        ] >>retry-quotation
+        10 >>retries
+        retryable >>type
+        execute-retry-quotation
+    ] dip
     {
         [ in>> >>in ]
         [ in>> first quoted-table-name "INSERT INTO " prepend add-sql ]
         [ expand-insert-names ]
     } cleave normalize-statement ;
 
+: insert-non-random ( statement obj -- statement' ) 
+    {
+        [ in>> >>in ]
+        [ in>> first quoted-table-name "INSERT INTO " prepend add-sql ]
+        [ expand-insert-names ]
+    } cleave normalize-statement ;
 
-
-
+M: insert expand-fql*
+    ensure-in
+    dup find-random-key-in-binders
+    [ insert-random ] [ insert-non-random ] if* ;
 
 /*
 GENERIC: param>binder* ( obj -- obj' type )

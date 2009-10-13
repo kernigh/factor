@@ -225,7 +225,7 @@ PERSISTENT: compound2
 TUPLE: lottery-ball n ;
 
 PERSISTENT: lottery-ball
-    { "id" +random-key+ } ;
+    { "n" +random-key+ } ;
 
 
 

@@ -117,8 +117,8 @@ CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
 : insert-random ( statement obj column -- statement' )
     '[
         [
-            _ [ 64 random-bits >>value drop ] each
-            ! _ [ 64 >>value drop ] each
+            ! _ [ 64 random-bits >>value drop ] each
+            _ [ 64 >>value drop ] each
         ] >>retry-quotation
         10 >>retries
         retryable >>type

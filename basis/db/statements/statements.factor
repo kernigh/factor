@@ -26,47 +26,23 @@ retries errors retry-quotation ;
 : add-out-params ( statement sql -- statement ) over out>> push-all ;
 : add-out-param ( statement sql -- statement ) 1array add-out-params ;
 
-! Statement types
-
-SINGLETON: retryable
-ERROR: retryable-failed statement ;
-
-: execute-retry-quotation ( statement -- statement )
-    dup retry-quotation>> call( statement -- statement ) ;
- 
-GENERIC: prepare-statement-type ( statement type -- )
 HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: prepare-statement* db-connection ( statement -- statement' )
 HOOK: dispose-statement db-connection ( statement -- )
 HOOK: bind-sequence db-connection ( statement -- )
 HOOK: bind-typed-sequence db-connection ( statement -- )
+HOOK: reset-statement db-connection ( statement -- statement' )
 
 ERROR: no-database-in-scope ;
 
 M: statement dispose dispose-statement ;
 M: f dispose-statement no-database-in-scope ;
+M: object reset-statement ;
 
 : with-sql-error-handler ( quot -- )
     [ dup sql-error? [ parse-sql-error ] when rethrow ] recover ; inline
 
-M: object prepare-statement-type ( statement type -- )
-    2drop ;
-
-M: retryable prepare-statement-type ( statement type -- )
-    drop
-    dup retries>> 0 > [
-        [ 1 - ] change-retries
-        [ f prepare-statement-type ] [
-            over errors>> push
-            execute-retry-quotation
-            retryable prepare-statement-type
-        ] recover
-    ] [
-        retryable-failed
-    ] if ; inline
-
 : prepare-statement ( statement -- statement )
-    [ dup type>> prepare-statement-type ] keep
     [ dup handle>> [ prepare-statement* ] unless ] with-sql-error-handler ;
 
 : result-set-each ( statement quot: ( statement -- ) -- )

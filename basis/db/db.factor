@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.statements destructors kernel math multiline
-sequences strings summary ;
+USING: accessors continuations db.statements destructors kernel
+locals math multiline sequences strings summary fry ;
 IN: db
 
 ERROR: no-in-types statement ;
@@ -22,23 +22,50 @@ M: string sql-query ( string -- sequence )
         swap >>sql
     sql-query ;
 
+SINGLETON: retryable
+ERROR: retryable-failed statement ;
+
+: execute-retry-quotation ( statement -- statement )
+    dup retry-quotation>> call( statement -- statement ) ;
+
+:: (run-retryable) ( statement quot -- )
+    statement retries>> 0 > [
+        statement [ 1 - ] change-retries drop
+        [
+            statement quot call
+        ] [
+B
+            statement errors>> push
+            statement execute-retry-quotation reset-statement quot (run-retryable)
+        ] recover
+    ] [
+        statement retryable-failed
+    ] if ; inline recursive
+
+: run-retryable ( statement quot -- )
+    over retries>> [
+        '[ _ (run-retryable) ] with-disposal
+    ] [
+        with-disposal
+    ] if ; inline
+
 M: statement sql-command ( statement -- )
     [
         prepare-statement
         [ bind-sequence ] [ statement>result-set drop ] bi
-    ] with-disposal ;
+    ] run-retryable ; inline
 
 M: statement sql-query ( statement -- sequence )
     [
         prepare-statement
         [ bind-sequence ] [ statement>result-sequence ] bi
-    ] with-disposal ;
+    ] run-retryable ; inline
 
 M: statement sql-bind-typed-command ( statement -- )
     [
         prepare-statement
         [ bind-typed-sequence ] [ statement>result-set drop ] bi
-    ] with-disposal ;
+    ] run-retryable ; inline
 
 M: no-out-types summary
     drop "SQL types are required for the return values of this query" ;
@@ -48,7 +75,7 @@ M: statement sql-bind-typed-query ( statement -- sequence )
         dup out>> empty? [ no-out-types ] when
         prepare-statement
         [ bind-typed-sequence ] [ statement>result-sequence-typed ] bi
-    ] with-disposal ;
+    ] run-retryable ; inline
 
 M: sequence sql-command [ sql-command ] each ;
 M: sequence sql-query [ sql-query ] map ;

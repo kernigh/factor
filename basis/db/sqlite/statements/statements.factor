@@ -9,6 +9,9 @@ M: sqlite-db-connection prepare-statement* ( statement -- statement )
     db-connection get handle>> over sql>> sqlite-prepare
     >>handle ;
 
+M: sqlite-db-connection reset-statement
+    [ handle>> sqlite3_reset drop ] keep ;
+
 M: sqlite-db-connection dispose-statement
     handle>>
     [ [ sqlite3_reset drop ] [ sqlite-finalize ] bi ] when* ;

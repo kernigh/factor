@@ -64,8 +64,15 @@ M: object reset-statement ;
 : statement>result-sequence-typed ( statement -- sequence )
     \ sql-row-typed statement>sequence ;
 
-: run-after-setters ( tuple statement -- )
+: (run-after-setters) ( tuple statement -- )
     after>> [
         [ value>> ] [ setter>> ] bi
         call( obj val -- obj ) drop
     ] with each ;
+
+: run-after-setters ( tuple statement -- )
+    dup sequence? [
+        [ (run-after-setters) ] with each
+    ] [
+        (run-after-setters)
+    ] if ;

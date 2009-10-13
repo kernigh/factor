@@ -10,7 +10,7 @@ M: sqlite-result-set dispose
     f >>handle drop ;
 
 M: sqlite-db-connection statement>result-set
-    [ prepare-statement ] [ handle>> ] bi
+    dup handle>>
     sqlite-result-set new-result-set dup advance-row ;
 
 M: sqlite-result-set advance-row ( result-set -- )

@@ -34,7 +34,7 @@ ERROR: retryable-failed statement ;
 : execute-retry-quotation ( statement -- statement )
     dup retry-quotation>> call( statement -- statement ) ;
  
-GENERIC: execute-statement-type ( statement type -- )
+GENERIC: prepare-statement-type ( statement type -- )
 HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: prepare-statement* db-connection ( statement -- statement' )
 HOOK: dispose-statement db-connection ( statement -- )
@@ -49,38 +49,32 @@ M: f dispose-statement no-database-in-scope ;
 : with-sql-error-handler ( quot -- )
     [ dup sql-error? [ parse-sql-error ] when rethrow ] recover ; inline
 
-M: object execute-statement-type ( statement type -- )
-    drop statement>result-set dispose ;
+M: object prepare-statement-type ( statement type -- )
+    2drop ;
 
-M: retryable execute-statement-type ( statement type -- )
+M: retryable prepare-statement-type ( statement type -- )
 B
-2drop ;
-
-: lol ( -- )
     drop
     dup retries>> 0 > [
+        drop
+        /*
         [ 1 - ] change-retries
         '[
-            _ f execute-statement-type
+            _ f prepare-statement-type
         ] [
             drop
             ! over errors>> push
             execute-retry-quotation
-            retryable execute-statement-type
+            retryable prepare-statement-type
         ] recover
+        */
     ] [
         retryable-failed
     ] if ; inline
 
-: execute-one-statement ( statement -- )
-    dup type>> execute-statement-type ;
-
-: execute-statement ( statement -- )
-    dup sequence?
-    [ [ execute-one-statement ] each ]
-    [ execute-one-statement ] if ;
 
 : prepare-statement ( statement -- statement )
+    [ dup type>> prepare-statement-type ] keep
     [ dup handle>> [ prepare-statement* ] unless ] with-sql-error-handler ;
 
 : result-set-each ( statement quot: ( statement -- ) -- )

@@ -53,25 +53,17 @@ M: object prepare-statement-type ( statement type -- )
     2drop ;
 
 M: retryable prepare-statement-type ( statement type -- )
-B
     drop
     dup retries>> 0 > [
-        drop
-        /*
         [ 1 - ] change-retries
-        '[
-            _ f prepare-statement-type
-        ] [
-            drop
-            ! over errors>> push
+        [ f prepare-statement-type ] [
+            over errors>> push
             execute-retry-quotation
             retryable prepare-statement-type
         ] recover
-        */
     ] [
         retryable-failed
     ] if ; inline
-
 
 : prepare-statement ( statement -- statement )
     [ dup type>> prepare-statement-type ] keep

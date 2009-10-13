@@ -32,7 +32,7 @@ IN: db.statements.tests
     [ ] [
         <statement>
             "insert into computer (name, os) values('vio', 'opp');" >>sql
-        sql-bind-command
+        sql-command
     ] unit-test
     
     [ { { "rocky" "mac" } { "vio" "opp" } } ]
@@ -51,7 +51,7 @@ IN: db.statements.tests
     [ ] [
         <statement>
             "create table default_person(id serial primary key, name text, birthdate timestamp, email text, homepage text)" >>sql
-        sql-bind-command
+        sql-command
     ] unit-test ;
 
 [ test-sql-command ] test-dbs

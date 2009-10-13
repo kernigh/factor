@@ -25,18 +25,12 @@ M: string sql-query ( string -- sequence )
     sql-query ;
 
 M: statement sql-command ( statement -- )
-    [ execute-statement ] with-disposal ;
-
-M: statement sql-query ( statement -- sequence )
-    [ statement>result-sequence ] with-disposal ;
-
-M: statement sql-bind-command ( statement -- )
     [
         prepare-statement
         [ bind-sequence ] [ statement>result-set drop ] bi
     ] with-disposal ;
 
-M: statement sql-bind-query ( statement -- sequence )
+M: statement sql-query ( statement -- sequence )
     [
         prepare-statement
         [ bind-sequence ] [ statement>result-sequence ] bi
@@ -60,8 +54,6 @@ M: statement sql-bind-typed-query ( statement -- sequence )
 
 M: sequence sql-command [ sql-command ] each ;
 M: sequence sql-query [ sql-query ] map ;
-M: sequence sql-bind-command [ sql-bind-command ] each ;
-M: sequence sql-bind-query [ sql-bind-query ] map ;
 M: sequence sql-bind-typed-command [ sql-bind-typed-command ] each ;
 M: sequence sql-bind-typed-query [ sql-bind-typed-query ] map ;
 

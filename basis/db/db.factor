@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db.statements destructors kernel
-locals math multiline sequences strings summary fry ;
+locals math multiline sequences strings summary fry db.orm.fql ;
 IN: db
 
 ERROR: no-in-types statement ;
@@ -22,11 +22,7 @@ M: string sql-query ( string -- sequence )
         swap >>sql
     sql-query ;
 
-SINGLETON: retryable
 ERROR: retryable-failed statement ;
-
-: execute-retry-quotation ( statement -- statement )
-    dup retry-quotation>> call( statement -- statement ) ;
 
 :: (run-retryable) ( statement quot -- )
     statement retries>> 0 > [

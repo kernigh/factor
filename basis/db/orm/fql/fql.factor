@@ -114,14 +114,16 @@ CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
 : find-random-key-in-binders ( obj -- seq )
     in>> [ type>> +random-key+ = ] filter f like ;
 
+: execute-retry-quotation ( statement -- statement )
+    dup retry-quotation>> call( statement -- statement ) ;
+
 : insert-random ( statement obj column -- statement' )
     '[
         [
-            ! _ [ 64 random-bits >>value drop ] each
-            _ [ 64 >>value drop ] each
+            _ [ 64 random-bits >>value drop ] each
+            ! _ [ 64 >>value drop ] each
         ] >>retry-quotation
         10 >>retries
-        retryable >>type
         execute-retry-quotation
     ] dip
     {

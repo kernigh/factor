@@ -5,7 +5,8 @@ db.result-sets db.utils destructors fry kernel sequences math ;
 
 IN: db.statements
 
-TUPLE: statement handle sql in out reconstructor type
+TUPLE: statement handle sql in out after
+reconstructor
 retries errors retry-quotation ;
 
 : normalize-statement ( statement -- statement )

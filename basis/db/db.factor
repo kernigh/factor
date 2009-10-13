@@ -34,9 +34,9 @@ ERROR: retryable-failed statement ;
         [
             statement quot call
         ] [
-B
             statement errors>> push
-            statement execute-retry-quotation reset-statement quot (run-retryable)
+            statement execute-retry-quotation reset-statement
+            quot (run-retryable)
         ] recover
     ] [
         statement retryable-failed

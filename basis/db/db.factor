@@ -9,8 +9,6 @@ ERROR: no-out-types statement ;
 
 GENERIC: sql-command ( object -- )
 GENERIC: sql-query ( object -- sequence )
-GENERIC: sql-bind-command ( object -- )
-GENERIC: sql-bind-query ( object -- sequence )
 GENERIC: sql-bind-typed-command ( object -- )
 GENERIC: sql-bind-typed-query ( object -- sequence )
 
@@ -59,7 +57,5 @@ M: sequence sql-bind-typed-query [ sql-bind-typed-query ] map ;
 
 M: integer sql-command throw ;
 M: integer sql-query throw ;
-M: integer sql-bind-command throw ;
-M: integer sql-bind-query throw ;
 M: integer sql-bind-typed-command throw ;
 M: integer sql-bind-typed-query throw ;

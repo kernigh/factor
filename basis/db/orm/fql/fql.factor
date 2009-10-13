@@ -99,8 +99,6 @@ CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
         ] 2interleave
     ] "" make add-sql ;
 
-
-
 : expand-insert-names ( statement insert -- statement )
     in>> [
         [ " (" add-sql ] dip
@@ -117,16 +115,26 @@ CONSTRUCTOR: op-gt-eq ( left right -- obj ) ;
 : execute-retry-quotation ( statement -- statement )
     dup retry-quotation>> call( statement -- statement ) ;
 
-: insert-random ( statement obj column -- statement' )
-    '[
-        [
-            _ [ 64 random-bits >>value drop ] each
-            ! _ [ 64 >>value drop ] each
-        ] >>retry-quotation
-        10 >>retries
-        execute-retry-quotation
-    ] dip
-    {
+TUPLE: after-binder value setter ;
+
+CONSTRUCTOR: after-binder ( value setter -- obj ) ;
+
+: binder>after-binder ( binder -- after-binder )
+    [ value>> ] [ column>> setter>> ] bi <after-binder> ;
+
+:: insert-random ( statement obj seq -- statement' )
+    statement 
+    [
+        seq [
+            [ 64 random-bits >>value drop ] each
+        ] [
+            [ binder>after-binder ] map statement (>>after)
+        ] bi
+        ! _ [ 64 >>value drop ] each
+    ] >>retry-quotation
+    10 >>retries
+    execute-retry-quotation
+    obj {
         [ in>> >>in ]
         [ in>> first quoted-table-name "INSERT INTO " prepend add-sql ]
         [ expand-insert-names ]

@@ -63,3 +63,9 @@ M: object reset-statement ;
 
 : statement>result-sequence-typed ( statement -- sequence )
     \ sql-row-typed statement>sequence ;
+
+: run-after-setters ( tuple statement -- )
+    after>> [
+        [ value>> ] [ setter>> ] bi
+        call( obj val -- obj ) drop
+    ] with each ;

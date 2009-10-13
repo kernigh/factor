@@ -166,7 +166,10 @@ SYMBOL: table-counter
         [ nip ]
     } 2cleave <in-binder> ;
 
-HOOK: insert-tuple db-connection ( tuple -- )
+HOOK: insert-tuple* db-connection ( tuple -- )
+
+: insert-tuple ( tuple -- )
+    insert-tuple* ;
 
 : set-columns ( tuple -- seq )
     dup lookup-persistent columns>> [
@@ -274,9 +277,6 @@ SYMBOL: traversing-tables
         [ nip relations>select >>relations ]
         [ 2drop dup out>> out>reconstructor >>reconstructor ]
     } 2cleave ;
-
-
-
 
 : select-tuple-obj-no-relations ( tuple -- select )
     [ <select> ] dip

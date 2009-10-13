@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays combinators db db.binders db.orm
 db.orm.fql db.orm.persistent db.postgresql.connections.private
-db.statements db.types kernel make multiline sequences ;
+db.statements db.types kernel make multiline sequences locals ;
 IN: db.postgresql.orm
 
 : select-id-statement ( tuple -- statement )
@@ -12,12 +12,13 @@ IN: db.postgresql.orm
         [ drop INTEGER <out-binder-low> 1array >>out ]
     } cleave ;
 
-M: postgresql-db-connection insert-tuple ( tuple -- )
+M:: postgresql-db-connection insert-tuple* ( tuple -- )
     [
-        dup lookup-persistent db-assigned-key? [
-            dup select-id-statement sql-bind-typed-query
-            first first set-primary-key
+        tuple lookup-persistent db-assigned-key? [
+            tuple dup select-id-statement sql-bind-typed-query
+            first first set-primary-key drop
         ] when
-        dup lookup-persistent columns>>
+
+        tuple dup lookup-persistent columns>>
         [ column>in-binder ] with map <insert> expand-fql ,
-    ] { } make sql-bind-typed-command ;
+    ] { } make [ sql-bind-typed-command tuple ] keep run-after-setters ;

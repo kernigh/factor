@@ -61,14 +61,14 @@ slot-name column-name type modifiers getter setter ;
     [ columns>> ] map concat ;
 
 : join-persistent-hierarchy ( class -- persistent )
-    [ superclass-persistent-columns ]
+    [ superclass-persistent-columns [ clone ] map ]
     [ lookup-persistent* clone ] bi
     [ (>>columns) ] keep ;
 
-
 : compute-persistent-slots ( persistent -- )
-    dup columns>> [ (>>persistent) ] with each ;
-
+    dup columns>>
+    [ [ clone ] change-persistent ] map
+    [ (>>persistent) ] with each ;
 
 : compute-setters ( persistent -- )
     columns>> [
@@ -115,7 +115,11 @@ M: tuple find-primary-key ( class -- seq )
     class find-primary-key ;
 
 : db-assigned-key? ( class -- ? )
-    find-primary-key [ type>> +db-assigned-key+? ] all? ;
+    find-primary-key [
+        f
+    ] [
+        [ type>> +db-assigned-key+? ] all?
+    ] if-empty ;
 
 : user-assigned-key? ( class -- ? )
     find-primary-key [ modifiers>> +primary-key+ swap member? ] all? ;
@@ -136,8 +140,7 @@ M: tuple find-primary-key ( class -- seq )
     } cleave ;
 
 : check-columns ( persistent -- persistent )
-    dup columns>>
-    [ column-name>> ] map all-unique?
+    dup columns>> [ column-name>> ] map all-unique?
     [ duplicate-persistent-columns ] unless ;
 
 M: persistent lookup-raw-persistent ;
@@ -202,11 +205,9 @@ M: sequence parse-name
     2 ensure-length first2
     [ ensure-string ] bi@ sanitize-sql-name ;
 
-M: string parse-name
-    dup 2array parse-name ;
+M: string parse-name dup 2array parse-name ;
 
-M: word parse-column-type
-    ensure-type ;
+M: word parse-column-type ensure-type ;
 
 M: sequence parse-column-type
     2 ensure-length first2

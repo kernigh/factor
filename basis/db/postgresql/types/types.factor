@@ -27,7 +27,7 @@ M: postgresql-db-connection sql-type>string
         { FACTOR-BLOB [ "BLOB" ] }
         { URL [ "TEXT" ] }
         { +db-assigned-key+ [ "INTEGER" ] }
-        { +random-key+ [ "INTEGER" ] }
+        { +random-key+ [ "BIGINT" ] }
         [ no-sql-type ]
     } case ;
 
@@ -51,7 +51,7 @@ M: postgresql-db-connection sql-create-type>string
         { FACTOR-BLOB [ "BLOB" ] }
         { URL [ "TEXT" ] }
         { +db-assigned-key+ [ "SERIAL" ] }
-        { +random-key+ [ "INTEGER" ] }
+        { +random-key+ [ "BIGINT" ] }
         [ no-sql-type ]
     } case ;
 

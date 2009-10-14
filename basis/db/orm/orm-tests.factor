@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors db.errors db.orm db.orm.examples db.tester
-kernel tools.test ;
+kernel math sequences tools.test ;
 IN: db.orm.tests
 
 : test-orm-users ( -- )
@@ -26,4 +26,19 @@ IN: db.orm.tests
         user new "erg" >>name select-tuple
     ] unit-test ;
 
+: test-orm-lotto ( -- )
+    [ lottery-ball drop-table ] ignore-table-exists
+    [ ] [ lottery-ball create-table ] unit-test
+
+    [ t ] [
+        10 [ drop lottery-ball new [ insert-tuple ] keep n>> 0 > ] all?
+    ] unit-test
+
+    [ t ] [
+        lottery-ball new select-tuples
+        [ n>> 0 > ] all?
+    ] unit-test
+    ;
+
 [ test-orm-users ] test-dbs
+[ test-orm-lotto ] test-dbs

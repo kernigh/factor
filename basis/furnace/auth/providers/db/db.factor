@@ -6,8 +6,7 @@ furnace.auth.providers kernel ;
 IN: furnace.auth.providers.db
 
 PERSISTENT: user
-    { "id" +db-assigned-key+ }
-    { "username" VARCHAR }
+    { "username" VARCHAR +primary-key+ }
     { "realname" VARCHAR }
     { "password" BLOB NOT-NULL }
     { "salt" INTEGER NOT-NULL }

@@ -5,7 +5,7 @@ combinators.short-circuit constructors db.binders
 db.orm.persistent db.statements db.types db.utils destructors
 fry kernel locals make math math.parser multiline namespaces
 sequences sets splitting strings vectors db.connections
-quoting random db.statements.retryable ;
+quoting random ;
 IN: db.orm.fql
 
 HOOK: next-bind-index db-connection ( -- string )

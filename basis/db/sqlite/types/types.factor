@@ -26,7 +26,7 @@ IN: db.sqlite.types
         { FACTOR-BLOB [ object>bytes sqlite-bind-blob-by-name ] }
         { URL [ present sqlite-bind-text-by-name ] }
         { +db-assigned-key+ [ sqlite-bind-int-by-name ] }
-        { +random-key+ [ sqlite-bind-int64-by-name ] }
+        { +random-key+ [ sqlite-bind-uint64-by-name ] }
         { NULL [ sqlite-bind-null-by-name ] }
         [ no-sql-type ]
     } case ;

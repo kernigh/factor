@@ -30,7 +30,6 @@ PERSISTENT: user2
 
 PERSISTENT: score2
     { "id" INTEGER +primary-key+ }
-    { "id" INTEGER +primary-key+ }
     { "user" user }
     { "score" INTEGER } ;
 
@@ -227,6 +226,12 @@ TUPLE: lottery-ball n ;
 PERSISTENT: lottery-ball
     { "n" +random-key+ } ;
 
+
+TUPLE: orm-number n ;
+CONSTRUCTOR: orm-number ( n -- orm-number ) ;
+
+PERSISTENT: orm-number
+    { "n" INTEGER } ;
 
 
 

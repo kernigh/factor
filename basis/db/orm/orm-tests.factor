@@ -37,8 +37,23 @@ IN: db.orm.tests
     [ t ] [
         lottery-ball new select-tuples
         [ n>> 0 > ] all?
+    ] unit-test ;
+
+: test-orm-number ( -- )
+    [ orm-number recreate-table ] ignore-table-exists
+    [ ] [
+        { 10 10 11 11 12 12 } [ <orm-number> insert-tuple ] each
     ] unit-test
+
+    [ 6 ] [
+        orm-number new select-tuples length
+    ] unit-test
+
+    [ 2 ] [ orm-number new 10 >>n select-tuples length ] unit-test
+    [ 2 ] [ orm-number new { 10 } >>n select-tuples length ] unit-test
+
     ;
 
-[ test-orm-users ] test-dbs
-[ test-orm-lotto ] test-dbs
+! [ test-orm-users ] test-dbs
+! [ test-orm-lotto ] test-dbs
+[ test-orm-number ] test-dbs

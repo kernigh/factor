@@ -122,6 +122,15 @@ CONSTRUCTOR: after-binder ( value setter -- obj ) ;
 : binder>after-binder ( binder -- after-binder )
     [ value>> ] [ column>> setter>> ] bi <after-binder> ;
 
+: process-ins ( ins -- ins' )
+    [
+        dup value>> array? [
+            dup value>> [ [ clone ] dip >>value ] with map
+        ] [
+            1array
+        ] if
+    ] map concat ;
+
 :: insert-random ( statement obj seq -- statement' )
     statement 
     [
@@ -135,14 +144,14 @@ CONSTRUCTOR: after-binder ( value setter -- obj ) ;
     10 >>retries
     execute-retry-quotation
     obj {
-        [ in>> >>in ]
+        [ in>> process-ins >>in ]
         [ in>> first quoted-table-name "INSERT INTO " prepend add-sql ]
         [ expand-insert-names ]
     } cleave normalize-statement ;
 
 : insert-non-random ( statement obj -- statement' ) 
     {
-        [ in>> >>in ]
+        [ in>> process-ins >>in ]
         [ in>> first quoted-table-name "INSERT INTO " prepend add-sql ]
         [ expand-insert-names ]
     } cleave normalize-statement ;
@@ -151,45 +160,6 @@ M: insert expand-fql*
     ensure-in
     dup find-random-key-in-binders
     [ insert-random ] [ insert-non-random ] if* ;
-
-/*
-GENERIC: param>binder* ( obj -- obj' type )
-
-M: number param>binder*
-    dup integer? [ INTEGER ] [ REAL ] if ;
-
-M: sequence param>binder*
-    ??first2 [ [ VARCHAR ] unless* ] dip ;
-
-M: NULL param>binder* NULL ;
-M: +db-assigned-key+ param>binder* INTEGER ;
-
-: vector/array? ( obj -- ? ) { [ vector? ] [ array? ] } 1|| ;
-
-: >op< ( op string -- strings/binders )
-    [ [ left>> ] dip "?" 3append ]
-    [ drop right>> param>binder 1array ] 2bi 2array ;
-
-GENERIC: expand-op ( obj -- string/binders )
-
-M: op-is expand-op " is " >op< ;
-M: op-eq expand-op " = " >op< ;
-M: op-not-eq expand-op " <> " >op< ;
-M: op-lt expand-op " < " >op< ;
-M: op-lt-eq expand-op " <= " >op< ;
-M: op-gt expand-op " > " >op< ;
-M: op-gt-eq expand-op " >= " >op< ;
-
-M: or-sequence expand-op ( obj -- strings/binders )
-    sequence>> [ expand-op ] map
-    [ keys " OR " join "(" ")" surround ]
-    [ values concat ] bi 2array ;
-
-M: and-sequence expand-op ( obj -- strings/binders )
-    sequence>> [ expand-op ] map
-    [ keys " AND " join "(" ")" surround ]
-    [ values concat ] bi 2array ;
-*/
 
 SYMBOL: tables
 
@@ -254,7 +224,12 @@ GENERIC: expand-out ( obj -- names binders )
 : expand-where ( statement obj -- statement )
     [ " WHERE " add-sql ] dip
     in>> [
-        binder>name " = " next-bind-index 3append
+        dup value>> array? [
+            [ value>> length ] keep
+            '[ _ binder>name " = " next-bind-index 3append ] replicate " or " join "(" ")" surround
+        ] [
+            binder>name " = " next-bind-index 3append
+        ] if
     ] map " and " join add-sql ;
 
 : in>primary-key ( in -- column )
@@ -280,7 +255,7 @@ GENERIC: expand-out ( obj -- names binders )
 
 M: select expand-fql* ( statement obj -- statement )
     {
-        [ in>> >>in ]
+        [ in>> process-ins >>in ]
         [ out>> >>out ]
         [ reconstructor>> >>reconstructor ]
         [ [ "SELECT " add-sql ] dip select-out ]
@@ -303,7 +278,7 @@ M: delete expand-fql* ( statement obj -- statement' )
     {
         [ [ "DELETE FROM " add-sql ] dip delete-tables ]
         [ dup in>> empty? [ drop ] [ expand-where ] if ]
-        [ in>> >>in ]
+        [ in>> process-ins >>in ]
     } cleave ;
 
 
@@ -319,7 +294,7 @@ M: update expand-fql* ( statement obj -- statement' )
         [ [ "UPDATE " add-sql ] dip delete-tables ]
         [ [ " SET " add-sql ] dip in>> in>columns write-binders ]
         [ dup in>> empty? [ drop ] [ expand-where-primary-key ] if ]
-        [ in>> [ in>columns ] [ in>primary-key ] bi append >>in ]
+        [ in>> [ in>columns ] [ in>primary-key ] bi append process-ins >>in ]
     } cleave ;
 
 /*
@@ -387,52 +362,7 @@ M: fql-first expand-op ( obj -- string/binder )
 
 M: fql-last expand-op ( obj -- string/binder )
     "last" REAL expand-aggregate ;
-*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-
-
-
-M: string expand-fql* ( string -- string ) add-sql ;
-
-M: update expand-fql*
-    {
-        [ [ "update " add-sql ] dip tables>> ", " join add-sql ]
-        [ [ " set " add-sql ] dip keys>> [ " = ?" append ] map ", " join add-sql ]
-        [ values>> >>in ]
-        [ expand-where ]
-        [ order-by>> [ [ " order by " add-sql ] dip ", " join add-sql ] when* ]
-        [ limit>> [ [ " limit " add-sql ] dip number>string add-sql ] when* ]
-    } cleave normalize-statement ;
-
-M: delete expand-fql*
-    {
-        [ [ "delete from " add-sql ] dip tables>> ", " join add-sql ]
-        [ expand-where ]
-        [ order-by>> [ [ " order by " add-sql ] dip ", " join add-sql ] when* ]
-        [ limit>> [ [ " limit " add-sql ] dip number>string add-sql ] when* ]
-    } cleave normalize-statement ;
 
 : where>inputs ( seq -- seq' )
     [
@@ -463,7 +393,6 @@ TUPLE: coalesce < fql a b ; ! a if a not null, else b
 
 TUPLE: nullif < fql a b ; ! if a == b, then null, else a
 
-*/
 
 TUPLE: fql-join < fql table table1 column1 table2 column2 ;
 
@@ -517,3 +446,40 @@ M: right-join expand-fql* ( obj -- statement )
 M: full-join expand-fql* ( obj -- statement )
     " FULL JOIN " table-join ;
 
+GENERIC: param>binder* ( obj -- obj' type )
+
+M: number param>binder*
+    dup integer? [ INTEGER ] [ REAL ] if ;
+
+M: sequence param>binder*
+    ??first2 [ [ VARCHAR ] unless* ] dip ;
+
+M: NULL param>binder* NULL ;
+M: +db-assigned-key+ param>binder* INTEGER ;
+
+: vector/array? ( obj -- ? ) { [ vector? ] [ array? ] } 1|| ;
+
+: >op< ( op string -- strings/binders )
+    [ [ left>> ] dip "?" 3append ]
+    [ drop right>> param>binder 1array ] 2bi 2array ;
+
+GENERIC: expand-op ( obj -- string/binders )
+
+M: op-is expand-op " is " >op< ;
+M: op-eq expand-op " = " >op< ;
+M: op-not-eq expand-op " <> " >op< ;
+M: op-lt expand-op " < " >op< ;
+M: op-lt-eq expand-op " <= " >op< ;
+M: op-gt expand-op " > " >op< ;
+M: op-gt-eq expand-op " >= " >op< ;
+
+M: or-sequence expand-op ( obj -- strings/binders )
+    sequence>> [ expand-op ] map
+    [ keys " OR " join "(" ")" surround ]
+    [ values concat ] bi 2array ;
+
+M: and-sequence expand-op ( obj -- strings/binders )
+    sequence>> [ expand-op ] map
+    [ keys " AND " join "(" ")" surround ]
+    [ values concat ] bi 2array ;
+*/

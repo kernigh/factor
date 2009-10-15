@@ -1,23 +1,13 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel accessors sequences sorting math math.order
-calendar alarms logging concurrency.combinators namespaces
-db.types db.tuples db fry locals hashtables
-db.connections
-db.persistent
-db.transactions
-syndication urls xml.writer validators
-html.forms
-html.components
-http.server
-http.server.dispatchers
-furnace
-furnace.actions
-furnace.redirection
-furnace.boilerplate
-furnace.auth.login
-furnace.auth
-furnace.syndication ;
+USING: accessors alarms calendar concurrency.combinators
+db.connections db.orm db.orm.persistent db.transactions
+db.types fry furnace furnace.actions furnace.auth
+furnace.auth.login furnace.boilerplate furnace.redirection
+furnace.syndication html.components html.forms http.server
+http.server.dispatchers kernel locals logging math math.order
+namespaces sequences sorting syndication urls validators
+xml.writer ;
 IN: webapps.planet
 
 TUPLE: planet < dispatcher ;
@@ -36,7 +26,7 @@ M: blog link-href www-url>> ;
 
 PERSISTENT: blog
     { "id" +db-assigned-key+ }
-    { "name" { VARCHAR 256 } NOT-NULL }
+    { "name" VARCHAR NOT-NULL }
     { "www-url" URL NOT-NULL }
     { "feed-url" URL NOT-NULL } ;
 
@@ -44,7 +34,7 @@ TUPLE: posting < entry id ;
 
 PERSISTENT: posting
     { "id" +db-assigned-key+ }
-    { "title" { VARCHAR 256 } NOT-NULL }
+    { "title" VARCHAR NOT-NULL }
     { "url" URL NOT-NULL }
     { "description" TEXT NOT-NULL }
     { "date" TIMESTAMP NOT-NULL } ;

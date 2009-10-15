@@ -1,7 +1,6 @@
 ! Copyright (C) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors calendar db db.connections db.persistent
-db.sqlite db.transactions db.tuples db.types furnace
+USING: accessors calendar 
 furnace.actions furnace.alloy furnace.auth
 furnace.auth.features.deactivate-user
 furnace.auth.features.edit-profile

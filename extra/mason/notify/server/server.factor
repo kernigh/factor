@@ -1,9 +1,9 @@
 ! Copyright (C) 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors combinators combinators.smart command-line db
-db.sqlite db.tuples db.types io io.encodings.utf8 io.files
-present kernel namespaces sequences calendar db.connections
-db.persistent ;
+USING: accessors calendar combinators combinators.smart
+command-line db db.connections db.orm db.orm.persistent
+db.sqlite db.types io io.encodings.utf8 io.files kernel
+namespaces present sequences ;
 IN: mason.notify.server
 
 CONSTANT: +starting+ "starting"
@@ -23,9 +23,9 @@ current-git-id current-timestamp
 status ;
 
 PERSISTENT: builder
-    { "host-name" TEXT PRIMARY-KEY }
-    { "os" TEXT PRIMARY-KEY }
-    { "cpu" TEXT PRIMARY-KEY }
+    { "host-name" TEXT +primary-key+ }
+    { "os" TEXT +primary-key+ }
+    { "cpu" TEXT +primary-key+ }
     
     { "clean-git-id" TEXT }
     { "clean-timestamp" TIMESTAMP }

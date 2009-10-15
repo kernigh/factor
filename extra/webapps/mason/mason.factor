@@ -1,10 +1,11 @@
 ! Copyright (C) 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays combinators db db.tuples furnace.actions
-http.server.responses http.server.dispatchers kernel mason.platform
-mason.notify.server mason.report math.order sequences sorting
-splitting xml.syntax xml.writer io.pathnames io.encodings.utf8
-io.files present validators html.forms furnace.db urls ;
+USING: accessors arrays combinators db db.orm furnace.actions
+furnace.db html.forms http.server.dispatchers
+http.server.responses io.encodings.utf8 io.files io.pathnames
+kernel mason.notify.server mason.platform mason.report
+math.order present sequences sorting splitting urls validators
+xml.syntax xml.writer ;
 FROM: assocs => at keys values ;
 IN: webapps.mason
 

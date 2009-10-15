@@ -1,9 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db db.sqlite db.tuples db.types
-db.connections db.persistent
-io.directories io.files.temp kernel io.streams.string calendar
-debugger combinators.smart sequences arrays ;
+USING: accessors calendar combinators.smart db db.connections
+db.orm db.orm.persistent db.sqlite db.types debugger
+io.files.temp io.streams.string kernel sequences ;
 IN: site-watcher.db
 
 TUPLE: account account-name email twitter sms ;
@@ -14,7 +13,7 @@ TUPLE: account account-name email twitter sms ;
         swap >>account-name ;
 
 PERSISTENT: account
-    { "account-name" VARCHAR PRIMARY-KEY }
+    { "account-name" VARCHAR +primary-key+ }
     { "email" VARCHAR }
     { "twitter" VARCHAR }
     { "sms" VARCHAR } ;
@@ -32,7 +31,7 @@ TUPLE: site site-id url up? changed? last-up error last-error ;
     site new swap >>site-id select-tuple ;
 
 PERSISTENT: site
-    { "site-id" INTEGER PRIMARY-KEY }
+    { "site-id" INTEGER +primary-key+ }
     { "url" VARCHAR }
     { "up?" BOOLEAN }
     { "changed?" BOOLEAN }
@@ -48,8 +47,8 @@ TUPLE: watching-site account-name site-id ;
         swap >>account-name ;
 
 PERSISTENT: watching-site
-    { "account-name" VARCHAR PRIMARY-KEY }
-    { "site-id" INTEGER PRIMARY-KEY } ;
+    { "account-name" VARCHAR +primary-key+ }
+    { "site-id" INTEGER +primary-key+ } ;
 
 TUPLE: spidering-site < watching-site max-depth max-count ;
 

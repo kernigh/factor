@@ -1,11 +1,11 @@
 ! Copyright (C) 2007 Doug Coleman.
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db.persistent db.tuples
-db.types fry furnace furnace.actions furnace.boilerplate
-furnace.redirection furnace.utilities html.components
-html.forms http http.server.dispatchers kernel literals
-math.ranges namespaces random sequences urls validators ;
+USING: accessors continuations db.orm db.orm.persistent
+db.types fry furnace.actions furnace.boilerplate
+furnace.redirection furnace.utilities html.forms
+http.server.dispatchers kernel literals math.ranges random
+sequences urls validators ;
 IN: webapps.wee-url
 
 TUPLE: wee-url < dispatcher ;
@@ -13,7 +13,7 @@ TUPLE: wee-url < dispatcher ;
 TUPLE: short-url short url ;
 
 PERSISTENT: short-url
-    { "short" TEXT PRIMARY-KEY }
+    { "short" TEXT +primary-key+ }
     { "url" URL NOT-NULL } ;
 
 CONSTANT: letter-bank

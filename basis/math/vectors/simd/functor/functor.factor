@@ -280,11 +280,14 @@ simd new
     } >>special-wrappers
     {
         { { +vector+ +vector+ -> +vector+ } A-vv->v-op }
+        { { +vector+ +any-vector+ -> +vector+ } A-vv->v-op }
         { { +vector+ +scalar+ -> +vector+ } A-vn->v-op }
         { { +vector+ +literal+ -> +vector+ } A-vn->v-op }
         { { +vector+ +vector+ -> +scalar+ } A-vv->n-op }
+        { { +vector+ +vector+ -> +boolean+ } A-vv->n-op }
         { { +vector+ -> +vector+ } A-v->v-op }
         { { +vector+ -> +scalar+ } A-v->n-op }
+        { { +vector+ -> +boolean+ } A-v->n-op }
         { { +vector+ -> +nonnegative+ } A-v->n-op }
     } >>schema-wrappers
 (define-simd-128)
@@ -325,7 +328,7 @@ FUNCTOR: define-simd-256 ( T -- )
 
 N            [ 32 T c:heap-size /i ]
 
-N/2          [ N 2 / ]
+N/2          [ N 2 /i ]
 A/2          IS ${T}-${N/2}
 A/2-boa      IS ${A/2}-boa
 A/2-with     IS ${A/2}-with

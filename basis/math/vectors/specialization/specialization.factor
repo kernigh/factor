@@ -7,13 +7,22 @@ namespaces assocs fry splitting classes.algebra generalizations
 locals compiler.tree.propagation.info ;
 IN: math.vectors.specialization
 
-SYMBOLS: -> +vector+ +scalar+ +nonnegative+ +literal+ ;
+SYMBOLS: -> +vector+ +any-vector+ +scalar+ +boolean+ +nonnegative+ +literal+ ;
+
+: parent-vector-class ( type -- type' )
+    {
+        { [ dup simd-128 class<= ] [ drop simd-128 ] }
+        { [ dup simd-256 class<= ] [ drop simd-256 ] }
+        [ "Not a vector class" throw ]
+    } cond ;
 
 : signature-for-schema ( array-type elt-type schema -- signature )
     [
         {
             { +vector+ [ drop ] }
+            { +any-vector+ [ drop parent-vector-class ] }
             { +scalar+ [ nip ] }
+            { +boolean+ [ 2drop boolean ] }
             { +nonnegative+ [ nip ] }
             { +literal+ [ 2drop f ] }
         } case
@@ -31,7 +40,9 @@ SYMBOLS: -> +vector+ +scalar+ +nonnegative+ +literal+ ;
     [
         {
             { +vector+ [ drop <class-info> ] }
+            { +any-vector+ [ drop parent-vector-class <class-info> ] }
             { +scalar+ [ nip <class-info> ] }
+            { +boolean+ [ 2drop boolean <class-info> ] }
             {
                 +nonnegative+
                 [
@@ -99,7 +110,7 @@ H{
     { hlshift { +vector+ +literal+ -> +vector+ } }
     { hrshift { +vector+ +literal+ -> +vector+ } }
     { vshuffle-elements { +vector+ +literal+ -> +vector+ } }
-    { vshuffle-bytes    { +vector+ +vector+  -> +vector+ } }
+    { vshuffle-bytes    { +vector+ +any-vector+  -> +vector+ } }
     { vbroadcast { +vector+ +literal+ -> +vector+ } }
     { (vmerge-head) { +vector+ +vector+ -> +vector+ } }
     { (vmerge-tail) { +vector+ +vector+ -> +vector+ } }
@@ -115,9 +126,9 @@ H{
     { v> { +vector+ +vector+ -> +vector+ } }
     { v>= { +vector+ +vector+ -> +vector+ } }
     { vunordered? { +vector+ +vector+ -> +vector+ } }
-    { vany? { +vector+ -> +scalar+ } }
-    { vall? { +vector+ -> +scalar+ } }
-    { vnone? { +vector+ -> +scalar+ } }
+    { vany?  { +vector+ -> +boolean+ } }
+    { vall?  { +vector+ -> +boolean+ } }
+    { vnone? { +vector+ -> +boolean+ } }
 }
 
 PREDICATE: vector-word < word vector-words key? ;

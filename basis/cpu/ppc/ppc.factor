@@ -251,7 +251,7 @@ M:: ppc %binary-float-function ( dst src1 src2 func -- )
 
 ! Internal format is always double-precision on PowerPC
 M: ppc %single>double-float double-rep %copy ;
-M: ppc %double>single-float double-rep %copy ;
+M: ppc %double>single-float FRSP ;
 
 M: ppc %unbox-alien ( dst src -- )
     alien-offset LWZ ;
@@ -681,7 +681,9 @@ M: ppc %callback-value ( ctype -- )
     ! Unbox former top of data stack to return registers
     unbox-return ;
 
-M: ppc small-enough? ( n -- ? ) -32768 32767 between? ;
+M: ppc immediate-arithmetic? ( n -- ? ) -32768 32767 between? ;
+
+M: ppc immediate-bitwise? ( n -- ? ) 0 65535 between? ;
 
 M: ppc return-struct-in-registers? ( c-type -- ? )
     c-type return-in-registers?>> ;

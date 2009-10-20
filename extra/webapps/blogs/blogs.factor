@@ -1,6 +1,7 @@
 ! Copyright (C) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors calendar 
+USING: accessors calendar db.connections db.orm
+db.orm.persistent db.sqlite db.transactions db.types
 furnace.actions furnace.alloy furnace.auth
 furnace.auth.features.deactivate-user
 furnace.auth.features.edit-profile
@@ -39,7 +40,7 @@ M: entity feed-entry-url entity-url ;
 
 PERSISTENT: entity 
     { "id" +db-assigned-key+ }
-    { "author" { VARCHAR 256 } NOT-NULL } ! uid
+    { "author" VARCHAR NOT-NULL } ! uid
     { "date" TIMESTAMP NOT-NULL }
     { "content" TEXT NOT-NULL } ;
 
@@ -54,7 +55,7 @@ M: post entity-url
     id>> view-post-url ;
 
 PERSISTENT: post
-    { "title" { VARCHAR 256 } NOT-NULL } ;
+    { "title" VARCHAR NOT-NULL } ;
 
 : <post> ( id -- post ) \ post new swap >>id ;
 

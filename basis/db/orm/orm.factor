@@ -304,6 +304,10 @@ SYMBOL: traversing-tables
 : select-tuple ( tuple -- seq )
     select-tuple-obj 1 >>limit do-select-tuple ?first ;
 
+: count-tuples ( tuple -- n )
+    
+    ;
+
 : delete-tuples ( tuple -- )
     [ <delete> ] dip
         select-ins >>in expand-fql sql-bind-typed-command ;

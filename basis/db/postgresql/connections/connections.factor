@@ -8,6 +8,7 @@ IN: db.postgresql.connections
 <PRIVATE
 
 TUPLE: postgresql-db-connection < db-connection ;
+
 : <postgresql-db-connection> ( handle -- db-connection )
     \ postgresql-db-connection new-db-connection ;
 

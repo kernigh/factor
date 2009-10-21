@@ -3,7 +3,8 @@
 USING: kernel sequences vocabs.loader ;
 IN: db.postgresql
 
-TUPLE: postgresql-db host port pgopts pgtty database username password ;
+TUPLE: postgresql-db
+    host port pgopts pgtty database username password ;
 
 : <postgresql-db> ( -- postgresql-db )
     postgresql-db new ;

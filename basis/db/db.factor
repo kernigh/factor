@@ -24,7 +24,7 @@ M: string sql-query ( string -- sequence )
 
 ERROR: retryable-failed statement ;
 
-:: (run-retryable) ( statement quot -- )
+:: (run-retryable) ( statement quot: ( statement -- statement ) -- obj )
     statement retries>> 0 > [
         statement [ 1 - ] change-retries drop
         [
@@ -48,8 +48,8 @@ ERROR: retryable-failed statement ;
 M: statement sql-command ( statement -- )
     [
         prepare-statement
-        [ bind-sequence ] [ statement>result-set drop ] bi
-    ] run-retryable ; inline
+        [ bind-sequence ] [ statement>result-set ] bi
+    ] run-retryable drop ; inline
 
 M: statement sql-query ( statement -- sequence )
     [
@@ -60,8 +60,8 @@ M: statement sql-query ( statement -- sequence )
 M: statement sql-bind-typed-command ( statement -- )
     [
         prepare-statement
-        [ bind-typed-sequence ] [ statement>result-set drop ] bi
-    ] run-retryable ; inline
+        [ bind-typed-sequence ] [ statement>result-set ] bi
+    ] run-retryable drop ; inline
 
 M: no-out-types summary
     drop "SQL types are required for the return values of this query" ;

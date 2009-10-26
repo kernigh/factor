@@ -305,8 +305,9 @@ SYMBOL: traversing-tables
     select-tuple-obj 1 >>limit do-select-tuple ?first ;
 
 : count-tuples ( tuple -- n )
+    select-tuple-obj
     
-    ;
+    do-select-tuple ?first ;
 
 : delete-tuples ( tuple -- )
     [ <delete> ] dip

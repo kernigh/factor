@@ -24,7 +24,15 @@ IN: db.orm.tests
         user new "erg" >>name select-tuple
         29 >>age update-tuple
         user new "erg" >>name select-tuple
+    ] unit-test
+
+    [
+        2
+    ] [
+B
+        user new count-tuples
     ] unit-test ;
+
 
 : test-orm-lotto ( -- )
     [ lottery-ball drop-table ] ignore-table-exists
@@ -54,6 +62,6 @@ IN: db.orm.tests
 
     ;
 
-! [ test-orm-users ] test-dbs
+[ test-orm-users ] test-dbs
 ! [ test-orm-lotto ] test-dbs
 [ test-orm-number ] test-dbs

@@ -14,6 +14,11 @@ TUPLE: out-binder-low type ;
 CONSTRUCTOR: out-binder ( class table-name column-name type column -- obj ) ;
 CONSTRUCTOR: out-binder-low ( type -- obj ) ;
 
+TUPLE: out-function function table column type ;
+
+TUPLE: count-function < out-function ;
+CONSTRUCTOR: count-function ( table column
+
 TUPLE: relation-binder
 class1 table-name1 column-name1 column1
 class2 table-name2 column-name2 column2

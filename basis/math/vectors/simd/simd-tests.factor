@@ -391,8 +391,8 @@ TUPLE: inconsistent-vector-test bool branch ;
     2dup = [ drop ] [ inconsistent-vector-test boa ] if ;
 
 :: test-vector-tests ( vector decl -- none? any? all? )
-    vector decl test-vector-tests-bool :> bool-all :> bool-any :> bool-none
-    vector decl test-vector-tests-branch :> branch-all :> branch-any :> branch-none
+    vector decl test-vector-tests-bool :> ( bool-none bool-any bool-all )
+    vector decl test-vector-tests-branch :> ( branch-none branch-any branch-all )
     
     bool-none branch-none ?inconsistent
     bool-any  branch-any  ?inconsistent
@@ -582,3 +582,20 @@ STRUCT: simd-struct
     float-4{ 1.0 0.0 1.0 0.0 } pi [ broken 3array ]
     [ compile-call ] [ call ] 3bi =
 ] unit-test
+
+! Spilling SIMD values -- this basically just tests that the
+! stack was aligned properly by the runtime
+
+: simd-spill-test-1 ( a b c -- v )
+    { float-4 float-4 float } declare 
+    [ v+ ] dip sin v*n ;
+
+[ float-4{ 0 0 0 0 } ]
+[ float-4{ 1 2 3 4 } float-4{ 4 5 6 7 } 0.0 simd-spill-test-1 ] unit-test
+
+: simd-spill-test-2 ( a b d c -- v )
+    { float float-4 float-4 float } declare 
+    [ [ 3.0 + ] 2dip v+ ] dip sin v*n n*v ;
+
+[ float-4{ 0 0 0 0 } ]
+[ 5.0 float-4{ 1 2 3 4 } float-4{ 4 5 6 7 } 0.0 simd-spill-test-2 ] unit-test

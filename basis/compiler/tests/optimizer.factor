@@ -4,7 +4,7 @@ sbufs strings tools.test vectors words sequences.private
 quotations classes classes.algebra classes.tuple.private
 continuations growable namespaces hints alien.accessors
 compiler.tree.builder compiler.tree.optimizer sequences.deep
-compiler definitions generic.single ;
+compiler definitions generic.single shuffle ;
 IN: compiler.tests.optimizer
 
 GENERIC: xyz ( obj -- obj )
@@ -202,7 +202,7 @@ USE: binary-search.private
     dup length 1 <= [
         from>>
     ] [
-        [ midpoint swap call ] 3keep roll dup zero?
+        [ midpoint swap call ] 3keep [ rot ] dip swap dup zero?
         [ drop dup from>> swap midpoint@ + ]
         [ drop dup midpoint@ head-slice old-binsearch ] if
     ] if ; inline recursive

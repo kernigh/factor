@@ -37,7 +37,7 @@ M: insn rewrite drop f ;
     dup ##compare-imm-branch? [
         {
             [ cc>> cc/= eq? ]
-            [ src2>> \ f tag-number eq? ]
+            [ src2>> \ f type-number eq? ]
         } 1&&
     ] [ drop f ] if ; inline
 
@@ -110,8 +110,8 @@ M: ##compare-imm rewrite-tagged-comparison
 : rewrite-redundant-comparison? ( insn -- ? )
     {
         [ src1>> vreg>expr general-compare-expr? ]
-        [ src2>> \ f tag-number = ]
-        [ cc>> { cc= cc/= } memq? ]
+        [ src2>> \ f type-number = ]
+        [ cc>> { cc= cc/= } member-eq? ]
     } 1&& ; inline
 
 : rewrite-redundant-comparison ( insn -- insn' )
@@ -174,7 +174,7 @@ M: ##compare-imm-branch rewrite
     [ src1>> ] [ src2>> ] bi [ vreg>vn ] bi@ = ; inline
 
 : (rewrite-self-compare) ( insn -- ? )
-    cc>> { cc= cc<= cc>= } memq? ;
+    cc>> { cc= cc<= cc>= } member-eq? ;
 
 : rewrite-self-compare-branch ( insn -- insn' )
     (rewrite-self-compare) fold-branch ;
@@ -204,7 +204,7 @@ M: ##compare-branch rewrite
     [ dst>> ] dip
     {
         { t [ t \ ##load-constant new-insn ] }
-        { f [ \ f tag-number \ ##load-immediate new-insn ] }
+        { f [ \ f type-number \ ##load-immediate new-insn ] }
     } case ;
 
 : rewrite-self-compare ( insn -- insn' )
@@ -279,7 +279,7 @@ M: ##not rewrite
         ##sub-imm
         ##mul
         ##mul-imm
-    } memq? ;
+    } member-eq? ;
 
 : immediate? ( value op -- ? )
     arithmetic-op? [ immediate-arithmetic? ] [ immediate-bitwise? ] if ;
@@ -440,7 +440,7 @@ M: ##sar rewrite \ ##sar-imm rewrite-arithmetic ;
 :: rewrite-unbox-displaced-alien ( insn expr -- insns )
     [
         next-vreg :> temp
-        temp expr base>> vn>vreg expr base-class>> insn temp>> ##unbox-c-ptr
+        temp expr base>> vn>vreg expr base-class>> ##unbox-c-ptr
         insn dst>> temp expr displacement>> vn>vreg ##add
     ] { } make ;
 

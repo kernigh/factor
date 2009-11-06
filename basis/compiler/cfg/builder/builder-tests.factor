@@ -119,7 +119,6 @@ IN: compiler.cfg.builder.tests
 
 {
     byte-array
-    simple-alien
     alien
     POSTPONE: f
 } [| class |
@@ -162,7 +161,7 @@ IN: compiler.cfg.builder.tests
 
 : count-insns ( quot insn-check -- ? )
     [ test-mr [ instructions>> ] map ] dip
-    '[ _ count ] sigma ; inline
+    '[ _ count ] map-sum ; inline
 
 : contains-insn? ( quot insn-check -- ? )
     count-insns 0 > ; inline
@@ -192,7 +191,7 @@ IN: compiler.cfg.builder.tests
 ] unit-test
 
 [ f t ] [
-    [ { fixnum simple-alien } declare <displaced-alien> 0 alien-cell ]
+    [ { fixnum alien } declare <displaced-alien> 0 alien-cell ]
     [ [ ##unbox-any-c-ptr? ] contains-insn? ]
     [ [ ##unbox-alien? ] contains-insn? ] bi
 ] unit-test
@@ -205,7 +204,7 @@ IN: compiler.cfg.builder.tests
     ] unit-test
 
     [ f t ] [
-        [ { byte-array fixnum } declare alien-cell { simple-alien } declare 4 alien-float ]
+        [ { byte-array fixnum } declare alien-cell { alien } declare 4 alien-float ]
         [ [ ##box-alien? ] contains-insn? ]
         [ [ ##allot? ] contains-insn? ] bi
     ] unit-test

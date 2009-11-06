@@ -159,12 +159,11 @@ IN: compiler.tree.propagation.known-words
 \ bitxor [ [ interval-bitxor ] [ integer-valued ] binary-op ] each-derived-op
 
 :: (comparison-constraints) ( in1 in2 op -- constraint )
-    [let | i1 [ in1 value-info interval>> ]
-           i2 [ in2 value-info interval>> ] |
-       in1 i1 i2 op assumption is-in-interval
-       in2 i2 i1 op swap-comparison assumption is-in-interval
-       /\
-    ] ;
+    in1 value-info interval>> :> i1
+    in2 value-info interval>> :> i2
+    in1 i1 i2 op assumption is-in-interval
+    in2 i2 i1 op swap-comparison assumption is-in-interval
+    /\ ;
 
 :: comparison-constraints ( in1 in2 out op -- constraint )
     in1 in2 op (comparison-constraints) out t-->
@@ -280,7 +279,7 @@ generic-comparison-ops [
 ] each
 
 \ alien-cell [
-    2drop simple-alien \ f class-or <class-info>
+    2drop alien \ f class-or <class-info>
 ] "outputs" set-word-prop
 
 { <tuple> <tuple-boa> } [

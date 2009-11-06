@@ -211,7 +211,7 @@ ERROR: topological-sort-failed ;
 : sort-classes ( seq -- newseq )
     [ name>> ] sort-with >vector
     [ dup empty? not ]
-    [ dup largest-class [ over delete-nth ] dip ]
+    [ dup largest-class [ over remove-nth! drop ] dip ]
     produce nip ;
 
 : smallest-class ( classes -- class/f )
@@ -237,11 +237,5 @@ M: anonymous-union (flatten-class)
     flatten-builtin-class keys
     [ "type" word-prop ] map natural-sort ;
 
-: class-tags ( class -- seq )
-    class-types [
-        dup num-tags get >=
-        [ drop \ hi-tag tag-number ] when
-    ] map prune ;
-
-: class-tag ( class -- tag/f )
-    class-tags dup length 1 = [ first ] [ drop f ] if ;
+: class-type ( class -- tag/f )
+    class-types dup length 1 = [ first ] [ drop f ] if ;

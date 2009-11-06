@@ -8,7 +8,7 @@ compiler.cfg.instructions compiler.cfg.utilities
 compiler.cfg.builder.blocks compiler.constants ;
 IN: compiler.cfg.intrinsics.slots
 
-: value-tag ( info -- n ) class>> class-tag ; inline
+: value-tag ( info -- n ) class>> class-type ; inline
 
 : ^^tag-offset>slot ( slot tag -- vreg' )
     [ ^^offset>slot ] dip ^^sub-imm ;
@@ -42,7 +42,7 @@ IN: compiler.cfg.intrinsics.slots
     first class>> immediate class<= not ;
 
 :: (emit-set-slot) ( infos -- )
-    3inputs :> slot :> obj :> src
+    3inputs :> ( src obj slot )
 
     slot infos second value-tag ^^tag-offset>slot :> slot
 
@@ -54,7 +54,7 @@ IN: compiler.cfg.intrinsics.slots
 :: (emit-set-slot-imm) ( infos -- )
     ds-drop
 
-    2inputs :> obj :> src
+    2inputs :> ( src obj )
 
     infos third literal>> :> slot
     infos second value-tag :> tag

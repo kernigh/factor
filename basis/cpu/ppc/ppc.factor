@@ -266,7 +266,7 @@ M:: ppc %unbox-any-c-ptr ( dst src temp -- )
         ! We come back here with displaced aliens
         "start" resolve-label
         ! Is the object f?
-        0 scratch-reg \ f tag-number CMPI
+        0 scratch-reg \ f type-number CMPI
         ! If so, done
         "end" get BEQ
         ! Is the object an alien?
@@ -288,25 +288,20 @@ M:: ppc %unbox-any-c-ptr ( dst src temp -- )
         "end" resolve-label
     ] with-scope ;
 
-: alien@ ( n -- n' ) cells object tag-number - ;
-
-:: %allot-alien ( dst displacement base temp -- )
-    dst 4 cells alien temp %allot
-    temp \ f tag-number %load-immediate
-    ! Store underlying-alien slot
-    base dst 1 alien@ STW
-    ! Store expired slot
-    temp dst 2 alien@ STW
-    ! Store offset
-    displacement dst 3 alien@ STW ;
+: alien@ ( n -- n' ) cells alien type-number - ;
 
 M:: ppc %box-alien ( dst src temp -- )
     [
         "f" define-label
-        dst \ f tag-number %load-immediate
+        dst  %load-immediate
         0 src 0 CMPI
         "f" get BEQ
-        dst src temp temp %allot-alien
+        dst 5 cells alien temp %allot
+        temp \ f type-number %load-immediate
+        temp dst 1 alien@ STW
+        temp dst 2 alien@ STW
+        displacement dst 3 alien@ STW
+        displacement dst 4 alien@ STW
         "f" resolve-label
     ] with-scope ;
 
@@ -323,7 +318,7 @@ M:: ppc %box-displaced-alien ( dst displacement base displacement' base' base-cl
         displacement' :> temp
         dst 4 cells alien temp %allot
         ! If base is already a displaced alien, unpack it
-        0 base \ f tag-number CMPI
+        0 base \ f type-number CMPI
         "simple-case" get BEQ
         temp base header-offset LWZ
         0 temp alien type-number tag-fixnum CMPI
@@ -343,7 +338,7 @@ M:: ppc %box-displaced-alien ( dst displacement base displacement' base' base-cl
         ! Store offset
         displacement' dst 3 alien@ STW
         ! Store expired slot (its ok to clobber displacement')
-        temp \ f tag-number %load-immediate
+        temp \ f type-number %load-immediate
         temp dst 2 alien@ STW
         "end" resolve-label
     ] with-scope ;
@@ -374,7 +369,7 @@ M: ppc %set-alien-double -rot STFD ;
     [ drop load-zone-ptr ] [ swap 0 LWZ ] 2bi ;
 
 :: inc-allot-ptr ( nursery-ptr allot-ptr n -- )
-    scratch-reg allot-ptr n 8 align ADDI
+    scratch-reg allot-ptr n data-alignment get align ADDI
     scratch-reg nursery-ptr 0 STW ;
 
 :: store-header ( dst class -- )
@@ -382,7 +377,7 @@ M: ppc %set-alien-double -rot STFD ;
     scratch-reg dst 0 STW ;
 
 : store-tagged ( dst tag -- )
-    dupd tag-number ORI ;
+    dupd type-number ORI ;
 
 M:: ppc %allot ( dst size class nursery-ptr -- )
     nursery-ptr dst load-allot-ptr
@@ -460,7 +455,7 @@ M: ppc %epilogue ( n -- )
 
 :: (%boolean) ( dst temp branch1 branch2 -- )
     "end" define-label
-    dst \ f tag-number %load-immediate
+    dst \ f type-number %load-immediate
     "end" get branch1 execute( label -- )
     branch2 [ "end" get branch2 execute( label -- ) ] when
     dst \ t %load-reference
@@ -504,11 +499,11 @@ M: ppc %compare [ (%compare) ] 2dip %boolean ;
 M: ppc %compare-imm [ (%compare-imm) ] 2dip %boolean ;
 
 M:: ppc %compare-float-ordered ( dst src1 src2 cc temp -- )
-    src1 src2 cc negate-cc \ (%compare-float-ordered) (%compare-float) :> branch2 :> branch1
+    src1 src2 cc negate-cc \ (%compare-float-ordered) (%compare-float) :> ( branch1 branch2 )
     dst temp branch1 branch2 (%boolean) ;
 
 M:: ppc %compare-float-unordered ( dst src1 src2 cc temp -- )
-    src1 src2 cc negate-cc \ (%compare-float-unordered) (%compare-float) :> branch2 :> branch1
+    src1 src2 cc negate-cc \ (%compare-float-unordered) (%compare-float) :> ( branch1 branch2 )
     dst temp branch1 branch2 (%boolean) ;
 
 :: %branch ( label cc -- )
@@ -534,11 +529,11 @@ M:: ppc %compare-imm-branch ( label src1 src2 cc -- )
     branch2 [ label branch2 execute( label -- ) ] when ; inline
 
 M:: ppc %compare-float-ordered-branch ( label src1 src2 cc -- )
-    src1 src2 cc \ (%compare-float-ordered) (%compare-float) :> branch2 :> branch1
+    src1 src2 cc \ (%compare-float-ordered) (%compare-float) :> ( branch1 branch2 )
     label branch1 branch2 (%branch) ;
 
 M:: ppc %compare-float-unordered-branch ( label src1 src2 cc -- )
-    src1 src2 cc \ (%compare-float-unordered) (%compare-float) :> branch2 :> branch1
+    src1 src2 cc \ (%compare-float-unordered) (%compare-float) :> ( branch1 branch2 )
     label branch1 branch2 (%branch) ;
 
 : load-from-frame ( dst n rep -- )
@@ -742,14 +737,3 @@ USE: vocabs.loader
 } cond
 
 "complex-double" c-type t >>return-in-registers? drop
-
-[
-    <c-type>
-        [ alien-unsigned-4 c-bool> ] >>getter
-        [ [ >c-bool ] 2dip set-alien-unsigned-4 ] >>setter
-        4 >>size
-        4 >>align
-        "box_boolean" >>boxer
-        "to_boolean" >>unboxer
-    bool define-primitive-type
-] with-compilation-unit

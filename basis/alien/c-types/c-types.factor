@@ -230,6 +230,10 @@ M: byte-array byte-length length ; inline
 
 M: f byte-length drop 0 ; inline
 
+: >c-bool ( ? -- int ) 1 0 ? ; inline
+
+: c-bool> ( int -- ? ) 0 = not ; inline
+
 MIXIN: value-type
 
 : c-getter ( name -- quot )
@@ -256,6 +260,7 @@ PREDICATE: typedef-word < c-type-word
     "c-type" word-prop c-type-name? ;
 
 M: string typedef ( old new -- ) c-types get set-at ;
+
 M: word typedef ( old new -- )
     {
         [ nip define-symbol ]
@@ -292,7 +297,7 @@ M: long-long-type box-return ( c-type -- )
 
 : define-out ( name -- )
     [ "alien.c-types" constructor-word ]
-    [ dup c-setter '[ _ heap-size <byte-array> [ 0 @ ] keep ] ] bi
+    [ dup c-setter '[ _ heap-size (byte-array) [ 0 @ ] keep ] ] bi
     (( value -- c-ptr )) define-inline ;
 
 : define-primitive-type ( c-type name -- )
@@ -338,7 +343,7 @@ SYMBOLS:
         [ alien-signed-8 ] >>getter
         [ set-alien-signed-8 ] >>setter
         8 >>size
-        8 >>align
+        cpu x86.32? os windows? not and 4 8 ? >>align
         "box_signed_8" >>boxer
         "to_signed_8" >>unboxer
     \ longlong define-primitive-type
@@ -349,7 +354,7 @@ SYMBOLS:
         [ alien-unsigned-8 ] >>getter
         [ set-alien-unsigned-8 ] >>setter
         8 >>size
-        8 >>align
+        cpu x86.32? os windows? not and 4 8 ? >>align
         "box_unsigned_8" >>boxer
         "to_unsigned_8" >>unboxer
     \ ulonglong define-primitive-type
@@ -442,14 +447,24 @@ SYMBOLS:
         "to_cell" >>unboxer
     \ uchar define-primitive-type
 
-    <c-type>
-        [ alien-unsigned-1 0 = not ] >>getter
-        [ [ 1 0 ? ] 2dip set-alien-unsigned-1 ] >>setter
-        1 >>size
-        1 >>align
-        "box_boolean" >>boxer
-        "to_boolean" >>unboxer
-    \ bool define-primitive-type
+    cpu ppc? [
+        <c-type>
+            [ alien-unsigned-4 c-bool> ] >>getter
+            [ [ >c-bool ] 2dip set-alien-unsigned-4 ] >>setter
+            4 >>size
+            4 >>align
+            "box_boolean" >>boxer
+            "to_boolean" >>unboxer
+    ] [
+        <c-type>
+            [ alien-unsigned-1 c-bool> ] >>getter
+            [ [ >c-bool ] 2dip set-alien-unsigned-1 ] >>setter
+            1 >>size
+            1 >>align
+            "box_boolean" >>boxer
+            "to_boolean" >>unboxer
+        \ bool define-primitive-type
+    ] if
 
     <c-type>
         math:float >>class
@@ -470,17 +485,24 @@ SYMBOLS:
         [ alien-double ] >>getter
         [ [ >float ] 2dip set-alien-double ] >>setter
         8 >>size
-        8 >>align
+        cpu x86.32? os windows? not and 4 8 ? >>align
         "box_double" >>boxer
         "to_double" >>unboxer
         double-rep >>rep
         [ >float ] >>unboxer-quot
     \ double define-primitive-type
 
-    \ long c-type \ ptrdiff_t typedef
-    \ long c-type \ intptr_t typedef
-    \ ulong c-type \ uintptr_t typedef
-    \ ulong c-type \ size_t typedef
+    cpu x86.64? os windows? and [
+        \ longlong c-type \ ptrdiff_t typedef
+        \ longlong c-type \ intptr_t typedef
+        \ ulonglong c-type \ uintptr_t typedef
+        \ ulonglong c-type \ size_t typedef
+    ] [
+        \ long c-type \ ptrdiff_t typedef
+        \ long c-type \ intptr_t typedef
+        \ ulong c-type \ uintptr_t typedef
+        \ ulong c-type \ size_t typedef
+    ] if
 ] with-compilation-unit
 
 M: char-16-rep rep-component-type drop char ;
@@ -501,9 +523,9 @@ M: double-2-rep rep-component-type drop double ;
 
 : c-type-interval ( c-type -- from to )
     {
-        { [ dup { float double } memq? ] [ drop -1/0. 1/0. ] }
-        { [ dup { char short int long longlong } memq? ] [ signed-interval ] }
-        { [ dup { uchar ushort uint ulong ulonglong } memq? ] [ unsigned-interval ] }
+        { [ dup { float double } member-eq? ] [ drop -1/0. 1/0. ] }
+        { [ dup { char short int long longlong } member-eq? ] [ signed-interval ] }
+        { [ dup { uchar ushort uint ulong ulonglong } member-eq? ] [ unsigned-interval ] }
     } cond ; foldable
 
 : c-type-clamp ( value c-type -- value' ) c-type-interval clamp ; inline

@@ -10,7 +10,7 @@ IN: validators
     >lower "on" = ;
 
 : v-default ( str def -- str/def )
-    over empty? spin ? ;
+    [ nip empty? ] 2keep ? ;
 
 : v-required ( str -- str )
     dup empty? [ "required" throw ] when ;

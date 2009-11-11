@@ -1,6 +1,6 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db db.statements db.statements.tests db.tester
+USING: accessors db db.statements db.statements.tests db.debug
 tools.test ;
 IN: db.sqlite.tests
 

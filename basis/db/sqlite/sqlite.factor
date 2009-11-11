@@ -17,6 +17,6 @@ CONSTRUCTOR: sqlite-db ( path -- db ) ;
     "db.sqlite.statements"
     ! "db.sqlite.tuples"
     "db.sqlite.types"
-    "db.sqlite.fql"
-    "db.sqlite.orm"
+    ! "db.sqlite.fql"
+    ! "db.sqlite.orm"
 } [ require ] each

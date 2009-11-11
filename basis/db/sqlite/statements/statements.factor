@@ -15,3 +15,7 @@ M: sqlite-db-connection reset-statement
 M: sqlite-db-connection dispose-statement
     handle>>
     [ [ sqlite3_reset drop ] [ sqlite-finalize ] bi ] when* ;
+
+M: sqlite-db-connection next-bind-index "?" ;
+
+M: sqlite-db-connection init-bind-index ;

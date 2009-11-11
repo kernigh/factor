@@ -3,7 +3,7 @@
 USING: accessors db.connections
 db.postgresql.connections.private db.postgresql.ffi
 db.postgresql.lib db.statements destructors kernel namespaces
-sequences ;
+sequences math.parser ;
 IN: db.postgresql.statements
 
 M: postgresql-db-connection prepare-statement*
@@ -21,3 +21,13 @@ M: postgresql-db-connection dispose-statement
     f >>handle drop ;
 
 M: postgresql-db-connection bind-sequence drop ;
+
+
+SYMBOL: postgresql-bind-counter
+
+M: postgresql-db-connection init-bind-index ( -- )
+    1 postgresql-bind-counter set ;
+
+M: postgresql-db-connection next-bind-index ( -- string )
+    postgresql-bind-counter
+    [ get number>string ] [ inc ] bi "$" prepend ;

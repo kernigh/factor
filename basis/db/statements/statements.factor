@@ -2,12 +2,11 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays continuations db.connections db.errors
 db.result-sets db.utils destructors fry kernel sequences math ;
-
 IN: db.statements
 
 TUPLE: statement handle sql in out after
-reconstructor
 retries errors retry-quotation ;
+! reconstructor
 
 : normalize-statement ( statement -- statement )
     [ obj>vector ] change-out
@@ -18,6 +17,9 @@ retries errors retry-quotation ;
         V{ } clone >>out
         V{ } clone >>in
         V{ } clone >>errors ;
+
+HOOK: next-bind-index db-connection ( -- string )
+HOOK: init-bind-index db-connection ( -- )
 
 : add-sql ( statement sql -- statement )
     '[ _ "" append-as ] change-sql ;

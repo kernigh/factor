@@ -19,6 +19,6 @@ TUPLE: postgresql-db
     ! "db.postgresql.statements"
     ! "db.postgresql.tuples"
     "db.postgresql.types"
-    "db.postgresql.fql"
-    "db.postgresql.orm"
+    ! "db.postgresql.fql"
+    ! "db.postgresql.orm"
 } [ require ] each

@@ -15,7 +15,7 @@ CONSTRUCTOR: update ( -- update ) ;
 TUPLE: delete < query where ;
 CONSTRUCTOR: delete ( -- delete ) ;
 
-TUPLE: select < query in out offset limit ;
+TUPLE: select < query in out from join offset limit ;
 CONSTRUCTOR: select ( -- select ) ;
 
 
@@ -72,10 +72,33 @@ M: insert query-object>statement*
         >column/bind-pairs add-sql
     ] unless-empty ;
 
+: select-from ( select -- string )
+    dup from>> [
+        out>> >table-names
+    ] [
+        nip ", " join
+    ] if-empty ;
+
+GENERIC: >join-string ( join-binder -- string )
+
+M: join-binder >join-string
+    [ table-name1>> " LEFT JOIN " " ON " surround ]
+    [ { table-name1>> column-name1>> } slots "." glue ]
+    [ { table-name2>> column-name2>> } slots "." glue ]
+    tri " = " glue append ;
+
+: select-join ( select -- string )
+    join>> [
+        ""
+    ] [
+        [ >join-string ] map ", " join
+    ] if-empty ;
+
 M: select query-object>statement*
     [ "SELECT " add-sql ] dip {
         [ out>> >column-names add-sql " FROM " add-sql ]
-        [ out>> >table-names add-sql ]
+        [ select-from add-sql ]
+        [ select-join add-sql ]
         [ in>> seq>where ";" add-sql ]
         [ out>> >>out ]
         [ in>> >>in ]
@@ -100,5 +123,5 @@ M: delete query-object>statement*
     [
         init-bind-index
         [ <statement> ] dip query-object>statement*
-        ! normalize-fql expand-fql*
+        ! normalize-fql
     ] with-scope ;

@@ -9,6 +9,10 @@ IN: db.query-objects.tests
 ! Test expansion of insert
 TUPLE: qdog id age ;
 
+! Test joins
+TUPLE: user id name ;
+TUPLE: address id user-id street city state zip ;
+
 [
 T{ statement
     { sql "INSERT INTO qdog (id) VALUES(?);" }
@@ -338,3 +342,121 @@ T{ statement
     ] with-variable
 ] unit-test
 
+
+[
+T{ statement
+    { sql
+        "SELECT id, name, id, user_id, street, city, zip FROM user LEFT JOIN user ON user.id = address.user_id;"
+    }
+    { out
+        {
+            T{ out-binder
+                { class user }
+                { table-name "user" }
+                { column-name "id" }
+                { type INTEGER }
+            }
+            T{ out-binder
+                { class user }
+                { table-name "user" }
+                { column-name "name" }
+                { type VARCHAR }
+            }
+            T{ out-binder
+                { class address }
+                { table-name "address" }
+                { column-name "id" }
+                { type INTEGER }
+            }
+            T{ out-binder
+                { class address }
+                { table-name "address" }
+                { column-name "user_id" }
+                { type INTEGER }
+            }
+            T{ out-binder
+                { class address }
+                { table-name "address" }
+                { column-name "street" }
+                { type VARCHAR }
+            }
+            T{ out-binder
+                { class address }
+                { table-name "address" }
+                { column-name "city" }
+                { type VARCHAR }
+            }
+            T{ out-binder
+                { class address }
+                { table-name "address" }
+                { column-name "zip" }
+                { type INTEGER }
+            }
+        }
+    }
+    { errors V{ } }
+}
+] [
+    T{ sqlite-db-connection } db-connection
+    [
+        T{ select
+            { out
+                {
+                    T{ out-binder
+                        { class user }
+                        { table-name "user" }
+                        { column-name "id" }
+                        { type INTEGER }
+                    }
+                    T{ out-binder
+                        { class user }
+                        { table-name "user" }
+                        { column-name "name" }
+                        { type VARCHAR }
+                    }
+                    T{ out-binder
+                        { class address }
+                        { table-name "address" }
+                        { column-name "id" }
+                        { type INTEGER }
+                    }
+                    T{ out-binder
+                        { class address }
+                        { table-name "address" }
+                        { column-name "user_id" }
+                        { type INTEGER }
+                    }
+                    T{ out-binder
+                        { class address }
+                        { table-name "address" }
+                        { column-name "street" }
+                        { type VARCHAR }
+                    }
+                    T{ out-binder
+                        { class address }
+                        { table-name "address" }
+                        { column-name "city" }
+                        { type VARCHAR }
+                    }
+                    T{ out-binder
+                        { class address }
+                        { table-name "address" }
+                        { column-name "zip" }
+                        { type INTEGER }
+                    }
+                }
+            }
+            { from { "user" } }
+            { join
+                {
+                    T{ join-binder
+                        { table-name1 "user" }
+                        { column-name1 "id" }
+                        { table-name2 "address" }
+                        { column-name2 "user_id" }
+                    }
+                }
+            }
+        } query-object>statement
+    ] with-variable
+] unit-test

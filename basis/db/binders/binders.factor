@@ -17,6 +17,9 @@ CONSTRUCTOR: out-binder ( class table-name column-name type column -- obj ) ;
 CONSTRUCTOR: out-binder-low ( type -- obj ) ;
 
 
+TUPLE: join-binder < binder table-name1 column-name1 table-name2 column-name2 ;
+CONSTRUCTOR: join-binder ( table-name1 column-name1 table-name2 column-name2 -- obj ) ;
+
 TUPLE: count-function < out-binder ;
 CONSTRUCTOR: count-function ( table-name column-name -- obj )
     INTEGER >>type ;

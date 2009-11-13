@@ -73,11 +73,7 @@ M: insert query-object>statement*
     ] unless-empty ;
 
 : select-from ( select -- string )
-    dup from>> [
-        out>> >table-names
-    ] [
-        nip ", " join
-    ] if-empty ;
+    from>> ", " join ;
 
 GENERIC: >join-string ( join-binder -- string )
 

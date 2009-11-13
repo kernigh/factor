@@ -118,6 +118,7 @@ T{ statement
     T{ sqlite-db-connection } db-connection
     [
         T{ select
+            { from { "qdog" } }
             { out
                 {
                     T{ out-binder
@@ -253,6 +254,7 @@ T{ statement
     T{ sqlite-db-connection } db-connection
     [
         T{ select
+            { from { "qdog" } }
             { out
                 {
                     T{ count-function
@@ -297,6 +299,7 @@ T{ statement
     T{ sqlite-db-connection } db-connection
     [
         T{ select
+            { from { "qdog" } }
             { out
                 {
                     T{ count-function

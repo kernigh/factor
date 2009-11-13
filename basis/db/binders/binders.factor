@@ -11,9 +11,9 @@ TUPLE: in-binder-low < binder type value ;
 CONSTRUCTOR: in-binder ( class table-name column-name type value column -- obj ) ;
 CONSTRUCTOR: in-binder-low ( type value -- obj ) ;
 
-TUPLE: out-binder < binder class table-name column-name type column ;
+TUPLE: out-binder < binder table-name column-name type ;
 TUPLE: out-binder-low < binder type ;
-CONSTRUCTOR: out-binder ( class table-name column-name type column -- obj ) ;
+CONSTRUCTOR: out-binder ( table-name column-name type -- obj ) ;
 CONSTRUCTOR: out-binder-low ( type -- obj ) ;
 
 

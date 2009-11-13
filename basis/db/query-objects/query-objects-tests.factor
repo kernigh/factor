@@ -19,7 +19,6 @@ T{ statement
     { in
         {
             T{ in-binder
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "id" }
                 { type INTEGER }
@@ -36,7 +35,6 @@ T{ statement
             { in
                 {
                     T{ in-binder
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "id" }
                         { type INTEGER }
@@ -54,7 +52,6 @@ T{ statement
     { in
         {
             T{ in-binder
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "id" }
                 { type INTEGER }
@@ -72,7 +69,6 @@ T{ statement
             { in
                 {
                     T{ in-binder
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "id" }
                         { type INTEGER }
@@ -95,7 +91,6 @@ T{ statement
     { in
         {
             T{ in-binder
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
@@ -106,13 +101,11 @@ T{ statement
     { out
         {
             T{ out-binder
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "id" }
                 { type INTEGER }
             }
             T{ out-binder
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
@@ -128,13 +121,11 @@ T{ statement
             { out
                 {
                     T{ out-binder
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "id" }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -144,7 +135,6 @@ T{ statement
             { in
                 {
                     T{ in-binder
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -165,14 +155,12 @@ T{ statement
     { in
         {
             T{ in-binder
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
                 { value 1 }
             }
             T{ in-binder
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
@@ -190,7 +178,6 @@ T{ statement
             { in
                 {
                     T{ in-binder
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -201,7 +188,6 @@ T{ statement
             { where
                 {
                     T{ in-binder
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -219,7 +205,6 @@ T{ statement
     { in
         {
             T{ in-binder
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
@@ -237,7 +222,6 @@ T{ statement
             { where
                 {
                     T{ in-binder
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -257,7 +241,6 @@ T{ statement
     { out
         {
             T{ count-function
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "id" }
                 { type INTEGER }
@@ -273,7 +256,6 @@ T{ statement
             { out
                 {
                     T{ count-function
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "id" }
                         { type INTEGER }
@@ -293,7 +275,6 @@ T{ statement
     { in
         {
             T{ in-binder
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
@@ -304,7 +285,6 @@ T{ statement
     { out
         {
             T{ count-function
-                { class qdog }
                 { table-name "qdog" }
                 { column-name "id" }
                 { type INTEGER }
@@ -320,7 +300,6 @@ T{ statement
             { out
                 {
                     T{ count-function
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "id" }
                         { type INTEGER }
@@ -330,7 +309,6 @@ T{ statement
             { in
                 {
                     T{ in-binder
-                        { class qdog }
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -351,43 +329,36 @@ T{ statement
     { out
         {
             T{ out-binder
-                { class user }
                 { table-name "user" }
                 { column-name "id" }
                 { type INTEGER }
             }
             T{ out-binder
-                { class user }
                 { table-name "user" }
                 { column-name "name" }
                 { type VARCHAR }
             }
             T{ out-binder
-                { class address }
                 { table-name "address" }
                 { column-name "id" }
                 { type INTEGER }
             }
             T{ out-binder
-                { class address }
                 { table-name "address" }
                 { column-name "user_id" }
                 { type INTEGER }
             }
             T{ out-binder
-                { class address }
                 { table-name "address" }
                 { column-name "street" }
                 { type VARCHAR }
             }
             T{ out-binder
-                { class address }
                 { table-name "address" }
                 { column-name "city" }
                 { type VARCHAR }
             }
             T{ out-binder
-                { class address }
                 { table-name "address" }
                 { column-name "zip" }
                 { type INTEGER }
@@ -403,43 +374,36 @@ T{ statement
             { out
                 {
                     T{ out-binder
-                        { class user }
                         { table-name "user" }
                         { column-name "id" }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { class user }
                         { table-name "user" }
                         { column-name "name" }
                         { type VARCHAR }
                     }
                     T{ out-binder
-                        { class address }
                         { table-name "address" }
                         { column-name "id" }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { class address }
                         { table-name "address" }
                         { column-name "user_id" }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { class address }
                         { table-name "address" }
                         { column-name "street" }
                         { type VARCHAR }
                     }
                     T{ out-binder
-                        { class address }
                         { table-name "address" }
                         { column-name "city" }
                         { type VARCHAR }
                     }
                     T{ out-binder
-                        { class address }
                         { table-name "address" }
                         { column-name "zip" }
                         { type INTEGER }

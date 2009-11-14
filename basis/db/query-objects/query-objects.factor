@@ -36,8 +36,18 @@ M: max-function >column-name column-name>> "MAX(" ")" surround ;
 M: first-function >column-name column-name>> "FIRST(" ")" surround ;
 M: last-function >column-name column-name>> "LAST(" ")" surround ;
 
-M: in-binder >qualified-column-name
+: >qualified-full-name ( obj -- string )
     { table-name>> column-name>> } slots "." glue ;
+
+M: in-binder >qualified-column-name >qualified-full-name ;
+M: out-binder >qualified-column-name >qualified-full-name ;
+M: count-function >qualified-column-name >qualified-full-name "COUNT(" ")" surround ;
+M: sum-function >qualified-column-name >qualified-full-name "SUM(" ")" surround ;
+M: average-function >qualified-column-name >qualified-full-name "AVG(" ")" surround ;
+M: min-function >qualified-column-name >qualified-full-name "MIN(" ")" surround ;
+M: max-function >qualified-column-name >qualified-full-name "MAX(" ")" surround ;
+M: first-function >qualified-column-name >qualified-full-name "FIRST(" ")" surround ;
+M: last-function >qualified-column-name >qualified-full-name "LAST(" ")" surround ;
 
 : >table-names ( in -- string )
     [ >table-name ] map prune ", " join ;
@@ -63,7 +73,7 @@ M: insert query-object>statement*
 
 : >column/bind-pairs ( seq -- string )
     [
-        >column-name next-bind-index " = " glue
+        >qualified-column-name next-bind-index " = " glue
     ] map " and " join ;
 
 : seq>where ( statement seq -- statement )
@@ -78,7 +88,7 @@ M: insert query-object>statement*
 GENERIC: >join-string ( join-binder -- string )
 
 M: join-binder >join-string
-    [ table-name1>> " LEFT JOIN " " ON " surround ]
+    [ table-name2>> " LEFT JOIN " " ON " surround ]
     [ { table-name1>> column-name1>> } slots "." glue ]
     [ { table-name2>> column-name2>> } slots "." glue ]
     tri " = " glue append ;
@@ -92,7 +102,7 @@ M: join-binder >join-string
 
 M: select query-object>statement*
     [ "SELECT " add-sql ] dip {
-        [ out>> >column-names add-sql " FROM " add-sql ]
+        [ out>> >qualified-column-names add-sql " FROM " add-sql ]
         [ select-from add-sql ]
         [ select-join add-sql ]
         [ in>> seq>where ";" add-sql ]

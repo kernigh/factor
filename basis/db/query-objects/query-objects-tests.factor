@@ -87,7 +87,7 @@ T{ statement
 
 [
 T{ statement
-    { sql "SELECT id, age FROM qdog WHERE age = ?;" }
+    { sql "SELECT qdog.id, qdog.age FROM qdog WHERE qdog.age = ?;" }
     { in
         {
             T{ in-binder
@@ -152,7 +152,7 @@ T{ statement
 
 [
 T{ statement
-    { sql "UPDATE qdog SET age = ? WHERE age = ?;" }
+    { sql "UPDATE qdog SET qdog.age = ? WHERE qdog.age = ?;" }
     { in
         {
             T{ in-binder
@@ -202,7 +202,7 @@ T{ statement
 
 [
 T{ statement
-    { sql "DELETE FROM qdog WHERE age = ?;" }
+    { sql "DELETE FROM qdog WHERE qdog.age = ?;" }
     { in
         {
             T{ in-binder
@@ -238,7 +238,7 @@ T{ statement
 
 [
 T{ statement
-    { sql "SELECT COUNT(id) FROM qdog;" }
+    { sql "SELECT COUNT(qdog.id) FROM qdog;" }
     { out
         {
             T{ count-function
@@ -273,7 +273,7 @@ T{ statement
 
 [
 T{ statement
-    { sql "SELECT COUNT(id) FROM qdog WHERE age = ?;" }
+    { sql "SELECT COUNT(qdog.id) FROM qdog WHERE qdog.age = ?;" }
     { in
         {
             T{ in-binder
@@ -327,7 +327,7 @@ T{ statement
 [
 T{ statement
     { sql
-        "SELECT id, name, id, user_id, street, city, zip FROM user LEFT JOIN user ON user.id = address.user_id;"
+        "SELECT user.id, user.name, address.id, address.user_id, address.street, address.city, address.zip FROM user LEFT JOIN address ON user.id = address.user_id;"
     }
     { out
         {

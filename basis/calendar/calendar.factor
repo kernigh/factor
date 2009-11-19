@@ -171,6 +171,11 @@ M: timestamp easter ( timestamp -- timestamp )
 : microseconds ( x -- duration ) 1000000 / seconds ;
 : nanoseconds ( x -- duration ) 1000000000 / seconds ;
 
+GENERIC: >duration ( obj -- duration/f )
+M: duration >duration ;
+M: real >duration seconds ;
+M: f >duration ;
+
 GENERIC: year ( obj -- n )
 M: integer year ;
 M: timestamp year year>> ;
@@ -386,7 +391,7 @@ M: duration time-
 
 : gmt ( -- timestamp )
     #! GMT time, right now
-    unix-1970 micros microseconds time+ ;
+    unix-1970 system-micros microseconds time+ ;
 
 : now ( -- timestamp ) gmt >local-time ;
 : hence ( duration -- timestamp ) now swap time+ ;
@@ -555,9 +560,7 @@ M: integer end-of-year 12 31 <date> ;
 : unix-time>timestamp ( seconds -- timestamp )
     seconds unix-1970 time+ ;
 
-M: timestamp sleep-until timestamp>micros sleep-until ;
-
-M: duration sleep hence sleep-until ;
+M: duration sleep duration>nanoseconds nano-count + sleep-until ;
 
 {
     { [ os unix? ] [ "calendar.unix" ] }

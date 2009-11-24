@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors combinators db.binders db.types fry kernel
-math.ranges multiline namespaces sequences ;
+math.ranges namespaces sequences ;
 IN: db.result-sets
 
 TUPLE: result-set handle sql in out n max ;
@@ -39,13 +39,3 @@ M: sql-type get-type ;
 M: out-binder get-type type>> ;
 
 M: out-binder-low get-type type>> ;
-
-/*
-SYMBOL: sql-column-counter
-
-: sql-row-typed-count ( result-set binder -- seq )
-    [
-        [ sql-column-counter [ inc ] [ get ] bi ] dip
-        get-type column-typed
-    ] with map ;
-*/

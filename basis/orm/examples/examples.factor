@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: constructors db.types orm orm.persistent sequences
-nested-comments ;
+USING: accessors calendar constructors db.types nested-comments
+orm orm.persistent sequences ;
 IN: orm.examples
 
 TUPLE: user id name age ;
@@ -95,3 +95,24 @@ T{ jar { beans IGNORE } } select-tuples
 }
 
 *)
+
+
+
+
+! Blogs
+TUPLE: entity id author date content ;
+CONSTRUCTOR: entity ( author content -- entity ) now >>date ;
+PERSISTENT: entity
+    { "id" +db-assigned-key+ }
+    { "author" VARCHAR NOT-NULL } ! uid
+    { "date" TIMESTAMP NOT-NULL }
+    { "content" TEXT NOT-NULL } ;
+
+TUPLE: post < entity title comments ;
+CONSTRUCTOR: post ( title -- entity ) now >>date ;
+PERSISTENT: post
+    { "title" VARCHAR NOT-NULL }
+    { "comments" { post sequence } } ;
+
+TUPLE: comment < entity ;
+PERSISTENT: comment ;

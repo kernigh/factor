@@ -7,7 +7,6 @@ IN: orm
 
 SYMBOL: table-counter
 
-/*
 : (tuple>relations) ( n tuple -- )
     [ ] [ >persistent columns>> ] bi [
         dup relation-category [
@@ -18,7 +17,6 @@ SYMBOL: table-counter
                 over relation-category [
                     swap [
                         [
-B
                             [ class swap 2array ]
                             [ relation-class table-counter [ inc ] [ get ] bi 2array ] bi*
                         ] dip 3array ,
@@ -37,7 +35,6 @@ B
     0 table-counter [
         [ 0 swap (tuple>relations) ] { } make
     ] with-variable ;
-*/
 
 : find-containing-classes ( class -- seq )
     [ inherited-persistent-table get-global ] dip

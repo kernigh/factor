@@ -9,7 +9,7 @@ IN: db.debug
 
 ! These words leak resources, but are useful for interactivel testing
 : set-sqlite-db ( -- )
-    sqlite-db db-open db-connection set ;
+    sqlite-db db>db-connection db-connection set ;
 
 : test-sqlite-quot ( quot -- quot' )
     '[ sqlite-test-db _ with-db ] ; inline
@@ -25,7 +25,7 @@ IN: db.debug
         "factor-test" >>database ;
 
 : set-postgresql-db ( -- )
-    postgresql-db db-open db-connection set ;
+    postgresql-db db>db-connection db-connection set ;
 
 : test-postgresql-quot ( quot -- quot' )
     '[

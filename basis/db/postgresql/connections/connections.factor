@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors combinators db.connections db.errors
 db.postgresql db.postgresql.errors db.postgresql.ffi
-db.postgresql.lib kernel sequences splitting ;
+db.postgresql.lib kernel sequences splitting destructors ;
 IN: db.postgresql.connections
 
 <PRIVATE
@@ -14,7 +14,7 @@ TUPLE: postgresql-db-connection < db-connection ;
 
 PRIVATE>
 
-M: postgresql-db db-open ( db -- db-connection )
+M: postgresql-db db>db-connection ( db -- db-connection )
     {
         [ host>> ]
         [ port>> ]
@@ -25,7 +25,8 @@ M: postgresql-db db-open ( db -- db-connection )
         [ password>> ]
     } cleave connect-postgres <postgresql-db-connection> ;
 
-M: postgresql-db-connection db-close ( handle -- ) handle>> PQfinish ;
+M: postgresql-db-connection dispose* ( db-connection -- )
+    [ handle>> PQfinish ] [ f >>handle drop ] bi ;
 
 M: postgresql-db-connection parse-sql-error
     "\n" split dup length {

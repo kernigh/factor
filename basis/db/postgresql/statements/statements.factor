@@ -12,10 +12,6 @@ M: postgresql-db-connection prepare-statement*
     [ sql>> ] [ in>> ] bi length f
     PQprepare postgresql-error >>handle ;
 
-M: postgresql-db-connection dispose ( query -- )
-    [ handle>> PQfinish ]
-    [ f >>handle drop ] bi ;
-
 M: postgresql-db-connection dispose-statement
     dup handle>> PQclear
     f >>handle drop ;

@@ -9,12 +9,8 @@ TUPLE: db-connection < disposable handle ;
     new-disposable
         swap >>handle ; inline
 
-GENERIC: db-open ( db -- db-connection )
-GENERIC: db-close ( handle  -- )
-
-M: db-connection dispose* ( db-connection -- )
-    [ db-close ] [ f >>handle drop ] bi ;
+GENERIC: db>db-connection ( db -- db-connection )
 
 : with-db ( db quot -- )
-    [ db-open db-connection over ] dip
+    [ db>db-connection db-connection over ] dip
     '[ _ [ drop @ ] with-disposal ] with-variable ; inline

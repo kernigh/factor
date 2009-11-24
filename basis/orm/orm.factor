@@ -1,8 +1,9 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs classes classes.tuple
-combinators db.query-objects db.types fry kernel make multiline
-namespaces orm.persistent sequences shuffle db.utils ;
+combinators db.query-objects db.types fry kernel make
+namespaces orm.persistent sequences shuffle db.utils
+nested-comments ;
 IN: orm
 
 SYMBOL: table-counter
@@ -36,6 +37,10 @@ SYMBOL: table-counter
         [ 0 swap (tuple>relations) ] { } make
     ] with-variable ;
 
+(*
+Don't introspect the quotation at runtime.
+*)
+
 : find-containing-classes ( class -- seq )
     [ inherited-persistent-table get-global ] dip
     '[
@@ -66,11 +71,11 @@ SYMBOL: table-counter
 : relations>joins ( seq -- seq' )
     [ relation>join ] map concat ;
 
-/*
+(*
 : tuple>select-statement ( tuple -- select )
     [ select new ] dip
     {
         ! [ tuple>relations relations>joins 1array >>join ]
         ! [ ]
     } cleave ;
-*/
+*)

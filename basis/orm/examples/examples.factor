@@ -96,9 +96,6 @@ T{ jar { beans IGNORE } } select-tuples
 
 *)
 
-
-
-
 ! Blogs
 TUPLE: entity id author date content ;
 CONSTRUCTOR: entity ( author content -- entity ) now >>date ;
@@ -112,7 +109,4 @@ TUPLE: post < entity title comments ;
 CONSTRUCTOR: post ( title -- entity ) now >>date ;
 PERSISTENT: post
     { "title" VARCHAR NOT-NULL }
-    { "comments" { post sequence } } ;
-
-TUPLE: comment < entity ;
-PERSISTENT: comment ;
+    { "comments" { entity sequence } } ;

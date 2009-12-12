@@ -84,7 +84,7 @@ TUPLE: sequence-parser sequence n ;
     sequence length <growing-circular> :> growing
     sequence-parser
     [
-        current growing push-growing-circular
+        current growing growing-circular-push
         sequence growing sequence=
     ] take-until :> found
     growing sequence sequence= [

@@ -1,7 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors combinators constructors db.binders
-db.statements db.utils kernel namespaces sequences sets ;
+db.statements db.utils kernel namespaces sequences sets
+make sequences.deep ;
 IN: db.query-objects
 
 TUPLE: query ;
@@ -26,8 +27,12 @@ GENERIC: >qualified-column-name ( in -- string )
 M: in-binder >table-name table-name>> ;
 M: out-binder >table-name table-name>> ;
 
+! M: and-binder >table-name ;
+
 M: in-binder >column-name column-name>> ;
 M: out-binder >column-name column-name>> ;
+! M: and-binder >column-name ;
+
 M: count-function >column-name column-name>> "COUNT(" ")" surround ;
 M: sum-function >column-name column-name>> "SUM(" ")" surround ;
 M: average-function >column-name column-name>> "AVG(" ")" surround ;
@@ -41,13 +46,35 @@ M: last-function >column-name column-name>> "LAST(" ")" surround ;
 
 M: in-binder >qualified-column-name >qualified-full-name ;
 M: out-binder >qualified-column-name >qualified-full-name ;
-M: count-function >qualified-column-name >qualified-full-name "COUNT(" ")" surround ;
-M: sum-function >qualified-column-name >qualified-full-name "SUM(" ")" surround ;
-M: average-function >qualified-column-name >qualified-full-name "AVG(" ")" surround ;
-M: min-function >qualified-column-name >qualified-full-name "MIN(" ")" surround ;
-M: max-function >qualified-column-name >qualified-full-name "MAX(" ")" surround ;
-M: first-function >qualified-column-name >qualified-full-name "FIRST(" ")" surround ;
-M: last-function >qualified-column-name >qualified-full-name "LAST(" ")" surround ;
+M: and-binder >qualified-column-name
+    binders>> [ >qualified-full-name ] map ", " join "(" ")" surround ;
+
+M: count-function >qualified-column-name
+    >qualified-full-name "COUNT(" ")" surround ;
+M: sum-function >qualified-column-name
+    >qualified-full-name "SUM(" ")" surround ;
+M: average-function >qualified-column-name
+    >qualified-full-name "AVG(" ")" surround ;
+M: min-function >qualified-column-name
+    >qualified-full-name "MIN(" ")" surround ;
+M: max-function >qualified-column-name
+    >qualified-full-name "MAX(" ")" surround ;
+M: first-function >qualified-column-name
+    >qualified-full-name "FIRST(" ")" surround ;
+M: last-function >qualified-column-name
+    >qualified-full-name "LAST(" ")" surround ;
+
+GENERIC: >bind-pair ( obj -- string )
+: object-bind-pair ( obj -- string )
+    >qualified-column-name next-bind-index " = " glue ;
+: special-bind-pair ( obj join-string -- string )
+    [ binders>> [ object-bind-pair ] map ] dip join "(" ")" surround ;
+M: object >bind-pair object-bind-pair ;
+M: and-binder >bind-pair " and " special-bind-pair ;
+M: or-binder >bind-pair " or " special-bind-pair ;
+
+: >column/bind-pairs ( seq -- string )
+    [ >bind-pair ] map " and " join ;
 
 : >table-names ( in -- string )
     [ >table-name ] map prune ", " join ;
@@ -63,18 +90,23 @@ M: last-function >qualified-column-name >qualified-full-name "LAST(" ")" surroun
 
 GENERIC: query-object>statement* ( statement query-object -- statement )
 
+GENERIC: flatten-binder ( obj -- obj' )
+M: in-binder flatten-binder ;
+M: and-binder flatten-binder binders>> [ flatten-binder ] map ;
+M: or-binder flatten-binder binders>> [ flatten-binder ] map ;
+
+: flatten-in ( seq -- seq' )
+    [
+        [ flatten-binder , ] each
+    ] { } make flatten ;
+
 M: insert query-object>statement*
     [ "INSERT INTO " add-sql ] dip {
         [ in>> first >table-name add-sql " (" add-sql ]
         [ in>> >column-names add-sql ") VALUES(" add-sql ]
         [ in>> >bind-indices add-sql ");" add-sql ]
-        [ in>> >>in ]
+        [ in>> flatten-in >>in ]
     } cleave ;
-
-: >column/bind-pairs ( seq -- string )
-    [
-        >qualified-column-name next-bind-index " = " glue
-    ] map " and " join ;
 
 : seq>where ( statement seq -- statement )
     [
@@ -107,7 +139,7 @@ M: select query-object>statement*
         [ select-join add-sql ]
         [ in>> seq>where ";" add-sql ]
         [ out>> >>out ]
-        [ in>> >>in ]
+        [ in>> flatten-in >>in ]
     } cleave ;
 
 M: update query-object>statement*
@@ -115,14 +147,14 @@ M: update query-object>statement*
         [ in>> >table-names add-sql " SET " add-sql ]
         [ in>> >column/bind-pairs add-sql ]
         [ where>> seq>where ";" add-sql ]
-        [ { in>> where>> } slots append >>in ]
+        [ { in>> where>> } slots append flatten-in >>in ]
     } cleave ;
 
 M: delete query-object>statement*
     [ "DELETE FROM " add-sql ] dip {
         [ where>> >table-names add-sql ]
         [ where>> seq>where ";" add-sql ]
-        [ where>> >>in ]
+        [ where>> flatten-in >>in ]
     } cleave ;
 
 : query-object>statement ( object1 -- object2 )

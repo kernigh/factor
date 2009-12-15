@@ -239,6 +239,7 @@ T{ statement
 [
 T{ statement
     { sql "SELECT COUNT(qdog.id) FROM qdog;" }
+    { in { } }
     { out
         {
             T{ count-function
@@ -329,6 +330,7 @@ T{ statement
     { sql
         "SELECT user.id, user.name, address.id, address.user_id, address.street, address.city, address.zip FROM user LEFT JOIN address ON user.id = address.user_id;"
     }
+    { in { } }
     { out
         {
             T{ out-binder
@@ -424,6 +426,89 @@ T{ statement
                     }
                 }
             }
+        } query-object>statement
+    ] with-variable
+] unit-test
+
+
+[
+T{ statement
+    { sql
+        "SELECT user.id, user.name FROM user WHERE (qdog.id = ? and qdog.id = ?);"
+    }
+    { in
+        {
+            T{ in-binder
+                { table-name "qdog" }
+                { column-name "id" }
+                { type INTEGER }
+                { value 0 }
+            }
+            T{ in-binder
+                { table-name "qdog" }
+                { column-name "id" }
+                { type INTEGER }
+                { value 1 }
+            }
+        }
+    }
+    { out
+        {
+            T{ out-binder
+                { table-name "user" }
+                { column-name "id" }
+                { type INTEGER }
+            }
+            T{ out-binder
+                { table-name "user" }
+                { column-name "name" }
+                { type VARCHAR }
+            }
+        }
+    }
+    { errors V{ } }
+}
+] [
+    T{ sqlite-db-connection } db-connection
+    [
+        T{ select
+            { in
+                {
+                    T{ and-binder
+                        { binders
+                            {
+                                T{ in-binder
+                                    { table-name "qdog" }
+                                    { column-name "id" }
+                                    { type INTEGER }
+                                    { value 0 }
+                                }
+                                T{ in-binder
+                                    { table-name "qdog" }
+                                    { column-name "id" }
+                                    { type INTEGER }
+                                    { value 1 }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            { out
+                {
+                    T{ out-binder
+                        { table-name "user" }
+                        { column-name "id" }
+                        { type INTEGER }
+                    }
+                    T{ out-binder
+                        { table-name "user" }
+                        { column-name "name" }
+                        { type VARCHAR }
+                    }
+                }
+            }
+            { from { "user" } }
         } query-object>statement
     ] with-variable
 ] unit-test

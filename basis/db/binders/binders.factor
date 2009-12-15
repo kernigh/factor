@@ -52,6 +52,12 @@ TUPLE: last-function < out-binder ;
 CONSTRUCTOR: last-function ( table-name column-name -- obj )
     REAL >>type ;
 
+TUPLE: equal-binder < in-binder ;
+TUPLE: not-equal-binder < in-binder ;
+TUPLE: less-than-binder < in-binder ;
+TUPLE: less-than-equal-binder < in-binder ;
+TUPLE: greater-than-binder < in-binder ;
+TUPLE: greater-than-equal-binder < in-binder ;
 
 TUPLE: relation-binder
 class1 table-name1 column-name1 column1

@@ -64,9 +64,17 @@ M: first-function >qualified-column-name
 M: last-function >qualified-column-name
     >qualified-full-name "LAST(" ")" surround ;
 
+GENERIC: binder-operator ( obj -- string )
+M: equal-binder binder-operator drop " = " ;
+M: not-equal-binder binder-operator drop " <> " ;
+M: less-than-binder binder-operator drop " < " ;
+M: less-than-equal-binder binder-operator drop " <= " ;
+M: greater-than-binder binder-operator drop " > " ;
+M: greater-than-equal-binder binder-operator drop " >= " ;
+
 GENERIC: >bind-pair ( obj -- string )
 : object-bind-pair ( obj -- string )
-    >qualified-column-name next-bind-index " = " glue ;
+    [ >qualified-column-name next-bind-index ] [ binder-operator ] bi glue ;
 : special-bind-pair ( obj join-string -- string )
     [ binders>> [ object-bind-pair ] map ] dip join "(" ")" surround ;
 M: object >bind-pair object-bind-pair ;

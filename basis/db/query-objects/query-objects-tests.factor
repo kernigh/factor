@@ -90,7 +90,7 @@ T{ statement
     { sql "SELECT qdog.id, qdog.age FROM qdog WHERE qdog.age = ?;" }
     { in
         {
-            T{ in-binder
+            T{ equal-binder
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
@@ -135,7 +135,7 @@ T{ statement
             }
             { in
                 {
-                    T{ in-binder
+                    T{ equal-binder
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -155,13 +155,13 @@ T{ statement
     { sql "UPDATE qdog SET qdog.age = ? WHERE qdog.age = ?;" }
     { in
         {
-            T{ in-binder
+            T{ equal-binder
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
                 { value 1 }
             }
-            T{ in-binder
+            T{ equal-binder
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
@@ -178,7 +178,7 @@ T{ statement
         T{ update
             { in
                 {
-                    T{ in-binder
+                    T{ equal-binder
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -188,7 +188,7 @@ T{ statement
             }
             { where
                 {
-                    T{ in-binder
+                    T{ equal-binder
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -205,7 +205,7 @@ T{ statement
     { sql "DELETE FROM qdog WHERE qdog.age = ?;" }
     { in
         {
-            T{ in-binder
+            T{ equal-binder
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
@@ -222,7 +222,7 @@ T{ statement
         T{ delete
             { where
                 {
-                    T{ in-binder
+                    T{ equal-binder
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -277,7 +277,7 @@ T{ statement
     { sql "SELECT COUNT(qdog.id) FROM qdog WHERE qdog.age = ?;" }
     { in
         {
-            T{ in-binder
+            T{ equal-binder
                 { table-name "qdog" }
                 { column-name "age" }
                 { type INTEGER }
@@ -312,7 +312,7 @@ T{ statement
             }
             { in
                 {
-                    T{ in-binder
+                    T{ equal-binder
                         { table-name "qdog" }
                         { column-name "age" }
                         { type INTEGER }
@@ -438,13 +438,13 @@ T{ statement
     }
     { in
         {
-            T{ in-binder
+            T{ equal-binder
                 { table-name "qdog" }
                 { column-name "id" }
                 { type INTEGER }
                 { value 0 }
             }
-            T{ in-binder
+            T{ equal-binder
                 { table-name "qdog" }
                 { column-name "id" }
                 { type INTEGER }
@@ -477,17 +477,99 @@ T{ statement
                     T{ and-binder
                         { binders
                             {
-                                T{ in-binder
+                                T{ equal-binder
                                     { table-name "qdog" }
                                     { column-name "id" }
                                     { type INTEGER }
                                     { value 0 }
                                 }
-                                T{ in-binder
+                                T{ equal-binder
                                     { table-name "qdog" }
                                     { column-name "id" }
                                     { type INTEGER }
                                     { value 1 }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            { out
+                {
+                    T{ out-binder
+                        { table-name "user" }
+                        { column-name "id" }
+                        { type INTEGER }
+                    }
+                    T{ out-binder
+                        { table-name "user" }
+                        { column-name "name" }
+                        { type VARCHAR }
+                    }
+                }
+            }
+            { from { "user" } }
+        } query-object>statement
+    ] with-variable
+] unit-test
+
+[
+T{ statement
+    { sql
+        "SELECT user.id, user.name FROM user WHERE (qdog.id > ? and qdog.id <= ?);"
+    }
+    { in
+        {
+            T{ greater-than-binder
+                { table-name "qdog" }
+                { column-name "id" }
+                { type INTEGER }
+                { value 0 }
+            }
+            T{ less-than-equal-binder
+                { table-name "qdog" }
+                { column-name "id" }
+                { type INTEGER }
+                { value 5 }
+            }
+        }
+    }
+    { out
+        {
+            T{ out-binder
+                { table-name "user" }
+                { column-name "id" }
+                { type INTEGER }
+            }
+            T{ out-binder
+                { table-name "user" }
+                { column-name "name" }
+                { type VARCHAR }
+            }
+        }
+    }
+    { errors V{ } }
+}
+] [
+    T{ sqlite-db-connection } db-connection
+    [
+        T{ select
+            { in
+                {
+                    T{ and-binder
+                        { binders
+                            {
+                                T{ greater-than-binder
+                                    { table-name "qdog" }
+                                    { column-name "id" }
+                                    { type INTEGER }
+                                    { value 0 }
+                                }
+                                T{ less-than-equal-binder
+                                    { table-name "qdog" }
+                                    { column-name "id" }
+                                    { type INTEGER }
+                                    { value 5 }
                                 }
                             }
                         }

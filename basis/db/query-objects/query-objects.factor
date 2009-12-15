@@ -19,7 +19,6 @@ CONSTRUCTOR: delete ( -- delete ) ;
 TUPLE: select < query in out from join offset limit ;
 CONSTRUCTOR: select ( -- select ) ;
 
-
 GENERIC: >table-name ( in -- string )
 GENERIC: >column-name ( in -- string )
 GENERIC: >qualified-column-name ( in -- string )
@@ -27,11 +26,8 @@ GENERIC: >qualified-column-name ( in -- string )
 M: in-binder >table-name table-name>> ;
 M: out-binder >table-name table-name>> ;
 
-! M: and-binder >table-name ;
-
 M: in-binder >column-name column-name>> ;
 M: out-binder >column-name column-name>> ;
-! M: and-binder >column-name ;
 
 M: count-function >column-name column-name>> "COUNT(" ")" surround ;
 M: sum-function >column-name column-name>> "SUM(" ")" surround ;

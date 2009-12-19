@@ -7,7 +7,7 @@ TUPLE: db-pool < pool db ;
 
 : <db-pool> ( db -- pool )
     db-pool <pool>
-        swap >>db ;
+        swap >>db ; inline
 
 : with-db-pool ( db quot -- )
     [ <db-pool> ] dip with-pool ; inline

@@ -16,10 +16,8 @@ TUPLE: out-binder-low < binder type ;
 CONSTRUCTOR: out-binder ( table-name column-name type -- obj ) ;
 CONSTRUCTOR: out-binder-low ( type -- obj ) ;
 
-
 TUPLE: and-binder binders ;
 TUPLE: or-binder binders ;
-
 
 TUPLE: join-binder < binder table-name1 column-name1 table-name2 column-name2 ;
 CONSTRUCTOR: join-binder ( table-name1 column-name1 table-name2 column-name2 -- obj ) ;

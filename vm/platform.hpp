@@ -10,6 +10,11 @@
 	#error "Unsupported architecture"
 #endif
 
+#ifdef _MSC_VER
+	#define WINDOWS
+	#define WINNT
+#endif
+
 #if defined(WINDOWS)
 	#if defined(WINCE)
 		#include "os-windows-ce.hpp"

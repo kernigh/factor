@@ -4,8 +4,16 @@ namespace factor
 inline cell log2(cell x)
 {
 	cell n;
-#if defined(FACTOR_X86) || defined(FACTOR_AMD64)
-	asm ("bsr %1, %0;":"=r"(n):"r"(x));
+if defined(FACTOR_X86) || defined(FACTOR_AMD64)
+	#if defined(_MSC_VER)
+		__asm {
+			mov eax n
+			mov ecx x
+			bsr n, x
+		}
+	#else
+		asm ("bsr %1, %0;":"=r"(n):"r"(x));
+	#endif
 #elif defined(FACTOR_PPC)
 	asm ("cntlzw %1, %0;":"=r"(n):"r"(x));
 	n = (31 - n);
@@ -22,7 +30,7 @@ inline cell rightmost_clear_bit(cell x)
 
 inline cell rightmost_set_bit(cell x)
 {
-	return log2(x & -x);
+	return log2(x & (~x + 1));
 }
 
 inline cell popcount(cell x)

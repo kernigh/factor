@@ -14,21 +14,21 @@ void factor_vm::init_ffi()
 
 void factor_vm::ffi_dlopen(dll *dll)
 {
-	dll->dll = LoadLibraryEx((WCHAR *)alien_offset(dll->path), NULL, 0);
+	dll->handle = LoadLibraryEx((WCHAR *)alien_offset(dll->path), NULL, 0);
 }
 
 void *factor_vm::ffi_dlsym(dll *dll, symbol_char *symbol)
 {
-	return (void *)GetProcAddress(dll ? (HMODULE)dll->dll : hFactorDll, symbol);
+	return (void *)GetProcAddress(dll ? (HMODULE)dll->handle : hFactorDll, symbol);
 }
 
 void factor_vm::ffi_dlclose(dll *dll)
 {
-	FreeLibrary((HMODULE)dll->dll);
-	dll->dll = NULL;
+	FreeLibrary((HMODULE)dll->handle);
+	dll->handle = NULL;
 }
 
-bool factor_vm::windows_stat(vm_char *path)
+BOOL factor_vm::windows_stat(vm_char *path)
 {
 	BY_HANDLE_FILE_INFORMATION bhfi;
 	HANDLE h = CreateFileW(path,
@@ -50,8 +50,7 @@ bool factor_vm::windows_stat(vm_char *path)
 		FindClose(h);
 		return true;
 	}
-	bool ret;
-	ret = GetFileInformationByHandle(h, &bhfi);
+	BOOL ret = GetFileInformationByHandle(h, &bhfi);
 	CloseHandle(h);
 	return ret;
 }

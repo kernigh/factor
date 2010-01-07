@@ -8,6 +8,11 @@
 #include <windows.h>
 #include <shellapi.h>
 
+#ifdef _MSC_VER
+	#undef min
+	#undef max
+#endif
+
 namespace factor
 {
 
@@ -17,9 +22,13 @@ typedef char symbol_char;
 #define FACTOR_DLL L"factor.dll"
 #define FACTOR_DLL_NAME "factor.dll"
 
-#define FACTOR_STDCALL __attribute__((stdcall))
+#ifdef _MSC_VER
+	#define FACTOR_STDCALL(return_type) return_type __stdcall
+#else
+	#define FACTOR_STDCALL(return_type) __attribute__((stdcall)) return_type
+#endif
 
-FACTOR_STDCALL LONG exception_handler(PEXCEPTION_POINTERS pe);
+FACTOR_STDCALL(LONG) exception_handler(PEXCEPTION_POINTERS pe);
 
 // SSE traps raise these exception codes, which are defined in internal NT headers
 // but not winbase.h

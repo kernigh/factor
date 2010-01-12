@@ -277,7 +277,7 @@ void factor_vm::primitive_str_to_float()
 void factor_vm::primitive_float_to_str()
 {
 	byte_array *array = allot_byte_array(33);
-	snprintf((char *)(array + 1),32,"%.16g",untag_float_check(ctx->pop()));
+	SNPRINTF((char *)(array + 1),32,"%.16g",untag_float_check(ctx->pop()));
 	ctx->push(tag<byte_array>(array));
 }
 

@@ -4,12 +4,13 @@ namespace factor
 inline cell log2(cell x)
 {
 	cell n;
-if defined(FACTOR_X86) || defined(FACTOR_AMD64)
+#if defined(FACTOR_X86) || defined(FACTOR_AMD64)
 	#if defined(_MSC_VER)
 		__asm {
-			mov eax n
-			mov ecx x
-			bsr n, x
+			mov eax, n;
+			mov ecx, x;
+			bsr eax, ecx;
+			mov n, ecx;
 		}
 	#else
 		asm ("bsr %1, %0;":"=r"(n):"r"(x));

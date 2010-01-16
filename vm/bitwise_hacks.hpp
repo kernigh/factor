@@ -4,14 +4,15 @@ namespace factor
 inline cell log2(cell x)
 {
 	cell n;
-#if defined(FACTOR_X86) || defined(FACTOR_AMD64)
+#if defined(FACTOR_X86)
 	#if defined(_MSC_VER)
-		__asm {
-			mov eax, n;
-			mov ecx, x;
-			bsr eax, ecx;
-			mov n, ecx;
-		}
+		_BitScanReverse(&n,x);
+	#else
+		asm ("bsr %1, %0;":"=r"(n):"r"(x));
+	#endif
+#elif defined(FACTOR_AMD64)
+	#if defined(_MSC_VER)
+		_BitScanReverse64(&n,x);
 	#else
 		asm ("bsr %1, %0;":"=r"(n):"r"(x));
 	#endif

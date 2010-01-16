@@ -513,7 +513,7 @@ cell factor_vm::from_unsigned_8(u64 n)
 	if(n > (u64)fixnum_max)
 		return tag<bignum>(ulong_long_to_bignum(n));
 	else
-		return tag_fixnum((u64)n);
+		return tag_fixnum((fixnum)n);
 }
 
 VM_C_API cell from_unsigned_8(u64 n, factor_vm *parent)

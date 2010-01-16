@@ -153,7 +153,7 @@ M: bad-executable summary
 
 : infer-<tuple-boa> ( -- )
     \ <tuple-boa>
-    peek-d literal value>> second 1 + { tuple } <effect>
+    peek-d literal value>> second 1 + "obj" <array> { tuple } <effect>
     apply-word/effect ;
 
 \ <tuple-boa> [ infer-<tuple-boa> ] "special" set-word-prop
@@ -489,10 +489,10 @@ M: bad-executable summary
 \ word-xt { word } { integer integer } define-primitive
 \ word-xt make-flushable
 
-\ getenv { fixnum } { object } define-primitive
-\ getenv make-flushable
+\ special-object { fixnum } { object } define-primitive
+\ special-object make-flushable
 
-\ setenv { object fixnum } { } define-primitive
+\ set-special-object { object fixnum } { } define-primitive
 
 \ (exists?) { string } { object } define-primitive
 

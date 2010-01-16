@@ -231,11 +231,11 @@ VM_C_API void parse_args(int *argc, wchar_t ***argv, wchar_t *cmdlinePtrW)
 	/* gets realloc()'d later */
 	*argv = (wchar_t **)malloc (sizeof (wchar_t**) * 1);
 	if (!*argv)
-		ExitProcess(-1);
+		ExitProcess(1);
 
 	(*argv)[0] = wcsdup(cmdnameBufW);
 	if(!(*argv[0]))
-		ExitProcess(-1);
+		ExitProcess(1);
 	/* Add one to account for argv[0] */
 	(*argc)++;
 
@@ -244,10 +244,10 @@ VM_C_API void parse_args(int *argc, wchar_t ***argv, wchar_t *cmdlinePtrW)
 		wchar_t *argv1 = (*argv)[0] + wcslen((*argv)[0]) + 1;
 		argv1 = wcsdup(cmdlinePtrW);
 		if(!argv1)
-			ExitProcess(-1);
+			ExitProcess(1);
 		*argc = parse_tokens(argv1, argv, 1);
 		if (*argc < 0)
-			ExitProcess(-1);
+			ExitProcess(1);
 	}
 	(*argv)[*argc] = 0;
 	return;

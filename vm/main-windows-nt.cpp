@@ -1,6 +1,6 @@
 #include "master.hpp"
 
-extern "C" int wmain(int argc, wchar_t **argv)
+VM_C_API int wmain(int argc, wchar_t **argv)
 {
 	factor::init_globals();
 #ifdef FACTOR_MULTITHREADED
@@ -20,7 +20,8 @@ int WINAPI WinMain(
 {
 	int argc;
 	wchar_t **argv;
-	factor::parse_args(&argc, &argv, (wchar_t *)lpCmdLine);
+
+	factor::parse_args(&argc, &argv, (wchar_t *)GetCommandLine());
 
 	wmain(argc,argv);
 

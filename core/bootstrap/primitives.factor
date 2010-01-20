@@ -33,8 +33,7 @@ architecture get {
 ! Bring up a bare cross-compiling vocabulary.
 "syntax" vocab vocab-words bootstrap-syntax set {
     dictionary
-    new-classes
-    changed-definitions changed-generics changed-effects
+    changed-definitions changed-effects
     outdated-generics forgotten-definitions
     root-cache source-files update-map implementors-map
 } [ H{ } clone swap set ] each

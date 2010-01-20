@@ -127,6 +127,9 @@ bootstrapping? on
     prepare-slots make-slots 1 finalize-slots
     [ "slots" set-word-prop ] [ define-accessors ] 2bi ;
 
+: define-builtin-predicate ( class -- )
+    dup class>type [ eq? ] curry [ tag ] prepend define-predicate ;
+
 : define-builtin ( symbol slotspec -- )
     [ [ define-builtin-predicate ] keep ] dip define-builtin-slots ;
 

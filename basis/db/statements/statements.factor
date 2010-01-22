@@ -54,7 +54,7 @@ M: object reset-statement ;
     [ 2drop ] if ; inline recursive
 
 : result-set-map ( statement quot -- sequence )
-    accumulator [ result-set-each ] dip { } like ; inline
+    collector [ result-set-each ] dip { } like ; inline
 
 : statement>sequence ( statement word -- sequence )
     [ statement>result-set ] dip

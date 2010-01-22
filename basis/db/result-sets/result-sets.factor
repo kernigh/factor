@@ -28,7 +28,7 @@ GENERIC: get-type ( binder/word -- type )
         } cleave ;
 
 : sql-row ( result-set -- seq )
-    dup #columns [ column ] with map ;
+    dup #columns iota [ column ] with map ;
 
 : sql-row-typed ( result-set -- seq )
     [ #columns ] [ out>> ] [ ] tri

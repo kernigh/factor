@@ -1,6 +1,6 @@
-! Copyright (C) 2008, 2009 Slava Pestov.
+! Copyright (C) 2008, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors kernel prettyprint io debugger
+USING: accessors arrays kernel prettyprint io debugger
 sequences assocs stack-checker.errors summary effects ;
 IN: stack-checker.errors.prettyprint
 
@@ -15,7 +15,7 @@ M: unbalanced-branches-error summary
 
 M: unbalanced-branches-error error.
     dup summary print
-    [ quots>> ] [ branches>> [ length <effect> ] { } assoc>map ] bi zip
+    [ quots>> ] [ branches>> [ length [ "x" <array> ] bi@ <effect> ] { } assoc>map ] bi zip
     [ [ first pprint-short bl ] [ second effect>string print ] bi ] each ;
 
 M: too-many->r summary
@@ -49,9 +49,6 @@ M: inconsistent-recursive-call-error summary
     word>> name>>
     "The recursive word "
     " calls itself with a different set of quotation parameters than were input" surround ;
-
-M: unknown-primitive-error summary
-    drop "The do-primitive word cannot be called from here" ;
 
 M: transform-expansion-error summary
     word>> name>> "Macro expansion of " " threw an error" surround ;

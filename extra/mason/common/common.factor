@@ -8,8 +8,10 @@ calendar.format arrays mason.config locals debugger fry
 continuations strings io.sockets ;
 IN: mason.common
 
+ERROR: no-host-name ;
+
 : short-host-name ( -- string )
-    host-name "." split1 drop ;
+    host-name "." split1 drop [ no-host-name ] unless* ;
 
 SYMBOL: current-git-id
 
@@ -30,6 +32,7 @@ M: windows really-delete-tree
 M: unix really-delete-tree delete-tree ;
 
 : retry ( n quot -- )
+    [ iota ] dip
     '[ drop @ f ] attempt-all drop ; inline
 
 :: upload-safely ( local username host remote -- )

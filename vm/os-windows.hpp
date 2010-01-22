@@ -1,8 +1,8 @@
 #include <ctype.h>
 
 #ifndef wcslen
-  /* for cygwin */
-  #include <wchar.h>
+	/* for cygwin */
+	#include <wchar.h>
 #endif
 
 namespace factor
@@ -18,24 +18,32 @@ typedef wchar_t vm_char;
 #define STRCMP wcscmp
 #define STRNCMP wcsncmp
 #define STRDUP _wcsdup
-#define MIN(a,b) ((a)>(b)?(b):(a))
-#define FTELL ftello64
-#define FSEEK fseeko64
 
-#ifdef WIN64
-	#define CELL_FORMAT "%Iu"
-	#define CELL_HEX_FORMAT "%Ix"
-	#define CELL_HEX_PAD_FORMAT "%016Ix"
-	#define FIXNUM_FORMAT "%Id"
+#ifdef _MSC_VER
+	#define FTELL ftell
+	#define FSEEK fseek
+	#define SNPRINTF _snprintf
+	#define SNWPRINTF _snwprintf
 #else
-	#define CELL_FORMAT "%lu"
-	#define CELL_HEX_FORMAT "%lx"
-	#define CELL_HEX_PAD_FORMAT "%08lx"
-	#define FIXNUM_FORMAT "%ld"
+	#define FTELL ftello64
+	#define FSEEK fseeko64
+	#define SNPRINTF snprintf
+	#define SNWPRINTF snwprintf
 #endif
 
-#define OPEN_READ(path) _wfopen(path,L"rb")
-#define OPEN_WRITE(path) _wfopen(path,L"wb")
+#ifdef WIN64
+	#define CELL_HEX_FORMAT "%Ix"
+#else
+	#define CELL_HEX_FORMAT "%lx"
+#endif
+
+#define OPEN_READ(path) _wfopen((path),L"rb")
+#define OPEN_WRITE(path) _wfopen((path),L"wb")
+#define MOVE_FILE(path1,path2)\
+do {\
+	if(MoveFileEx((path1),(path2),MOVEFILE_REPLACE_EXISTING) == false)\
+		std::cout << "MoveFile() failed: error " << GetLastError() << std::endl;\
+} while(0)
 
 /* Difference between Jan 1 00:00:00 1601 and Jan 1 00:00:00 1970 */
 #define EPOCH_OFFSET 0x019db1ded53e8000LL

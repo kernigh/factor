@@ -1,4 +1,4 @@
-! Copyright (C) 2005, 2009 Slava Pestov.
+! Copyright (C) 2005, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs alien alien.c-types arrays strings
 cpu.x86.assembler cpu.x86.assembler.private cpu.x86.assembler.operands
@@ -23,6 +23,8 @@ M: label JUMPcc [ 0 ] dip JUMPcc rc-relative label-fixup ;
 M: x86 vector-regs float-regs ;
 
 HOOK: stack-reg cpu ( -- reg )
+
+HOOK: frame-reg cpu ( -- reg )
 
 HOOK: reserved-stack-space cpu ( -- n )
 
@@ -54,8 +56,8 @@ M: x86 stack-frame-size ( stack-frame -- i )
     3 cells +
     align-stack ;
 
-! Must be a volatile register not used for parameter passing, for safe
-! use in calls in and out of C
+! Must be a volatile register not used for parameter passing or
+! integer return
 HOOK: temp-reg cpu ( -- reg )
 
 HOOK: pic-tail-reg cpu ( -- reg )
@@ -84,7 +86,7 @@ M: x86 %call ( word -- ) 0 CALL rc-relative rel-word-pic ;
 
 : xt-tail-pic-offset ( -- n )
     #! See the comment in vm/cpu-x86.hpp
-    cell 4 + 1 + ; inline
+    4 1 + ; inline
 
 M: x86 %jump ( word -- )
     pic-tail-reg 0 MOV xt-tail-pic-offset rc-absolute-cell rel-here
@@ -417,11 +419,7 @@ M: x86 %shl int-rep two-operand [ SHL ] emit-shift ;
 M: x86 %shr int-rep two-operand [ SHR ] emit-shift ;
 M: x86 %sar int-rep two-operand [ SAR ] emit-shift ;
 
-: %mov-vm-ptr ( reg -- )
-    0 MOV 0 rc-absolute-cell rel-vm ;
-
-M: x86 %vm-field-ptr ( dst field -- )
-    [ 0 MOV ] dip vm-field-offset rc-absolute-cell rel-vm ;
+HOOK: %mov-vm-ptr cpu ( reg -- )
 
 : load-allot-ptr ( nursery-ptr allot-ptr -- )
     [ drop "nursery" %vm-field-ptr ] [ swap [] MOV ] 2bi ;
@@ -471,6 +469,23 @@ M: x86 %load-gc-root ( gc-root register -- ) swap gc-root@ MOV ;
 
 M: x86 %alien-global ( dst symbol library -- )
     [ 0 MOV ] 2dip rc-absolute-cell rel-dlsym ;    
+
+M: x86 %push-stack ( -- )
+    ds-reg cell ADD
+    ds-reg [] int-regs return-reg MOV ;
+
+:: %load-context-datastack ( dst -- )
+    ! Load context struct
+    dst "ctx" %vm-field-ptr
+    dst dst [] MOV
+    ! Load context datastack pointer
+    dst "datastack" context-field-offset ADD ;
+
+M: x86 %push-context-stack ( -- )
+    temp-reg %load-context-datastack
+    temp-reg [] bootstrap-cell ADD
+    temp-reg temp-reg [] MOV
+    temp-reg [] int-regs return-reg MOV ;
 
 M: x86 %epilogue ( n -- ) cell - incr-stack-reg ;
 
@@ -648,43 +663,6 @@ M: x86 %fill-vector-reps
         { sse? { float-4-rep } }
         { sse2? { double-2-rep char-16-rep uchar-16-rep short-8-rep ushort-8-rep int-4-rep uint-4-rep longlong-2-rep ulonglong-2-rep } }
     } available-reps ;
-
-! M:: x86 %broadcast-vector ( dst src rep -- )
-!     rep signed-rep {
-!         { float-4-rep [
-!             dst src float-4-rep %copy
-!             dst dst { 0 0 0 0 } SHUFPS
-!         ] }
-!         { double-2-rep [
-!             dst src MOVDDUP
-!         ] }
-!         { longlong-2-rep [
-!             dst src =
-!             [ dst dst PUNPCKLQDQ ]
-!             [ dst src { 0 1 0 1 } PSHUFD ]
-!             if
-!         ] }
-!         { int-4-rep [
-!             dst src { 0 0 0 0 } PSHUFD
-!         ] }
-!         { short-8-rep [
-!             dst src { 0 0 0 0 } PSHUFLW 
-!             dst dst PUNPCKLQDQ 
-!         ] }
-!         { char-16-rep [
-!             dst src char-16-rep %copy
-!             dst dst PUNPCKLBW
-!             dst dst { 0 0 0 0 } PSHUFLW
-!             dst dst PUNPCKLQDQ
-!         ] }
-!     } case ;
-! 
-! M: x86 %broadcast-vector-reps
-!     {
-!         ! Can't do this with sse1 since it will want to unbox
-!         ! a double-precision float and convert to single precision
-!         { sse2? { float-4-rep double-2-rep longlong-2-rep ulonglong-2-rep int-4-rep uint-4-rep short-8-rep ushort-8-rep char-16-rep uchar-16-rep } }
-!     } available-reps ;
 
 M:: x86 %gather-vector-4 ( dst src1 src2 src3 src4 rep -- )
     rep signed-rep {
@@ -883,6 +861,7 @@ M: x86 %float>integer-vector-reps
 
 : (%compare-float-vector) ( dst src rep double single -- )
     [ double-2-rep eq? ] 2dip if ; inline
+
 : %compare-float-vector ( dst src rep cc -- )
     {
         { cc<    [ [ CMPLTPD    ] [ CMPLTPS    ] (%compare-float-vector) ] }
@@ -903,6 +882,7 @@ M: x86 %float>integer-vector-reps
         { short-8-rep    [ int16 call ] }
         { char-16-rep    [ int8  call ] }
     } case ; inline
+
 : %compare-int-vector ( dst src rep cc -- )
     {
         { cc= [ [ PCMPEQQ ] [ PCMPEQD ] [ PCMPEQW ] [ PCMPEQB ] (%compare-int-vector) ] }
@@ -921,6 +901,7 @@ M: x86 %compare-vector ( dst src1 src2 rep cc -- )
         { sse2? { double-2-rep char-16-rep uchar-16-rep short-8-rep ushort-8-rep int-4-rep uint-4-rep } }
         { sse4.1? { longlong-2-rep ulonglong-2-rep } }
     } available-reps ;
+
 : %compare-vector-ord-reps ( -- reps )
     {
         { sse? { float-4-rep } }
@@ -1409,6 +1390,7 @@ M: x86 %integer>scalar drop MOVD ;
     } case ;
 
 M: x86.32 %scalar>integer ( dst src rep -- ) %scalar>integer-32 ;
+
 M: x86.64 %scalar>integer ( dst src rep -- )
     {
         { longlong-scalar-rep  [ MOVD ] }
@@ -1424,18 +1406,26 @@ M:: x86 %reload ( dst rep src -- ) dst src rep %copy ;
 
 M: x86 %loop-entry 16 code-alignment [ NOP ] times ;
 
-M:: x86 %save-context ( temp1 temp2 callback-allowed? -- )
+M:: x86 %restore-context ( temp1 temp2 -- )
+    #! Load Factor stack pointers on entry from C to Factor.
+    #! Also save callstack bottom!
+    temp1 "ctx" %vm-field-ptr
+    temp1 temp1 [] MOV
+    temp2 stack-reg stack-frame get total-size>> cell - [+] LEA
+    temp1 "callstack-bottom" context-field-offset [+] temp2 MOV
+    ds-reg temp1 "datastack" context-field-offset [+] MOV
+    rs-reg temp1 "retainstack" context-field-offset [+] MOV ;
+
+M:: x86 %save-context ( temp1 temp2 -- )
     #! Save Factor stack pointers in case the C code calls a
     #! callback which does a GC, which must reliably trace
     #! all roots.
-    temp1 "stack_chain" %vm-field-ptr
+    temp1 "ctx" %vm-field-ptr
     temp1 temp1 [] MOV
     temp2 stack-reg cell neg [+] LEA
-    temp1 [] temp2 MOV
-    callback-allowed? [
-        temp1 2 cells [+] ds-reg MOV
-        temp1 3 cells [+] rs-reg MOV
-    ] when ;
+    temp1 "callstack-top" context-field-offset [+] temp2 MOV
+    temp1 "datastack" context-field-offset [+] ds-reg MOV
+    temp1 "retainstack" context-field-offset [+] rs-reg MOV ;
 
 M: x86 value-struct? drop t ;
 
@@ -1450,7 +1440,7 @@ M: x86 immediate-bitwise? ( n -- ? )
     #! input values to callbacks; the callback has its own
     #! stack frame set up, and we want to read the frame
     #! set up by the caller.
-    stack-frame get total-size>> + stack@ ;
+    frame-reg swap 2 cells + [+] ;
 
 enable-min/max
 enable-fixnum-log2
@@ -1475,6 +1465,6 @@ enable-fixnum-log2
     ] when ;
 
 : check-sse ( -- )
-    [ { sse_version } compile ] with-optimizer
+    [ { (sse-version) } compile ] with-optimizer
     "Checking for multimedia extensions: " write sse-version
     [ sse-string write " detected" print ] [ enable-sse2 ] bi ;

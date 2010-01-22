@@ -70,7 +70,7 @@ M: mdb-reply-op (read-message) ( msg-stub opcode -- message )
     read-longlong >>cursor
     read-int32 >>start#
     read-int32 [ >>returned# ] keep
-    [ H{ } stream>assoc ] accumulator [ times ] dip >>objects ;    
+    [ H{ } stream>assoc ] collector [ times ] dip >>objects ;    
 
 : read-header ( message -- message )
     read-int32 >>length
@@ -107,7 +107,7 @@ USE: tools.walker
 
 :: build-query-object ( query -- selector )
     H{ } clone :> selector
-    query { [ orderby>> [ "orderby" selector set-at ] when* ]
+    query { [ orderby>> [ "$orderby" selector set-at ] when* ]
       [ explain>> [ "$explain" selector set-at ] when* ]
       [ hint>> [ "$hint" selector set-at ] when* ] 
       [ query>> "query" selector set-at ]

@@ -137,7 +137,7 @@ TUPLE: jpeg-color-info
     data>>
     binary
     [
-        read1 [0,b)
+        read1 iota
         [   drop
             read1 jpeg> color-info>> nth clone
             read1 16 /mod [ >>dc-huff-table ] [ >>ac-huff-table ] bi*
@@ -198,7 +198,7 @@ MEMO: yuv>bgr-matrix ( -- m )
     { 8 8 } coord-matrix [ { u v } [ wave ] 2map product ] map^2
     1 u v [ 0 = [ 2 sqrt / ] when ] bi@ 4 / m*n ;
 
-MEMO: dct-matrix ( -- m ) 64 [0,b) [ 8 /mod dct-vect flatten ] map ;
+MEMO: dct-matrix ( -- m ) 64 iota [ 8 /mod dct-vect flatten ] map ;
 
 : mb-dim ( component -- dim )  [ h>> ] [ v>> ] bi 2array ;
 
@@ -351,7 +351,7 @@ SINGLETONS: YUV420 YUV444 Y MAGIC! ;
     [ bitstream>> ] 
     [ [ [ <huffman-decoder> ] with map ] change-huff-tables drop ] bi
     jpeg> components>> [ fetch-tables ] each
-    [ decode-macroblock 2array ] accumulator 
+    [ decode-macroblock 2array ] collector 
     [ all-macroblocks ] dip
     jpeg> setup-bitmap draw-macroblocks 
     jpeg> bitmap>> 3 <groups> [ color-transform ] map! drop

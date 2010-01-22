@@ -344,55 +344,9 @@ SYMBOLS:
         bootstrap-cell >>align
         bootstrap-cell >>align-first
         [ >c-ptr ] >>unboxer-quot
-        "box_alien" >>boxer
+        "allot_alien" >>boxer
         "alien_offset" >>unboxer
     \ void* define-primitive-type
-
-    <long-long-type>
-        integer >>class
-        integer >>boxed-class
-        [ alien-signed-8 ] >>getter
-        [ set-alien-signed-8 ] >>setter
-        8 >>size
-        8-byte-alignment
-        "box_signed_8" >>boxer
-        "to_signed_8" >>unboxer
-    \ longlong define-primitive-type
-
-    <long-long-type>
-        integer >>class
-        integer >>boxed-class
-        [ alien-unsigned-8 ] >>getter
-        [ set-alien-unsigned-8 ] >>setter
-        8 >>size
-        8-byte-alignment
-        "box_unsigned_8" >>boxer
-        "to_unsigned_8" >>unboxer
-    \ ulonglong define-primitive-type
-
-    <c-type>
-        integer >>class
-        integer >>boxed-class
-        [ alien-signed-cell ] >>getter
-        [ set-alien-signed-cell ] >>setter
-        bootstrap-cell >>size
-        bootstrap-cell >>align
-        bootstrap-cell >>align-first
-        "box_signed_cell" >>boxer
-        "to_fixnum" >>unboxer
-    \ long define-primitive-type
-
-    <c-type>
-        integer >>class
-        integer >>boxed-class
-        [ alien-unsigned-cell ] >>getter
-        [ set-alien-unsigned-cell ] >>setter
-        bootstrap-cell >>size
-        bootstrap-cell >>align
-        bootstrap-cell >>align-first
-        "box_unsigned_cell" >>boxer
-        "to_cell" >>unboxer
-    \ ulong define-primitive-type
 
     <c-type>
         integer >>class
@@ -402,7 +356,7 @@ SYMBOLS:
         4 >>size
         4 >>align
         4 >>align-first
-        "box_signed_4" >>boxer
+        "from_signed_4" >>boxer
         "to_fixnum" >>unboxer
     \ int define-primitive-type
 
@@ -414,7 +368,7 @@ SYMBOLS:
         4 >>size
         4 >>align
         4 >>align-first
-        "box_unsigned_4" >>boxer
+        "from_unsigned_4" >>boxer
         "to_cell" >>unboxer
     \ uint define-primitive-type
 
@@ -426,7 +380,7 @@ SYMBOLS:
         2 >>size
         2 >>align
         2 >>align-first
-        "box_signed_2" >>boxer
+        "from_signed_2" >>boxer
         "to_fixnum" >>unboxer
     \ short define-primitive-type
 
@@ -438,7 +392,7 @@ SYMBOLS:
         2 >>size
         2 >>align
         2 >>align-first
-        "box_unsigned_2" >>boxer
+        "from_unsigned_2" >>boxer
         "to_cell" >>unboxer
     \ ushort define-primitive-type
 
@@ -450,7 +404,7 @@ SYMBOLS:
         1 >>size
         1 >>align
         1 >>align-first
-        "box_signed_1" >>boxer
+        "from_signed_1" >>boxer
         "to_fixnum" >>unboxer
     \ char define-primitive-type
 
@@ -462,7 +416,7 @@ SYMBOLS:
         1 >>size
         1 >>align
         1 >>align-first
-        "box_unsigned_1" >>boxer
+        "from_unsigned_1" >>boxer
         "to_cell" >>unboxer
     \ uchar define-primitive-type
 
@@ -473,7 +427,7 @@ SYMBOLS:
             4 >>size
             4 >>align
             4 >>align-first
-            "box_boolean" >>boxer
+            "from_boolean" >>boxer
             "to_boolean" >>unboxer
     ] [
         <c-type>
@@ -482,7 +436,7 @@ SYMBOLS:
             1 >>size
             1 >>align
             1 >>align-first
-            "box_boolean" >>boxer
+            "from_boolean" >>boxer
             "to_boolean" >>unboxer
     ] if
     \ bool define-primitive-type
@@ -495,7 +449,7 @@ SYMBOLS:
         4 >>size
         4 >>align
         4 >>align-first
-        "box_float" >>boxer
+        "from_float" >>boxer
         "to_float" >>unboxer
         float-rep >>rep
         [ >float ] >>unboxer-quot
@@ -508,22 +462,81 @@ SYMBOLS:
         [ [ >float ] 2dip set-alien-double ] >>setter
         8 >>size
         8-byte-alignment
-        "box_double" >>boxer
+        "from_double" >>boxer
         "to_double" >>unboxer
         double-rep >>rep
         [ >float ] >>unboxer-quot
     \ double define-primitive-type
 
-    cpu x86.64? os windows? and [
+    cell 8 = [
+        <c-type>
+            integer >>class
+            integer >>boxed-class
+            [ alien-signed-cell ] >>getter
+            [ set-alien-signed-cell ] >>setter
+            bootstrap-cell >>size
+            bootstrap-cell >>align
+            bootstrap-cell >>align-first
+            "from_signed_cell" >>boxer
+            "to_fixnum" >>unboxer
+        \ longlong define-primitive-type
+
+        <c-type>
+            integer >>class
+            integer >>boxed-class
+            [ alien-unsigned-cell ] >>getter
+            [ set-alien-unsigned-cell ] >>setter
+            bootstrap-cell >>size
+            bootstrap-cell >>align
+            bootstrap-cell >>align-first
+            "from_unsigned_cell" >>boxer
+            "to_cell" >>unboxer
+        \ ulonglong define-primitive-type
+
+        os windows? [
+            \ int c-type \ long define-primitive-type
+            \ uint c-type \ ulong define-primitive-type
+        ] [
+            \ longlong c-type \ long define-primitive-type
+            \ ulonglong c-type \ ulong define-primitive-type
+        ] if
+
         \ longlong c-type \ ptrdiff_t typedef
         \ longlong c-type \ intptr_t typedef
+
         \ ulonglong c-type \ uintptr_t typedef
         \ ulonglong c-type \ size_t typedef
     ] [
-        \ long c-type \ ptrdiff_t typedef
-        \ long c-type \ intptr_t typedef
-        \ ulong c-type \ uintptr_t typedef
-        \ ulong c-type \ size_t typedef
+        <long-long-type>
+            integer >>class
+            integer >>boxed-class
+            [ alien-signed-8 ] >>getter
+            [ set-alien-signed-8 ] >>setter
+            8 >>size
+            8-byte-alignment
+            "from_signed_8" >>boxer
+            "to_signed_8" >>unboxer
+        \ longlong define-primitive-type
+
+        <long-long-type>
+            integer >>class
+            integer >>boxed-class
+            [ alien-unsigned-8 ] >>getter
+            [ set-alien-unsigned-8 ] >>setter
+            8 >>size
+            8-byte-alignment
+            "from_unsigned_8" >>boxer
+            "to_unsigned_8" >>unboxer
+        \ ulonglong define-primitive-type
+
+        \ int c-type \ long define-primitive-type
+        \ uint c-type \ ulong define-primitive-type
+
+        \ int c-type \ ptrdiff_t typedef
+        \ int c-type \ intptr_t typedef
+
+        \ uint c-type \ uintptr_t typedef
+        \ uint c-type \ size_t typedef
     ] if
 ] with-compilation-unit
 

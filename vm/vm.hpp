@@ -30,6 +30,9 @@ struct factor_vm
 	/* Canonical truth value. In Factor, 't' */
 	cell true_object;
 
+	/* External entry points */
+	c_to_factor_func_type c_to_factor_func;
+
 	/* Is call counting enabled? */
 	bool profiling_p;
 
@@ -92,13 +95,9 @@ struct factor_vm
 	u64 last_nano_count;
 
 	// contexts
-	void reset_datastack();
-	void reset_retainstack();
-	void fix_stacks();
-	void save_stacks();
 	context *alloc_context();
 	void dealloc_context(context *old_context);
-	void nest_stacks(stack_frame *magic_frame);
+	void nest_stacks();
 	void unnest_stacks();
 	void init_stacks(cell ds_size_, cell rs_size_);
 	bool stack_to_array(cell bottom, cell top);
@@ -117,7 +116,6 @@ struct factor_vm
 		while(ctx)
 		{
 			iterate_callstack(ctx,iter);
-			if(ctx->magic_frame) iter(ctx->magic_frame);
 			ctx = ctx->next;
 		}
 	}
@@ -269,8 +267,8 @@ struct factor_vm
 
 	inline void write_barrier(object *obj, cell size)
 	{
-		cell start = (cell)obj & -card_size;
-		cell end = ((cell)obj + size + card_size - 1) & -card_size;
+		cell start = (cell)obj & (~card_size + 1);
+		cell end = ((cell)obj + size + card_size - 1) & (~card_size + 1);
 
 		for(cell offset = start; offset < end; offset += card_size)
 			write_barrier((cell *)offset);
@@ -375,9 +373,7 @@ struct factor_vm
 	void primitive_set_string_nth_slow();
 
 	//booleans
-	void box_boolean(bool value);
-
-	inline cell tag_boolean(cell untagged)
+	cell tag_boolean(cell untagged)
 	{
 		return (untagged ? true_object : false_object);
 	}
@@ -397,8 +393,8 @@ struct factor_vm
 	//words
 	word *allot_word(cell name_, cell vocab_, cell hashcode_);
 	void primitive_word();
-	void primitive_word_xt();
-	void update_word_xt(word *w_);
+	void primitive_word_code();
+	void update_word_entry_point(word *w_);
 	void primitive_optimized_p();
 	void primitive_wrapper();
 	void jit_compile_word(cell word_, cell def_, bool relocating);
@@ -462,21 +458,19 @@ struct factor_vm
 	void primitive_bits_double();
 	fixnum to_fixnum(cell tagged);
 	cell to_cell(cell tagged);
-	void box_signed_1(s8 n);
-	void box_unsigned_1(u8 n);
-	void box_signed_2(s16 n);
-	void box_unsigned_2(u16 n);
-	void box_signed_4(s32 n);
-	void box_unsigned_4(u32 n);
-	void box_signed_cell(fixnum integer);
-	void box_unsigned_cell(cell cell);
-	void box_signed_8(s64 n);
+	cell from_signed_1(s8 n);
+	cell from_unsigned_1(u8 n);
+	cell from_signed_2(s16 n);
+	cell from_unsigned_2(u16 n);
+	cell from_signed_4(s32 n);
+	cell from_unsigned_4(u32 n);
+	cell from_signed_cell(fixnum integer);
+	cell from_unsigned_cell(cell integer);
+	cell from_signed_8(s64 n);
 	s64 to_signed_8(cell obj);
-	void box_unsigned_8(u64 n);
+	cell from_unsigned_8(u64 n);
 	u64 to_unsigned_8(cell obj);
-	void box_float(float flo);
 	float to_float(cell value);
-	void box_double(double flo);
 	double to_double(cell value);
 	inline void overflow_fixnum_add(fixnum x, fixnum y);
 	inline void overflow_fixnum_subtract(fixnum x, fixnum y);
@@ -498,6 +492,7 @@ struct factor_vm
 	void init_c_io();
 	void io_error();
 	void primitive_fopen();
+	FILE *pop_file_handle();
 	void primitive_fgetc();
 	void primitive_fread();
 	void primitive_fputc();
@@ -508,17 +503,15 @@ struct factor_vm
 	void primitive_fclose();
 
 	//code_block
-	cell compute_xt_address(cell obj);
-	cell compute_xt_pic_address(word *w, cell tagged_quot);
-	cell compute_xt_pic_address(cell w_);
-	cell compute_xt_pic_tail_address(cell w_);
+	cell compute_entry_point_address(cell obj);
+	cell compute_entry_point_pic_address(word *w, cell tagged_quot);
+	cell compute_entry_point_pic_address(cell w_);
+	cell compute_entry_point_pic_tail_address(cell w_);
 	cell code_block_owner(code_block *compiled);
 	void update_word_references(code_block *compiled);
 	void check_code_address(cell address);
-	cell compute_primitive_address(cell arg);
 	void undefined_symbol();
 	cell compute_dlsym_address(array *literals, cell index);
-	cell compute_context_address();
 	cell compute_vm_address(cell arg);
 	void store_external_address(instruction_operand op);
 	cell compute_here_address(cell arg, cell offset, code_block *compiled);
@@ -556,7 +549,7 @@ struct factor_vm
 	void init_objects(image_header *h);
 	void load_data_heap(FILE *file, image_header *h, vm_parameters *p);
 	void load_code_heap(FILE *file, image_header *h, vm_parameters *p);
-	bool save_image(const vm_char *filename);
+	bool save_image(const vm_char *saving_filename, const vm_char *filename);
 	void primitive_save_image();
 	void primitive_save_image_and_exit();
 	void fixup_data(cell data_offset, cell code_offset);
@@ -570,7 +563,6 @@ struct factor_vm
 	stack_frame *fix_callstack_top(stack_frame *top, stack_frame *bottom);
 	stack_frame *second_from_top_stack_frame();
 	void primitive_callstack();
-	void primitive_set_callstack();
 	code_block *frame_code(stack_frame *frame);
 	code_block_type frame_type(stack_frame *frame);
 	cell frame_executing(stack_frame *frame);
@@ -582,12 +574,12 @@ struct factor_vm
 	void primitive_innermost_stack_frame_executing();
 	void primitive_innermost_stack_frame_scan();
 	void primitive_set_innermost_stack_frame_quot();
-	void save_callstack_bottom(stack_frame *callstack_bottom);
 	template<typename Iterator> void iterate_callstack(context *ctx, Iterator &iterator);
 
 	//alien
 	char *pinned_alien_offset(cell obj);
 	cell allot_alien(cell delegate_, cell displacement);
+	cell allot_alien(void *address);
 	void primitive_displaced_alien();
 	void primitive_alien_address();
 	void *alien_pointer();
@@ -595,25 +587,26 @@ struct factor_vm
 	void primitive_dlsym();
 	void primitive_dlclose();
 	void primitive_dll_validp();
-	void primitive_vm_ptr();
 	char *alien_offset(cell obj);
-	char *unbox_alien();
-	void box_alien(void *ptr);
 	void to_value_struct(cell src, void *dest, cell size);
-	void box_value_struct(void *src, cell size);
-	void box_small_struct(cell x, cell y, cell size);
-	void box_medium_struct(cell x1, cell x2, cell x3, cell x4, cell size);
+	cell from_value_struct(void *src, cell size);
+	cell from_small_struct(cell x, cell y, cell size);
+	cell from_medium_struct(cell x1, cell x2, cell x3, cell x4, cell size);
 
 	//quotations
 	void primitive_jit_compile();
+	code_block *lazy_jit_compile_block();
 	void primitive_array_to_quotation();
-	void primitive_quotation_xt();
-	void set_quot_xt(quotation *quot, code_block *code);
+	void primitive_quotation_code();
+	void set_quot_entry_point(quotation *quot, code_block *code);
 	code_block *jit_compile_quot(cell owner_, cell quot_, bool relocating);
 	void jit_compile_quot(cell quot_, bool relocating);
 	fixnum quot_code_offset_to_scan(cell quot_, cell offset);
-	cell lazy_jit_compile_impl(cell quot_, stack_frame *stack);
+	cell lazy_jit_compile(cell quot);
+	bool quot_compiled_p(quotation *quot);
 	void primitive_quot_compiled_p();
+	cell find_all_quotations();
+	void initialize_all_quotations();
 
 	//dispatch
 	cell search_lookup_alist(cell table, cell klass);
@@ -642,11 +635,15 @@ struct factor_vm
 	void update_pic_transitions(cell pic_size);
 	void *inline_cache_miss(cell return_address);
 
+	//entry points
+	void c_to_factor(cell quot);
+	void unwind_native_frames(cell quot, stack_frame *to);
+
 	//factor
 	void default_parameters(vm_parameters *p);
-	bool factor_arg(const vm_char* str, const vm_char* arg, cell* value);
+	bool factor_arg(const vm_char *str, const vm_char *arg, cell *value);
 	void init_parameters_from_args(vm_parameters *p, int argc, vm_char **argv);
-	void do_stage1_init();
+	void prepare_boot_image();
 	void init_factor(vm_parameters *p);
 	void pass_args_to_factor(int argc, vm_char **argv);
 	void start_factor(vm_parameters *p);
@@ -671,7 +668,7 @@ struct factor_vm
 	const vm_char *vm_executable_path();
 	const vm_char *default_image_path();
 	void windows_image_path(vm_char *full_path, vm_char *temp_path, unsigned int length);
-	bool windows_stat(vm_char *path);
+	BOOL windows_stat(vm_char *path);
 
   #if defined(WINNT)
 	void open_console();

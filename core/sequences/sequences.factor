@@ -1,4 +1,4 @@
-! Copyright (C) 2005, 2009 Slava Pestov, Daniel Ehrenberg.
+! Copyright (C) 2005, 2010 Slava Pestov, Daniel Ehrenberg.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel kernel.private slots.private math
 math.private math.order ;
@@ -97,12 +97,6 @@ M: f nth-unsafe nip ; inline
 M: f like drop [ f ] when-empty ; inline
 
 INSTANCE: f immutable-sequence
-
-! Integers used to support the sequence protocol
-M: integer length ; inline
-M: integer nth-unsafe drop ; inline
-
-INSTANCE: integer immutable-sequence
 
 PRIVATE>
 
@@ -227,8 +221,8 @@ TUPLE: slice-error from to seq reason ;
     3tri ; inline
 
 : <slice> ( from to seq -- slice )
-    dup slice? [ collapse-slice ] when
     check-slice
+    dup slice? [ collapse-slice ] when
     slice boa ; inline
 
 M: slice virtual-exemplar seq>> ; inline
@@ -409,6 +403,9 @@ PRIVATE>
     [ 2drop f f ]
     if ; inline
 
+: (accumulate) ( seq identity quot -- seq identity quot )
+    [ swap ] dip [ curry keep ] curry ; inline
+
 PRIVATE>
 
 : each ( seq quot -- )
@@ -426,17 +423,14 @@ PRIVATE>
 : map ( seq quot -- newseq )
     over map-as ; inline
 
-: replicate ( seq quot -- newseq )
-    [ drop ] prepose map ; inline
+: replicate-as ( len quot exemplar -- newseq )
+    [ [ drop ] prepose ] dip map-integers ; inline
 
-: replicate-as ( seq quot exemplar -- newseq )
-    [ [ drop ] prepose ] dip map-as ; inline
+: replicate ( len quot -- newseq )
+    { } replicate-as ; inline
 
 : map! ( seq quot -- seq )
     over [ map-into ] keep ; inline
-
-: (accumulate) ( seq identity quot -- seq identity quot )
-    [ swap ] dip [ curry keep ] curry ; inline
 
 : accumulate-as ( seq identity quot exemplar -- final newseq )
     [ (accumulate) ] dip map-as ; inline
@@ -466,7 +460,7 @@ PRIVATE>
     (2each) all-integers? ; inline
 
 : 3each ( seq1 seq2 seq3 quot -- )
-    (3each) each ; inline
+    (3each) each-integer ; inline
 
 : 3map-as ( seq1 seq2 seq3 quot exemplar -- newseq )
     [ (3each) ] dip map-integers ; inline
@@ -492,14 +486,14 @@ PRIVATE>
 : push-if ( elt quot accum -- )
     [ keep ] dip rot [ push ] [ 2drop ] if ; inline
 
-: pusher-for ( quot exemplar -- quot accum )
+: selector-for ( quot exemplar -- quot accum )
     [ length ] keep new-resizable [ [ push-if ] 2curry ] keep ; inline
 
-: pusher ( quot -- quot accum )
-    V{ } pusher-for ; inline
+: selector ( quot -- quot accum )
+    V{ } selector-for ; inline
 
 : filter-as ( seq quot exemplar -- subseq )
-    dup [ pusher-for [ each ] dip ] curry dip like ; inline
+    dup [ selector-for [ each ] dip ] curry dip like ; inline
 
 : filter ( seq quot -- subseq )
     over filter-as ; inline
@@ -507,20 +501,20 @@ PRIVATE>
 : push-either ( elt quot accum1 accum2 -- )
     [ keep swap ] 2dip ? push ; inline
 
-: 2pusher ( quot -- quot accum1 accum2 )
+: 2selector ( quot -- quot accum1 accum2 )
     V{ } clone V{ } clone [ [ push-either ] 3curry ] 2keep ; inline
 
 : partition ( seq quot -- trueseq falseseq )
-    over [ 2pusher [ each ] 2dip ] dip [ like ] curry bi@ ; inline
+    over [ 2selector [ each ] 2dip ] dip [ like ] curry bi@ ; inline
 
-: accumulator-for ( quot exemplar -- quot' vec )
+: collector-for ( quot exemplar -- quot' vec )
     [ length ] keep new-resizable [ [ push ] curry compose ] keep ; inline
 
-: accumulator ( quot -- quot' vec )
-    V{ } accumulator-for ; inline
+: collector ( quot -- quot' vec )
+    V{ } collector-for ; inline
 
 : produce-as ( pred quot exemplar -- seq )
-    dup [ accumulator-for [ while ] dip ] curry dip like ; inline
+    dup [ collector-for [ while ] dip ] curry dip like ; inline
 
 : produce ( pred quot -- seq )
     { } produce-as ; inline
@@ -842,6 +836,12 @@ PRIVATE>
         [ 3dup ] dip [ + swap nth-unsafe ] keep rot nth-unsafe =
     ] all? nip ; inline
 
+: prepare-2map-reduce ( seq1 seq2 map-quot -- initial length seq1 seq2 )
+    [ drop min-length dup 1 < [ "Empty sequence" throw ] when 1 - ]
+    [ drop [ [ 1 + ] 2dip 2nth-unsafe ] 2curry ]
+    [ [ [ first-unsafe ] bi@ ] dip call ]
+    3tri -rot ; inline
+
 PRIVATE>
 
 : start* ( subseq seq n -- i )
@@ -874,8 +874,8 @@ PRIVATE>
     compose reduce ; inline
 
 : 2map-reduce ( seq1 seq2 map-quot reduce-quot -- result )
-    [ [ 2unclip-slice ] dip [ call ] keep ] dip
-    compose 2reduce ; inline
+    [ [ prepare-2map-reduce ] keep ] dip
+    compose compose each-integer ; inline
 
 <PRIVATE
 

@@ -96,7 +96,7 @@ void factor_vm::update_code_heap_words()
 
 void factor_vm::primitive_modify_code_heap()
 {
-	data_root<array> alist(dpop(),this);
+	data_root<array> alist(ctx->pop(),this);
 
 	cell count = array_capacity(alist.untagged());
 
@@ -141,7 +141,7 @@ void factor_vm::primitive_modify_code_heap()
 			break;
 		}
 
-		update_word_xt(word.untagged());
+		update_word_entry_point(word.untagged());
 	}
 
 	update_code_heap_words();
@@ -163,7 +163,7 @@ code_heap_room factor_vm::code_room()
 void factor_vm::primitive_code_room()
 {
 	code_heap_room room = code_room();
-	dpush(tag<byte_array>(byte_array_from_value(&room)));
+	ctx->push(tag<byte_array>(byte_array_from_value(&room)));
 }
 
 struct stack_trace_stripper {

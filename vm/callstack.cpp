@@ -6,7 +6,7 @@ namespace factor
 void factor_vm::check_frame(stack_frame *frame)
 {
 #ifdef FACTOR_DEBUG
-	check_code_pointer((cell)frame->xt);
+	check_code_pointer((cell)frame->entry_point);
 	assert(frame->size != 0);
 #endif
 }
@@ -57,26 +57,13 @@ void factor_vm::primitive_callstack()
 
 	callstack *stack = allot_callstack(size);
 	memcpy(stack->top(),top,size);
-	dpush(tag<callstack>(stack));
-}
-
-void factor_vm::primitive_set_callstack()
-{
-	callstack *stack = untag_check<callstack>(dpop());
-
-	set_callstack(ctx->callstack_bottom,
-		stack->top(),
-		untag_fixnum(stack->length),
-		memcpy);
-
-	/* We cannot return here ... */
-	critical_error("Bug in set_callstack()",0);
+	ctx->push(tag<callstack>(stack));
 }
 
 code_block *factor_vm::frame_code(stack_frame *frame)
 {
 	check_frame(frame);
-	return (code_block *)frame->xt - 1;
+	return (code_block *)frame->entry_point - 1;
 }
 
 code_block_type factor_vm::frame_type(stack_frame *frame)
@@ -118,10 +105,10 @@ cell factor_vm::frame_scan(stack_frame *frame)
 			if(obj.type_p(QUOTATION_TYPE))
 			{
 				char *return_addr = (char *)FRAME_RETURN_ADDRESS(frame,this);
-				char *quot_xt = (char *)(frame_code(frame) + 1);
+				char *quot_entry_point = (char *)(frame_code(frame) + 1);
 
 				return tag_fixnum(quot_code_offset_to_scan(
-					obj.value(),(cell)(return_addr - quot_xt)));
+					obj.value(),(cell)(return_addr - quot_entry_point)));
 			}    
 			else
 				return false_object;
@@ -157,13 +144,13 @@ struct stack_frame_accumulator {
 
 void factor_vm::primitive_callstack_to_array()
 {
-	data_root<callstack> callstack(dpop(),this);
+	data_root<callstack> callstack(ctx->pop(),this);
 
 	stack_frame_accumulator accum(this);
 	iterate_callstack_object(callstack.untagged(),accum);
 	accum.frames.trim();
 
-	dpush(accum.frames.elements.value());
+	ctx->push(accum.frames.elements.value());
 }
 
 stack_frame *factor_vm::innermost_stack_frame(callstack *stack)
@@ -182,20 +169,20 @@ stack_frame *factor_vm::innermost_stack_frame(callstack *stack)
 Used by the single stepper. */
 void factor_vm::primitive_innermost_stack_frame_executing()
 {
-	stack_frame *frame = innermost_stack_frame(untag_check<callstack>(dpop()));
-	dpush(frame_executing_quot(frame));
+	stack_frame *frame = innermost_stack_frame(untag_check<callstack>(ctx->pop()));
+	ctx->push(frame_executing_quot(frame));
 }
 
 void factor_vm::primitive_innermost_stack_frame_scan()
 {
-	stack_frame *frame = innermost_stack_frame(untag_check<callstack>(dpop()));
-	dpush(frame_scan(frame));
+	stack_frame *frame = innermost_stack_frame(untag_check<callstack>(ctx->pop()));
+	ctx->push(frame_scan(frame));
 }
 
 void factor_vm::primitive_set_innermost_stack_frame_quot()
 {
-	data_root<callstack> callstack(dpop(),this);
-	data_root<quotation> quot(dpop(),this);
+	data_root<callstack> callstack(ctx->pop(),this);
+	data_root<quotation> quot(ctx->pop(),this);
 
 	callstack.untag_check(this);
 	quot.untag_check(this);
@@ -203,20 +190,9 @@ void factor_vm::primitive_set_innermost_stack_frame_quot()
 	jit_compile_quot(quot.value(),true);
 
 	stack_frame *inner = innermost_stack_frame(callstack.untagged());
-	cell offset = (char *)FRAME_RETURN_ADDRESS(inner,this) - (char *)inner->xt;
-	inner->xt = quot->xt;
-	FRAME_RETURN_ADDRESS(inner,this) = (char *)quot->xt + offset;
-}
-
-/* called before entry into Factor code. */
-void factor_vm::save_callstack_bottom(stack_frame *callstack_bottom)
-{
-	ctx->callstack_bottom = callstack_bottom;
-}
-
-VM_ASM_API void save_callstack_bottom(stack_frame *callstack_bottom, factor_vm *parent)
-{
-	return parent->save_callstack_bottom(callstack_bottom);
+	cell offset = (char *)FRAME_RETURN_ADDRESS(inner,this) - (char *)inner->entry_point;
+	inner->entry_point = quot->entry_point;
+	FRAME_RETURN_ADDRESS(inner,this) = (char *)quot->entry_point + offset;
 }
 
 }

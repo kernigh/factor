@@ -43,9 +43,8 @@ u64 nano_count()
 {
 	LARGE_INTEGER count;
 	LARGE_INTEGER frequency;
-	static u32 hi_correction = 0;
-	static u32 hi = 0xffffffff;
-	static u32 lo = 0xffffffff;
+	static u32 hi = 0;
+	static u32 lo = 0;
 	BOOL ret;
 	ret = QueryPerformanceCounter(&count);
 	if(ret == 0)
@@ -54,14 +53,11 @@ u64 nano_count()
 	if(ret == 0)
 		fatal_error("QueryPerformanceFrequency", 0);
 
-	if((u32)count.LowPart < lo && (u32)count.HighPart == hi)
-		hi_correction++;
-
-	hi = count.HighPart;
+	if(count.LowPart < lo)
+		hi += 1;
 	lo = count.LowPart;
-	count.HighPart += hi_correction;
 
-	return count.QuadPart*(1000000000/frequency.QuadPart);
+	return (u64)((((u64)hi << 32) | (u64)lo)*(1000000000.0/frequency.QuadPart));
 }
 
 void sleep_nanos(u64 nsec)
@@ -116,21 +112,18 @@ LONG factor_vm::exception_handler(PEXCEPTION_POINTERS pe)
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
 
-FACTOR_STDCALL LONG exception_handler(PEXCEPTION_POINTERS pe)
+FACTOR_STDCALL(LONG) exception_handler(PEXCEPTION_POINTERS pe)
 {
 	return tls_vm()->exception_handler(pe);
 }
 
-bool handler_added = 0;
-
 void factor_vm::c_to_factor_toplevel(cell quot)
 {
-	if(!handler_added){
-		if(!AddVectoredExceptionHandler(0, (PVECTORED_EXCEPTION_HANDLER)factor::exception_handler))
-			fatal_error("AddVectoredExceptionHandler failed", 0);
-		handler_added = 1;
-	}
-	c_to_factor(quot,this);
+	if(!AddVectoredExceptionHandler(0, (PVECTORED_EXCEPTION_HANDLER)factor::exception_handler))
+		fatal_error("AddVectoredExceptionHandler failed", 0);
+
+	c_to_factor(quot);
+
  	RemoveVectoredExceptionHandler((void *)factor::exception_handler);
 }
 

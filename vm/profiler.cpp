@@ -52,7 +52,7 @@ void factor_vm::set_profiling(bool profiling)
 			word->counter = tag_fixnum(0);
 		}
 
-		update_word_xt(word.untagged());
+		update_word_entry_point(word.untagged());
 	}
 
 	update_code_heap_words();
@@ -60,7 +60,7 @@ void factor_vm::set_profiling(bool profiling)
 
 void factor_vm::primitive_profiling()
 {
-	set_profiling(to_boolean(dpop()));
+	set_profiling(to_boolean(ctx->pop()));
 }
 
 }

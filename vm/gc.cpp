@@ -29,7 +29,7 @@ void gc_event::ended_card_scan(cell cards_scanned_, cell decks_scanned_)
 {
 	cards_scanned += cards_scanned_;
 	decks_scanned += decks_scanned_;
-	card_scan_time = (nano_count() - temp_time);
+	card_scan_time = (cell)(nano_count() - temp_time);
 }
 
 void gc_event::started_code_scan()
@@ -40,7 +40,7 @@ void gc_event::started_code_scan()
 void gc_event::ended_code_scan(cell code_blocks_scanned_)
 {
 	code_blocks_scanned += code_blocks_scanned_;
-	code_scan_time = (nano_count() - temp_time);
+	code_scan_time = (cell)(nano_count() - temp_time);
 }
 
 void gc_event::started_data_sweep()
@@ -50,7 +50,7 @@ void gc_event::started_data_sweep()
 
 void gc_event::ended_data_sweep()
 {
-	data_sweep_time = (nano_count() - temp_time);
+	data_sweep_time = (cell)(nano_count() - temp_time);
 }
 
 void gc_event::started_code_sweep()
@@ -60,7 +60,7 @@ void gc_event::started_code_sweep()
 
 void gc_event::ended_code_sweep()
 {
-	code_sweep_time = (nano_count() - temp_time);
+	code_sweep_time = (cell)(nano_count() - temp_time);
 }
 
 void gc_event::started_compaction()
@@ -70,14 +70,14 @@ void gc_event::started_compaction()
 
 void gc_event::ended_compaction()
 {
-	compaction_time = (nano_count() - temp_time);
+	compaction_time = (cell)(nano_count() - temp_time);
 }
 
 void gc_event::ended_gc(factor_vm *parent)
 {
 	data_heap_after = parent->data_room();
 	code_heap_after = parent->code_room();
-	total_time = nano_count() - start_time;
+	total_time = (cell)(nano_count() - start_time);
 }
 
 gc_state::gc_state(gc_op op_, factor_vm *parent) : op(op_), start_time(nano_count())
@@ -130,8 +130,6 @@ void factor_vm::gc(gc_op op, cell requested_bytes, bool trace_contexts_p)
 {
 	assert(!gc_off);
 	assert(!current_gc);
-
-	save_stacks();
 
 	current_gc = new gc_state(op,this);
 
@@ -277,12 +275,12 @@ void factor_vm::primitive_disable_gc_events()
 		}
 
 		result.trim();
-		dpush(result.elements.value());
+		ctx->push(result.elements.value());
 
 		delete this->gc_events;
 	}
 	else
-		dpush(false_object);
+		ctx->push(false_object);
 }
 
 }

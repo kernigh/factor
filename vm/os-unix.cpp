@@ -73,27 +73,27 @@ void factor_vm::init_ffi()
 
 void factor_vm::ffi_dlopen(dll *dll)
 {
-	dll->dll = dlopen(alien_offset(dll->path), RTLD_LAZY);
+	dll->handle = dlopen(alien_offset(dll->path), RTLD_LAZY);
 }
 
 void *factor_vm::ffi_dlsym(dll *dll, symbol_char *symbol)
 {
-	void *handle = (dll == NULL ? null_dll : dll->dll);
+	void *handle = (dll == NULL ? null_dll : dll->handle);
 	return dlsym(handle,symbol);
 }
 
 void factor_vm::ffi_dlclose(dll *dll)
 {
-	if(dlclose(dll->dll))
+	if(dlclose(dll->handle))
 		general_error(ERROR_FFI,false_object,false_object,NULL);
-	dll->dll = NULL;
+	dll->handle = NULL;
 }
 
 void factor_vm::primitive_existsp()
 {
 	struct stat sb;
-	char *path = (char *)(untag_check<byte_array>(dpop()) + 1);
-	box_boolean(stat(path,&sb) >= 0);
+	char *path = (char *)(untag_check<byte_array>(ctx->pop()) + 1);
+	ctx->push(tag_boolean(stat(path,&sb) >= 0));
 }
 
 segment::segment(cell size_, bool executable_p)

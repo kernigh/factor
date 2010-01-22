@@ -145,13 +145,13 @@ void factor_vm::print_objects(cell *start, cell *end)
 void factor_vm::print_datastack()
 {
 	std::cout << "==== DATA STACK:\n";
-	print_objects((cell *)ds_bot,(cell *)ds);
+	print_objects((cell *)ctx->datastack_region->start,(cell *)ctx->datastack);
 }
 
 void factor_vm::print_retainstack()
 {
 	std::cout << "==== RETAIN STACK:\n";
-	print_objects((cell *)rs_bot,(cell *)rs);
+	print_objects((cell *)ctx->retainstack_region->start,(cell *)ctx->retainstack);
 }
 
 struct stack_frame_printer {
@@ -171,7 +171,7 @@ struct stack_frame_printer {
 		std::cout << std::hex << (cell)parent->frame_executing(frame) << std::dec;
 		std::cout << std::endl;
 		std::cout << "word/quot xt: ";
-		std::cout << std::hex << (cell)frame->xt << std::dec;
+		std::cout << std::hex << (cell)frame->entry_point << std::dec;
 		std::cout << std::endl;
 		std::cout << "return address: ";
 		std::cout << std::hex << (cell)FRAME_RETURN_ADDRESS(frame,parent) << std::dec;
@@ -421,9 +421,9 @@ void factor_vm::factorbug()
 		else if(strcmp(cmd,"t") == 0)
 			full_output = !full_output;
 		else if(strcmp(cmd,"s") == 0)
-			dump_memory(ds_bot,ds);
+			dump_memory(ctx->datastack_region->start,ctx->datastack);
 		else if(strcmp(cmd,"r") == 0)
-			dump_memory(rs_bot,rs);
+			dump_memory(ctx->retainstack_region->start,ctx->retainstack);
 		else if(strcmp(cmd,".s") == 0)
 			print_datastack();
 		else if(strcmp(cmd,".r") == 0)
@@ -442,7 +442,7 @@ void factor_vm::factorbug()
 		else if(strcmp(cmd,"x") == 0)
 			exit(1);
 		else if(strcmp(cmd,"im") == 0)
-			save_image(STRING_LITERAL("fep.image"));
+			save_image(STRING_LITERAL("fep.image.saving"),STRING_LITERAL("fep.image"));
 		else if(strcmp(cmd,"data") == 0)
 			dump_objects(TYPE_COUNT);
 		else if(strcmp(cmd,"refs") == 0)
@@ -459,7 +459,7 @@ void factor_vm::factorbug()
 		else if(strcmp(cmd,"push") == 0)
 		{
 			cell addr = read_cell_hex();
-			dpush(addr);
+			ctx->push(addr);
 		}
 		else if(strcmp(cmd,"code") == 0)
 			dump_code_heap();

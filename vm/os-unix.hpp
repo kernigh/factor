@@ -22,24 +22,24 @@ typedef char symbol_char;
 #define STRCMP strcmp
 #define STRNCMP strncmp
 #define STRDUP strdup
+#define SNPRINTF snprintf
 
 #define FTELL ftello
 #define FSEEK fseeko
 
-#define FIXNUM_FORMAT "%ld"
-#define CELL_FORMAT "%lu"
 #define CELL_HEX_FORMAT "%lx"
-
-#ifdef FACTOR_64
-	#define CELL_HEX_PAD_FORMAT "%016lx"
-#else
-	#define CELL_HEX_PAD_FORMAT "%08lx"
-#endif
-
-#define FIXNUM_FORMAT "%ld"
 
 #define OPEN_READ(path) fopen(path,"rb")
 #define OPEN_WRITE(path) fopen(path,"wb")
+#define MOVE_FILE(path1,path2) \
+do {\
+	int ret = 0;\
+	do {\
+		ret = rename((path1),(path2));\
+	} while(ret < 0 && errno == EINTR);\
+	if(ret < 0)\
+		general_error(ERROR_IO,tag_fixnum(errno),false_object,NULL);\
+}while(0)
 
 #define print_native_string(string) print_string(string)
 

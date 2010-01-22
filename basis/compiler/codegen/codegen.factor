@@ -1,4 +1,4 @@
-! Copyright (C) 2008, 2009 Slava Pestov.
+! Copyright (C) 2008, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: namespaces make math math.order math.parser sequences accessors
 kernel kernel.private layouts assocs words summary arrays
@@ -283,7 +283,7 @@ M: ##gc generate-insn
         [ [ uninitialized-locs>> ] [ temp1>> ] bi wipe-locs ]
         [ data-values>> save-data-regs ]
         [ [ tagged-values>> ] [ temp1>> ] bi save-gc-roots ]
-        [ [ temp1>> ] [ temp2>> ] bi t %save-context ]
+        [ [ temp1>> ] [ temp2>> ] bi %save-context ]
         [ [ tagged-values>> length ] [ temp1>> ] bi %call-gc ]
         [ [ tagged-values>> ] [ temp1>> ] bi load-gc-roots ]
         [ data-values>> load-data-regs ]
@@ -380,11 +380,11 @@ M: c-type-name flatten-value-type c-type flatten-value-type ;
     [ [ parameter-offsets nip ] keep ] dip 2reverse-each ; inline
 
 : prepare-unbox-parameters ( parameters -- offsets types indices )
-    [ parameter-offsets nip ] [ ] [ length iota reverse ] tri ;
+    [ parameter-offsets nip ] [ ] [ length iota <reversed> ] tri ;
 
 : unbox-parameters ( offset node -- )
     parameters>> swap
-    '[ prepare-unbox-parameters [ %prepare-unbox [ _ + ] dip unbox-parameter ] 3each ]
+    '[ prepare-unbox-parameters [ %pop-stack [ _ + ] dip unbox-parameter ] 3each ]
     [ length neg %inc-d ]
     bi ;
 
@@ -407,7 +407,7 @@ M: c-type-name flatten-value-type c-type flatten-value-type ;
     ] with-param-regs ;
 
 : box-return* ( node -- )
-    return>> [ ] [ box-return ] if-void ;
+    return>> [ ] [ box-return %push-stack ] if-void ;
 
 : check-dlsym ( symbols dll -- )
     dup dll-valid? [
@@ -436,6 +436,16 @@ M: ##alien-invoke generate-insn
     dup %cleanup
     box-return* ;
 
+M: ##alien-assembly generate-insn
+    params>>
+    ! Unbox parameters
+    dup objects>registers
+    %prepare-var-args
+    ! Generate assembly
+    dup quot>> call( -- )
+    ! Box return value
+    box-return* ;
+
 ! ##alien-indirect
 M: ##alien-indirect generate-insn
     params>>
@@ -452,7 +462,7 @@ M: ##alien-indirect generate-insn
 
 ! ##alien-callback
 : box-parameters ( params -- )
-    alien-parameters [ box-parameter ] each-parameter ;
+    alien-parameters [ box-parameter %push-context-stack ] each-parameter ;
 
 : registers>objects ( node -- )
     ! Generate code for boxing input parameters in a callback.
@@ -464,7 +474,7 @@ M: ##alien-indirect generate-insn
 
 TUPLE: callback-context ;
 
-: current-callback ( -- id ) 2 getenv ;
+: current-callback ( -- id ) 2 special-object ;
 
 : wait-to-return ( token -- )
     dup current-callback eq? [
@@ -475,7 +485,7 @@ TUPLE: callback-context ;
 
 : do-callback ( quot token -- )
     init-catchstack
-    [ 2 setenv call ] keep
+    [ 2 set-special-object call ] keep
     wait-to-return ; inline
 
 : callback-return-quot ( ctype -- quot )
@@ -495,11 +505,6 @@ TUPLE: callback-context ;
         [ callback-return-quot ] tri 3append ,
         [ callback-context new do-callback ] %
     ] [ ] make ;
-
-M: ##callback-return generate-insn
-    #! All the extra book-keeping for %unwind is only for x86.
-    #! On other platforms its an alias for %return.
-    params>> %callback-return ;
 
 M: ##alien-callback generate-insn
     params>>

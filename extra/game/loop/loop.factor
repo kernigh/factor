@@ -1,10 +1,11 @@
+! (c)2009 Joe Groff bsd license
 USING: accessors calendar continuations destructors kernel math
 math.order namespaces system threads ui ui.gadgets.worlds
 sequences ;
 IN: game.loop
 
 TUPLE: game-loop
-    { tick-length integer read-only }
+    { tick-interval-micros integer read-only }
     delegate
     { last-tick integer }
     thread 
@@ -24,7 +25,7 @@ SYMBOL: game-loop
     last-tick>> system-micros swap - ;
 
 : tick-slice ( loop -- slice )
-    [ since-last-tick ] [ tick-length>> ] bi /f 1.0 min ;
+    [ since-last-tick ] [ tick-interval-micros>> ] bi /f 1.0 min ;
 
 CONSTANT: MAX-FRAMES-TO-SKIP 5
 
@@ -38,6 +39,9 @@ TUPLE: game-loop-error game-loop error ;
 : game-loop-error ( game-loop error -- )
     [ drop stop-loop ] [ \ game-loop-error boa ?ui-error ] 2bi ;
 
+: fps ( fps -- micros )
+    1,000,000 swap /i ; inline
+
 <PRIVATE
 
 : redraw ( loop -- )
@@ -49,12 +53,12 @@ TUPLE: game-loop-error game-loop error ;
 
 : increment-tick ( loop -- )
     [ 1 + ] change-tick-number
-    dup tick-length>> [ + ] curry change-last-tick
+    dup tick-interval-micros>> [ + ] curry change-last-tick
     drop ;
 
 : ?tick ( loop count -- )
     [ system-micros >>last-tick drop ] [
-        over [ since-last-tick ] [ tick-length>> ] bi >=
+        over [ since-last-tick ] [ tick-interval-micros>> ] bi >=
         [ [ drop increment-tick ] [ drop tick ] [ 1 - ?tick ] 2tri ]
         [ 2drop ] if
     ] if-zero ;
@@ -97,7 +101,7 @@ PRIVATE>
     f >>thread
     drop ;
 
-: <game-loop> ( tick-length delegate -- loop )
+: <game-loop> ( tick-interval-micros delegate -- loop )
     system-micros f f 0 0 system-micros 0 0
     game-loop boa ;
 

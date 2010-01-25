@@ -6,15 +6,16 @@ IN: db.binders
 
 TUPLE: binder ;
 
-TUPLE: in-binder < binder class table-name column-name type value column ;
+TUPLE: in-binder < binder class table-name column-name type value ;
 TUPLE: in-binder-low < binder type value ;
-CONSTRUCTOR: in-binder ( class table-name column-name type value column -- obj ) ;
-CONSTRUCTOR: in-binder-low ( type value -- obj ) ;
+CONSTRUCTOR: in-binder ( -- obj ) ;
+! CONSTRUCTOR: in-binder ( class table-name column-name type value -- obj ) ;
+! CONSTRUCTOR: in-binder-low ( type value -- obj ) ;
 
 TUPLE: out-binder < binder table-name column-name type ;
 TUPLE: out-binder-low < binder type ;
-CONSTRUCTOR: out-binder ( table-name column-name type -- obj ) ;
-CONSTRUCTOR: out-binder-low ( type -- obj ) ;
+! CONSTRUCTOR: out-binder ( table-name column-name type -- obj ) ;
+! CONSTRUCTOR: out-binder-low ( type -- obj ) ;
 
 TUPLE: and-binder binders ;
 TUPLE: or-binder binders ;

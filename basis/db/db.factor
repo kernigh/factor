@@ -80,8 +80,3 @@ M: sequence sql-command [ sql-command ] each ;
 M: sequence sql-query [ sql-query ] map ;
 M: sequence sql-bind-typed-command [ sql-bind-typed-command ] each ;
 M: sequence sql-bind-typed-query [ sql-bind-typed-query ] map ;
-
-M: integer sql-command throw ;
-M: integer sql-query throw ;
-M: integer sql-bind-typed-command throw ;
-M: integer sql-bind-typed-query throw ;

@@ -1,6 +1,6 @@
 ! Copyright (C) 2008 Slava Pestov, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: concurrency.combinators db.pools db.sqlite db.tuples
+USING: concurrency.combinators db.pools db.sqlite
 db.types kernel math random threads tools.test db sequences
 io prettyprint db.postgresql accessors io.files.temp
 namespaces fry system math.parser ;

@@ -85,7 +85,7 @@ M: greater-than-equal-binder binder-operator drop " >= " ;
 
 GENERIC: >bind-pair ( obj -- string )
 : object-bind-pair ( obj -- string )
-    [ >qualified-column-name next-bind-index ] [ binder-operator ] bi glue ;
+    [ >column-name next-bind-index ] [ binder-operator ] bi glue ;
 : special-bind-pair ( obj join-string -- string )
     [ binders>> [ object-bind-pair ] map ] dip join "(" ")" surround ;
 M: object >bind-pair object-bind-pair ;
@@ -93,7 +93,19 @@ M: and-binder >bind-pair " AND " special-bind-pair ;
 M: or-binder >bind-pair " OR " special-bind-pair ;
 
 : >column/bind-pairs ( seq -- string )
-    [ >bind-pair ] map " AND " join ;
+    [ >bind-pair ] map ", " join ;
+
+GENERIC: >qualified-bind-pair ( obj -- string )
+: qualified-object-bind-pair ( obj -- string )
+    [ >qualified-column-name next-bind-index ] [ binder-operator ] bi glue ;
+: qualified-special-bind-pair ( obj join-string -- string )
+    [ binders>> [ qualified-object-bind-pair ] map ] dip join "(" ")" surround ;
+M: object >qualified-bind-pair object-bind-pair ;
+M: and-binder >qualified-bind-pair " AND " special-bind-pair ;
+M: or-binder >qualified-bind-pair " OR " special-bind-pair ;
+
+: >qualified-column/bind-pairs ( seq -- string )
+    [ >qualified-bind-pair ] map " AND " join ;
 
 : >table-names ( in -- string )
     [ >table-name ] map prune ", " join ;
@@ -130,7 +142,7 @@ M: insert query-object>statement*
 : seq>where ( statement seq -- statement )
     [
         [ " WHERE " add-sql ] dip
-        >column/bind-pairs add-sql
+        >qualified-column/bind-pairs add-sql
     ] unless-empty ;
 
 : renamed-table-names ( seq -- string )
@@ -166,11 +178,11 @@ M: select query-object>statement*
 
 M: update query-object>statement*
     [ "UPDATE " add-sql ] dip {
-        [ in>> renamed-table-names add-sql " SET " add-sql ]
+        [ in>> >table-names add-sql " SET " add-sql ]
         [ in>> >column/bind-pairs add-sql ]
         [ where>> seq>where ";" add-sql ]
         [ { in>> where>> } slots append flatten-in >>in ]
-    } cleave ;
+    } cleave dup . ;
 
 M: delete query-object>statement*
     [ "DELETE FROM " add-sql ] dip {

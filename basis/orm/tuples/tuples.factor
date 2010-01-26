@@ -5,17 +5,32 @@ db.query-objects db.types db.utils fry kernel mirrors
 orm.persistent sequences ;
 IN: orm.tuples
 
+(*
+TUPLE: foo a b ;
+
+PERSISTENT: foo
+{ "a" INTEGER +primary-key+ }
+{ "b" VARCHAR } ;
+[ [ "drop table foo" sql-command ] test-sqlite ] try
+[ "create table foo (a integer primary key, b varchar)" sql-command ] test-sqlite
+[ 1 "lol" foo boa insert-tuple ] test-sqlite
+[ "select * from foo" sql-query . ] test-sqlite
+[ "update foo set a=1, b='omg' where a=1" sql-command ] test-sqlite
+[ "select * from foo" sql-query . ] test-sqlite
+
+*)
+
 ! : create-table ( class -- ) ; "CREATE TABLE " ;
 
 : drop-table ( class -- )
     >persistent table-name>>
     "DROP TABLE " ";" surround sql-command ;
 
-: ensure-table ( class -- ) ;
+: ensure-table ( class -- ) drop ;
 
 : ensure-tables ( classes -- ) [ ensure-table ] each ;
 
-: recreate-table ( class -- ) ;
+: recreate-table ( class -- ) drop ;
 
 
 
@@ -26,8 +41,11 @@ IN: orm.tuples
 : pair>binder ( pair binder-class -- binder )
     new swap {
         [ first persistent>> class>> >>class ]
-        [ first persistent>> table-name>> >>table-name ]
-        [ first column-name>> >>column-name ]
+        [
+            first
+            [ persistent>> table-name>> "0" ]
+            [ column-name>> ] bi <table-ordinal-column> >>toc
+        ]
         [ first type>> >>type ]
         [ second >>value ]
     } cleave ;

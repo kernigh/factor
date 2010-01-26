@@ -51,29 +51,30 @@ M: max-function >column-name toc>> column-name>> "MAX(" ")" surround ;
 M: first-function >column-name toc>> column-name>> "FIRST(" ")" surround ;
 M: last-function >column-name toc>> column-name>> "LAST(" ")" surround ;
 
-: >qualified-full-name ( obj -- string )
-    toc>> { table-name>> table-ordinal>> column-name>> } slots
+: toc>full-name ( toc -- string )
+    { table-name>> table-ordinal>> column-name>> } slots
     [ append ] dip "." glue ;
 
-M: in-binder >qualified-column-name >qualified-full-name ;
-M: out-binder >qualified-column-name >qualified-full-name ;
+M: table-ordinal-column >qualified-column-name toc>full-name ;
+M: in-binder >qualified-column-name toc>> toc>full-name ;
+M: out-binder >qualified-column-name toc>> toc>full-name ;
 M: and-binder >qualified-column-name
-    binders>> [ >qualified-full-name ] map ", " join "(" ")" surround ;
+    binders>> [ toc>> toc>full-name ] map ", " join "(" ")" surround ;
 
 M: count-function >qualified-column-name
-    >qualified-full-name "COUNT(" ")" surround ;
+    >qualified-column-name "COUNT(" ")" surround ;
 M: sum-function >qualified-column-name
-    >qualified-full-name "SUM(" ")" surround ;
+    >qualified-column-name "SUM(" ")" surround ;
 M: average-function >qualified-column-name
-    >qualified-full-name "AVG(" ")" surround ;
+    >qualified-column-name "AVG(" ")" surround ;
 M: min-function >qualified-column-name
-    >qualified-full-name "MIN(" ")" surround ;
+    >qualified-column-name "MIN(" ")" surround ;
 M: max-function >qualified-column-name
-    >qualified-full-name "MAX(" ")" surround ;
+    >qualified-column-name "MAX(" ")" surround ;
 M: first-function >qualified-column-name
-    >qualified-full-name "FIRST(" ")" surround ;
+    >qualified-column-name "FIRST(" ")" surround ;
 M: last-function >qualified-column-name
-    >qualified-full-name "LAST(" ")" surround ;
+    >qualified-column-name "LAST(" ")" surround ;
 
 GENERIC: binder-operator ( obj -- string )
 M: equal-binder binder-operator drop " = " ;
@@ -100,7 +101,7 @@ GENERIC: >qualified-bind-pair ( obj -- string )
     [ >qualified-column-name next-bind-index ] [ binder-operator ] bi glue ;
 : qualified-special-bind-pair ( obj join-string -- string )
     [ binders>> [ qualified-object-bind-pair ] map ] dip join "(" ")" surround ;
-M: object >qualified-bind-pair object-bind-pair ;
+M: object >qualified-bind-pair qualified-object-bind-pair ;
 M: and-binder >qualified-bind-pair " AND " special-bind-pair ;
 M: or-binder >qualified-bind-pair " OR " special-bind-pair ;
 
@@ -142,6 +143,12 @@ M: insert query-object>statement*
 : seq>where ( statement seq -- statement )
     [
         [ " WHERE " add-sql ] dip
+        >column/bind-pairs add-sql
+    ] unless-empty ;
+
+: qualified-seq>where ( statement seq -- statement )
+    [
+        [ " WHERE " add-sql ] dip
         >qualified-column/bind-pairs add-sql
     ] unless-empty ;
 
@@ -154,9 +161,10 @@ M: insert query-object>statement*
 GENERIC: >join-string ( join-binder -- string )
 
 M: join-binder >join-string
-    [ table-name2>> " LEFT JOIN " " ON " surround ]
-    [ { table-name1>> column-name1>> } slots "." glue ]
-    [ { table-name2>> column-name2>> } slots "." glue ]
+    [ toc2>> >table-as " LEFT JOIN " " ON " surround ]
+    [ toc1>> >qualified-column-name ]
+    [ toc2>> >qualified-column-name ]
+    ! [ toc2>> { table-name>> column-name>> } slots "." glue ]
     tri " = " glue append ;
 
 : select-join ( select -- string )
@@ -171,7 +179,7 @@ M: select query-object>statement*
         [ out>> >qualified-column-names add-sql " FROM " add-sql ]
         [ select-from add-sql ]
         [ select-join add-sql ]
-        [ in>> seq>where ";" add-sql ]
+        [ in>> qualified-seq>where ";" add-sql ]
         [ out>> >>out ]
         [ in>> flatten-in >>in ]
     } cleave ;

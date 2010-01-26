@@ -5,21 +5,6 @@ db.query-objects db.types db.utils fry kernel mirrors
 orm.persistent sequences ;
 IN: orm.tuples
 
-(*
-TUPLE: foo a b ;
-
-PERSISTENT: foo
-{ "a" INTEGER +primary-key+ }
-{ "b" VARCHAR } ;
-[ [ "drop table foo" sql-command ] test-sqlite ] try
-[ "create table foo (a integer primary key, b varchar)" sql-command ] test-sqlite
-[ 1 "lol" foo boa insert-tuple ] test-sqlite
-[ "select * from foo" sql-query . ] test-sqlite
-[ "update foo set a=1, b='omg' where a=1" sql-command ] test-sqlite
-[ "select * from foo" sql-query . ] test-sqlite
-
-*)
-
 ! : create-table ( class -- ) ; "CREATE TABLE " ;
 
 : drop-table ( class -- )
@@ -80,7 +65,43 @@ PERSISTENT: foo
     tuple>primary-key-binders >>where
     query-object>statement sql-bind-typed-command ;
 
+: (select-tuples) ( tuple -- tuple )
+    [ <select> ] dip {
+        [ tuple>pairs >>in ]
+    } cleave ;
 
-: select-tuple ( query/tuple -- tuple/f ) ;
-: select-tuples ( query/tuple -- tuples ) ;
-: count-tuples ( query/tuple -- n ) ;
+: select-tuples ( tuple -- tuples )
+    ;
+
+: make-reconstructor ( tuple -- quot )
+    ;
+
+: reconstruct ( seq quot tuple -- seq' )
+    2drop
+    ;
+
+: select-tuple ( tuple -- tuple/f )
+    [ (select-tuples) 1 >>limit sql-query ] [ make-reconstructor ] [ ] tri reconstruct ;
+
+: count-tuples ( tuple -- n )
+    ;
+
+
+(*
+(*
+TUPLE: foo a b ;
+
+PERSISTENT: foo
+{ "a" INTEGER +primary-key+ }
+{ "b" VARCHAR } ;
+[ [ "drop table foo" sql-command ] test-sqlite ] try
+[ "create table foo (a integer primary key, b varchar)" sql-command ] test-sqlite
+[ 1 "lol" foo boa insert-tuple ] test-sqlite
+[ "select * from foo" sql-query . ] test-sqlite
+[ "update foo set a=1, b='omg' where a=1" sql-command ] test-sqlite
+[ "select * from foo" sql-query . ] test-sqlite
+
+*)
+
+[ 1 f foo boa (select-tuples) ] test-sqlite
+*)

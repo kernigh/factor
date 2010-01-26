@@ -142,7 +142,7 @@ T{ statement
 
 [
 T{ statement
-    { sql "UPDATE qdog AS qdog0 SET qdog0.age = ? WHERE qdog0.age = ?;" }
+    { sql "UPDATE qdog SET age = ? WHERE age = ?;" }
     { in
         {
             T{ equal-binder
@@ -188,7 +188,7 @@ T{ statement
 
 [
 T{ statement
-    { sql "DELETE FROM qdog AS qdog0 WHERE qdog0.age = ?;" }
+    { sql "DELETE FROM qdog WHERE age = ?;" }
     { in
         {
             T{ equal-binder

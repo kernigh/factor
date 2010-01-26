@@ -182,11 +182,11 @@ M: update query-object>statement*
         [ in>> >column/bind-pairs add-sql ]
         [ where>> seq>where ";" add-sql ]
         [ { in>> where>> } slots append flatten-in >>in ]
-    } cleave dup . ;
+    } cleave ;
 
 M: delete query-object>statement*
     [ "DELETE FROM " add-sql ] dip {
-        [ where>> renamed-table-names add-sql ]
+        [ where>> >table-names add-sql ]
         [ where>> seq>where ";" add-sql ]
         [ where>> flatten-in >>in ]
     } cleave ;

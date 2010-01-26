@@ -76,12 +76,11 @@ PERSISTENT: foo
 
 
 : delete-tuples ( tuple -- )
-    [ <update> ] dip
+    [ <delete> ] dip
     {
         [ tuple>primary-key-binders >>where ]
     } cleave
     query-object>statement sql-bind-typed-command ;
-
 
 
 : select-tuple ( query/tuple -- tuple/f ) ;

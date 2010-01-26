@@ -28,3 +28,4 @@ PERSISTENT: foo
     [ { } ] [ "select * from foo" sql-query ] unit-test ;
 
 [ test-foo ] test-sqlite
+[ test-foo ] test-postgresql

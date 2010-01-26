@@ -18,11 +18,16 @@ SYMBOL: inherited-persistent-table
 raw-persistent-table [ H{ } clone ] initialize
 inherited-persistent-table [ H{ } clone ] initialize
 
+<PRIVATE
+
 GENERIC: parse-table-name ( object -- class table )
 GENERIC: parse-name ( object -- accessor column )
 GENERIC: parse-column-type ( object -- string )
 GENERIC: parse-column-modifiers ( object -- string )
 GENERIC: lookup-raw-persistent ( obj -- obj' )
+
+PRIVATE>
+
 GENERIC: >persistent ( obj -- persistent )
 
 SYMBOL: deferred-persistent

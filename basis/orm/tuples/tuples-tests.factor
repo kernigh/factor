@@ -11,7 +11,7 @@ PERSISTENT: foo
 { "b" VARCHAR } ;
 
 : test-foo ( -- )
-    [ [ "drop table foo" sql-command ] test-sqlite ] try
+    [ "drop table foo" sql-command ] try
 
     [ ] [ "create table foo (a integer primary key, b varchar)" sql-command ] unit-test
 

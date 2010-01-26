@@ -77,9 +77,7 @@ PERSISTENT: foo
 
 : delete-tuples ( tuple -- )
     [ <delete> ] dip
-    {
-        [ tuple>primary-key-binders >>where ]
-    } cleave
+    tuple>primary-key-binders >>where
     query-object>statement sql-bind-typed-command ;
 
 

@@ -1,54 +1,67 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors classes.tuple constructors db.utils kernel
-multiline parser quotations sequences db.types ;
+USING: accessors classes.tuple constructors db.types db.utils
+kernel math math.parser multiline parser quotations sequences ;
 IN: db.binders
+
+TUPLE: table-ordinal table-name table-ordinal ;
+TUPLE: table-ordinal-column < table-ordinal column-name ;
+CONSTRUCTOR: table-ordinal
+    ( table-name table-ordinal -- obj ) ;
+CONSTRUCTOR: table-ordinal-column
+    ( table-name table-ordinal column-name -- obj ) ;
+
+SYNTAX: TO{
+    \ } [ 2 ensure-length first2 <table-ordinal> ] parse-literal ;
+
+SYNTAX: TOC{
+    \ } [ 3 ensure-length first3 <table-ordinal-column> ] parse-literal ;
 
 TUPLE: binder ;
 
-TUPLE: in-binder < binder class table-name column-name type value ;
+TUPLE: in-binder < binder class toc type value ;
 TUPLE: in-binder-low < binder type value ;
 CONSTRUCTOR: in-binder ( -- obj ) ;
-! CONSTRUCTOR: in-binder ( class table-name column-name type value -- obj ) ;
+! CONSTRUCTOR: in-binder ( class toc type value -- obj ) ;
 ! CONSTRUCTOR: in-binder-low ( type value -- obj ) ;
 
-TUPLE: out-binder < binder table-name column-name type ;
+TUPLE: out-binder < binder toc type ;
 TUPLE: out-binder-low < binder type ;
-! CONSTRUCTOR: out-binder ( table-name column-name type -- obj ) ;
+! CONSTRUCTOR: out-binder ( toc type -- obj ) ;
 ! CONSTRUCTOR: out-binder-low ( type -- obj ) ;
 
 TUPLE: and-binder binders ;
 TUPLE: or-binder binders ;
 
-TUPLE: join-binder < binder table-name1 column-name1 table-name2 column-name2 ;
-CONSTRUCTOR: join-binder ( table-name1 column-name1 table-name2 column-name2 -- obj ) ;
+TUPLE: join-binder < binder toc1 toc2 ;
+CONSTRUCTOR: join-binder ( toc1 toc2 -- obj ) ;
 
 TUPLE: count-function < out-binder ;
-CONSTRUCTOR: count-function ( table-name column-name -- obj )
+CONSTRUCTOR: count-function ( toc -- obj )
     INTEGER >>type ;
 
 TUPLE: sum-function < out-binder ;
-CONSTRUCTOR: sum-function ( table-name column-name -- obj )
+CONSTRUCTOR: sum-function ( toc -- obj )
     REAL >>type ;
 
 TUPLE: average-function < out-binder ;
-CONSTRUCTOR: average-function ( table-name column-name -- obj )
+CONSTRUCTOR: average-function ( toc -- obj )
     REAL >>type ;
 
 TUPLE: min-function < out-binder ;
-CONSTRUCTOR: min-function ( table-name column-name -- obj )
+CONSTRUCTOR: min-function ( toc -- obj )
     REAL >>type ;
 
 TUPLE: max-function < out-binder ;
-CONSTRUCTOR: max-function ( table-name column-name -- obj )
+CONSTRUCTOR: max-function ( toc -- obj )
     REAL >>type ;
 
 TUPLE: first-function < out-binder ;
-CONSTRUCTOR: first-function ( table-name column-name -- obj )
+CONSTRUCTOR: first-function ( toc -- obj )
     REAL >>type ;
 
 TUPLE: last-function < out-binder ;
-CONSTRUCTOR: last-function ( table-name column-name -- obj )
+CONSTRUCTOR: last-function ( toc -- obj )
     REAL >>type ;
 
 TUPLE: equal-binder < in-binder ;
@@ -65,8 +78,8 @@ TUPLE: greater-than-equal-binder < in-binder ;
 CONSTRUCTOR: greater-than-equal-binder ( -- obj ) ;
 
 TUPLE: relation-binder
-class1 table-name1 column-name1 column1
-class2 table-name2 column-name2 column2
+class1 toc1 column1
+class2 toc2 column2
 relation-type ;
 
-CONSTRUCTOR: relation-binder ( class1 table-name1 column-name1 column1 class2 table-name2 column-name2 column2 relation-type -- obj ) ;
+CONSTRUCTOR: relation-binder ( class1 toc1 column1 class2 toc2 column2 relation-type -- obj ) ;

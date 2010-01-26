@@ -19,8 +19,7 @@ T{ statement
     { in
         {
             T{ in-binder
-                { table-name "qdog" }
-                { column-name "id" }
+                { toc TOC{ "qdog" "0" "id" } }
                 { type INTEGER }
                 { value 0 }
             }
@@ -35,8 +34,7 @@ T{ statement
             { in
                 {
                     T{ in-binder
-                        { table-name "qdog" }
-                        { column-name "id" }
+                        { toc TOC{ "qdog" "0" "id" } }
                         { type INTEGER }
                         { value 0 }
                     }
@@ -52,8 +50,7 @@ T{ statement
     { in
         {
             T{ in-binder
-                { table-name "qdog" }
-                { column-name "id" }
+                { toc TOC{ "qdog" "0" "id" } }
                 { type INTEGER }
                 { value 0 }
             }
@@ -69,8 +66,7 @@ T{ statement
             { in
                 {
                     T{ in-binder
-                        { table-name "qdog" }
-                        { column-name "id" }
+                        { toc TOC{ "qdog" "0" "id" } }
                         { type INTEGER }
                         { value 0 }
                     }
@@ -87,12 +83,11 @@ T{ statement
 
 [
 T{ statement
-    { sql "SELECT qdog.id, qdog.age FROM qdog WHERE qdog.age = ?;" }
+    { sql "SELECT qdog0.id, qdog0.age FROM qdog AS qdog0 WHERE qdog0.age = ?;" }
     { in
         {
             T{ equal-binder
-                { table-name "qdog" }
-                { column-name "age" }
+                { toc TOC{ "qdog" "0" "age" } }
                 { type INTEGER }
                 { value 0 }
             }
@@ -101,13 +96,11 @@ T{ statement
     { out
         {
             T{ out-binder
-                { table-name "qdog" }
-                { column-name "id" }
+                { toc TOC{ "qdog" "0" "id" } }
                 { type INTEGER }
             }
             T{ out-binder
-                { table-name "qdog" }
-                { column-name "age" }
+                { toc TOC{ "qdog" "0" "age" } }
                 { type INTEGER }
             }
         }
@@ -118,17 +111,15 @@ T{ statement
     T{ sqlite-db-connection } db-connection
     [
         T{ select
-            { from { "qdog" } }
+            { from { TO{ "qdog" "0" } } }
             { out
                 {
                     T{ out-binder
-                        { table-name "qdog" }
-                        { column-name "id" }
+                        { toc TOC{ "qdog" "0" "id" } }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { table-name "qdog" }
-                        { column-name "age" }
+                        { toc TOC{ "qdog" "0" "age" } }
                         { type INTEGER }
                     }
                 }
@@ -136,8 +127,7 @@ T{ statement
             { in
                 {
                     T{ equal-binder
-                        { table-name "qdog" }
-                        { column-name "age" }
+                        { toc TOC{ "qdog" "0" "age" } }
                         { type INTEGER }
                         { value 0 }
                     }
@@ -152,18 +142,16 @@ T{ statement
 
 [
 T{ statement
-    { sql "UPDATE qdog SET qdog.age = ? WHERE qdog.age = ?;" }
+    { sql "UPDATE qdog AS qdog0 SET qdog0.age = ? WHERE qdog0.age = ?;" }
     { in
         {
             T{ equal-binder
-                { table-name "qdog" }
-                { column-name "age" }
+                { toc TOC{ "qdog" "0" "age" } }
                 { type INTEGER }
                 { value 1 }
             }
             T{ equal-binder
-                { table-name "qdog" }
-                { column-name "age" }
+                { toc TOC{ "qdog" "0" "age" } }
                 { type INTEGER }
                 { value 0 }
             }
@@ -179,8 +167,7 @@ T{ statement
             { in
                 {
                     T{ equal-binder
-                        { table-name "qdog" }
-                        { column-name "age" }
+                        { toc TOC{ "qdog" "0" "age" } }
                         { type INTEGER }
                         { value 1 }
                     }
@@ -189,8 +176,7 @@ T{ statement
             { where
                 {
                     T{ equal-binder
-                        { table-name "qdog" }
-                        { column-name "age" }
+                        { toc TOC{ "qdog" "0" "age" } }
                         { type INTEGER }
                         { value 0 }
                     }
@@ -202,12 +188,11 @@ T{ statement
 
 [
 T{ statement
-    { sql "DELETE FROM qdog WHERE qdog.age = ?;" }
+    { sql "DELETE FROM qdog AS qdog0 WHERE qdog0.age = ?;" }
     { in
         {
             T{ equal-binder
-                { table-name "qdog" }
-                { column-name "age" }
+                { toc TOC{ "qdog" "0" "age" } }
                 { type INTEGER }
                 { value 0 }
             }
@@ -223,8 +208,7 @@ T{ statement
             { where
                 {
                     T{ equal-binder
-                        { table-name "qdog" }
-                        { column-name "age" }
+                        { toc TOC{ "qdog" "0" "age" } }
                         { type INTEGER }
                         { value 0 }
                     }
@@ -238,13 +222,12 @@ T{ statement
 
 [
 T{ statement
-    { sql "SELECT COUNT(qdog.id) FROM qdog;" }
+    { sql "SELECT COUNT(qdog0.id) FROM qdog AS qdog0;" }
     { in { } }
     { out
         {
             T{ count-function
-                { table-name "qdog" }
-                { column-name "id" }
+                { toc TOC{ "qdog" "0" "id" } }
                 { type INTEGER }
             }
         }
@@ -255,12 +238,11 @@ T{ statement
     T{ sqlite-db-connection } db-connection
     [
         T{ select
-            { from { "qdog" } }
+            { from { TO{ "qdog" "0" } } }
             { out
                 {
                     T{ count-function
-                        { table-name "qdog" }
-                        { column-name "id" }
+                        { toc TOC{ "qdog" "0" "id" } }
                         { type INTEGER }
                     }
                 }
@@ -274,12 +256,11 @@ T{ statement
 
 [
 T{ statement
-    { sql "SELECT COUNT(qdog.id) FROM qdog WHERE qdog.age = ?;" }
+    { sql "SELECT COUNT(qdog0.id) FROM qdog AS qdog0 WHERE qdog0.age = ?;" }
     { in
         {
             T{ equal-binder
-                { table-name "qdog" }
-                { column-name "age" }
+                { toc TOC{ "qdog" "0" "age" } }
                 { type INTEGER }
                 { value 0 }
             }
@@ -288,8 +269,7 @@ T{ statement
     { out
         {
             T{ count-function
-                { table-name "qdog" }
-                { column-name "id" }
+                { toc TOC{ "qdog" "0" "id" } }
                 { type INTEGER }
             }
         }
@@ -300,12 +280,11 @@ T{ statement
     T{ sqlite-db-connection } db-connection
     [
         T{ select
-            { from { "qdog" } }
+            { from { TO{ "qdog" "0" } } }
             { out
                 {
                     T{ count-function
-                        { table-name "qdog" }
-                        { column-name "id" }
+                        { toc TOC{ "qdog" "0" "id" } }
                         { type INTEGER }
                     }
                 }
@@ -313,8 +292,7 @@ T{ statement
             { in
                 {
                     T{ equal-binder
-                        { table-name "qdog" }
-                        { column-name "age" }
+                        { toc TOC{ "qdog" "0" "age" } }
                         { type INTEGER }
                         { value 0 }
                     }
@@ -334,38 +312,31 @@ T{ statement
     { out
         {
             T{ out-binder
-                { table-name "user" }
-                { column-name "id" }
+                { toc TOC{ "user" "0" "id" } }
                 { type INTEGER }
             }
             T{ out-binder
-                { table-name "user" }
-                { column-name "name" }
+                { toc TOC{ "user" "0" "name" } }
                 { type VARCHAR }
             }
             T{ out-binder
-                { table-name "address" }
-                { column-name "id" }
+                { toc TOC{ "address" "0" "id" } }
                 { type INTEGER }
             }
             T{ out-binder
-                { table-name "address" }
-                { column-name "user_id" }
+                { toc TOC{ "address" "0" "user_id" } }
                 { type INTEGER }
             }
             T{ out-binder
-                { table-name "address" }
-                { column-name "street" }
+                { toc TOC{ "address" "0" "street" } }
                 { type VARCHAR }
             }
             T{ out-binder
-                { table-name "address" }
-                { column-name "city" }
+                { toc TOC{ "address" "0" "city" } }
                 { type VARCHAR }
             }
             T{ out-binder
-                { table-name "address" }
-                { column-name "zip" }
+                { toc TOC{ "address" "0" "zip" } }
                 { type INTEGER }
             }
         }
@@ -379,50 +350,41 @@ T{ statement
             { out
                 {
                     T{ out-binder
-                        { table-name "user" }
-                        { column-name "id" }
+                        { toc TOC{ "user" "0" "id" } }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { table-name "user" }
-                        { column-name "name" }
+                        { toc TOC{ "user" "0" "name" } }
                         { type VARCHAR }
                     }
                     T{ out-binder
-                        { table-name "address" }
-                        { column-name "id" }
+                        { toc TOC{ "address" "0" "id" } }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { table-name "address" }
-                        { column-name "user_id" }
+                        { toc TOC{ "address" "0" "user_id" } }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { table-name "address" }
-                        { column-name "street" }
+                        { toc TOC{ "address" "0" "street" } }
                         { type VARCHAR }
                     }
                     T{ out-binder
-                        { table-name "address" }
-                        { column-name "city" }
+                        { toc TOC{ "address" "0" "city" } }
                         { type VARCHAR }
                     }
                     T{ out-binder
-                        { table-name "address" }
-                        { column-name "zip" }
+                        { toc TOC{ "address" "0" "zip" } }
                         { type INTEGER }
                     }
                 }
             }
-            { from { "user" } }
+            { from { TO{ "user" "0" } } }
             { join
                 {
                     T{ join-binder
-                        { table-name1 "user" }
-                        { column-name1 "id" }
-                        { table-name2 "address" }
-                        { column-name2 "user_id" }
+                        { toc1 TOC{ "user" "0" "id" } }
+                        { toc2 TOC{ "address" "0" "user_id" } }
                     }
                 }
             }
@@ -434,19 +396,17 @@ T{ statement
 [
 T{ statement
     { sql
-        "SELECT user.id, user.name FROM user WHERE (qdog.id = ? and qdog.id = ?);"
+        "SELECT user0.id, user0.name FROM user AS user0 WHERE (user0.id = ? and user0.id = ?);"
     }
     { in
         {
             T{ equal-binder
-                { table-name "qdog" }
-                { column-name "id" }
+                { toc TOC{ "user" "0" "id" } }
                 { type INTEGER }
                 { value 0 }
             }
             T{ equal-binder
-                { table-name "qdog" }
-                { column-name "id" }
+                { toc TOC{ "user" "0" "id" } }
                 { type INTEGER }
                 { value 1 }
             }
@@ -455,13 +415,11 @@ T{ statement
     { out
         {
             T{ out-binder
-                { table-name "user" }
-                { column-name "id" }
+                { toc TOC{ "user" "0" "id" } }
                 { type INTEGER }
             }
             T{ out-binder
-                { table-name "user" }
-                { column-name "name" }
+                { toc TOC{ "user" "0" "name" } }
                 { type VARCHAR }
             }
         }
@@ -478,14 +436,12 @@ T{ statement
                         { binders
                             {
                                 T{ equal-binder
-                                    { table-name "qdog" }
-                                    { column-name "id" }
+                                    { toc TOC{ "user" "0" "id" } }
                                     { type INTEGER }
                                     { value 0 }
                                 }
                                 T{ equal-binder
-                                    { table-name "qdog" }
-                                    { column-name "id" }
+                                    { toc TOC{ "user" "0" "id" } }
                                     { type INTEGER }
                                     { value 1 }
                                 }
@@ -497,18 +453,16 @@ T{ statement
             { out
                 {
                     T{ out-binder
-                        { table-name "user" }
-                        { column-name "id" }
+                        { toc TOC{ "user" "0" "id" } }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { table-name "user" }
-                        { column-name "name" }
+                        { toc TOC{ "user" "0" "name" } }
                         { type VARCHAR }
                     }
                 }
             }
-            { from { "user" } }
+            { from { TO{ "user" "0" } } }
         } query-object>statement
     ] with-variable
 ] unit-test
@@ -516,19 +470,17 @@ T{ statement
 [
 T{ statement
     { sql
-        "SELECT user.id, user.name FROM user WHERE (qdog.id > ? and qdog.id <= ?);"
+        "SELECT user0.id, user0.name FROM user AS user0 WHERE (qdog0.id > ? and qdog0.id <= ?);"
     }
     { in
         {
             T{ greater-than-binder
-                { table-name "qdog" }
-                { column-name "id" }
+                { toc TOC{ "qdog" "0" "id" } }
                 { type INTEGER }
                 { value 0 }
             }
             T{ less-than-equal-binder
-                { table-name "qdog" }
-                { column-name "id" }
+                { toc TOC{ "qdog" "0" "id" } }
                 { type INTEGER }
                 { value 5 }
             }
@@ -537,13 +489,11 @@ T{ statement
     { out
         {
             T{ out-binder
-                { table-name "user" }
-                { column-name "id" }
+                { toc TOC{ "user" "0" "id" } }
                 { type INTEGER }
             }
             T{ out-binder
-                { table-name "user" }
-                { column-name "name" }
+                { toc TOC{ "user" "0" "name" } }
                 { type VARCHAR }
             }
         }
@@ -560,14 +510,12 @@ T{ statement
                         { binders
                             {
                                 T{ greater-than-binder
-                                    { table-name "qdog" }
-                                    { column-name "id" }
+                                    { toc TOC{ "qdog" "0" "id" } }
                                     { type INTEGER }
                                     { value 0 }
                                 }
                                 T{ less-than-equal-binder
-                                    { table-name "qdog" }
-                                    { column-name "id" }
+                                    { toc TOC{ "qdog" "0" "id" } }
                                     { type INTEGER }
                                     { value 5 }
                                 }
@@ -579,18 +527,16 @@ T{ statement
             { out
                 {
                     T{ out-binder
-                        { table-name "user" }
-                        { column-name "id" }
+                        { toc TOC{ "user" "0" "id" } }
                         { type INTEGER }
                     }
                     T{ out-binder
-                        { table-name "user" }
-                        { column-name "name" }
+                        { toc TOC{ "user" "0" "name" } }
                         { type VARCHAR }
                     }
                 }
             }
-            { from { "user" } }
+            { from { TO{ "user" "0" } } }
         } query-object>statement
     ] with-variable
 ] unit-test

@@ -396,7 +396,7 @@ T{ statement
 [
 T{ statement
     { sql
-        "SELECT user0.id, user0.name FROM user AS user0 WHERE (user0.id = ? and user0.id = ?);"
+        "SELECT user0.id, user0.name FROM user AS user0 WHERE (user0.id = ? AND user0.id = ?);"
     }
     { in
         {
@@ -470,7 +470,7 @@ T{ statement
 [
 T{ statement
     { sql
-        "SELECT user0.id, user0.name FROM user AS user0 WHERE (qdog0.id > ? and qdog0.id <= ?);"
+        "SELECT user0.id, user0.name FROM user AS user0 WHERE (qdog0.id > ? AND qdog0.id <= ?);"
     }
     { in
         {

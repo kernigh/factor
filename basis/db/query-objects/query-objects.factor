@@ -89,11 +89,11 @@ GENERIC: >bind-pair ( obj -- string )
 : special-bind-pair ( obj join-string -- string )
     [ binders>> [ object-bind-pair ] map ] dip join "(" ")" surround ;
 M: object >bind-pair object-bind-pair ;
-M: and-binder >bind-pair " and " special-bind-pair ;
-M: or-binder >bind-pair " or " special-bind-pair ;
+M: and-binder >bind-pair " AND " special-bind-pair ;
+M: or-binder >bind-pair " OR " special-bind-pair ;
 
 : >column/bind-pairs ( seq -- string )
-    [ >bind-pair ] map " and " join ;
+    [ >bind-pair ] map " AND " join ;
 
 : >table-names ( in -- string )
     [ >table-name ] map prune ", " join ;

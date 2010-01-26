@@ -24,8 +24,7 @@ MACRO: slots ( seq -- quot )
     [ malloc-byte-array &free ] [ length ] bi ;
 
 : obj>vector ( obj -- vector )
-    dup { [ sequence? ] [ integer? not ] } 1&&
-    [ >vector ] [ 1vector ] if ;
+    dup sequence? [ >vector ] [ 1vector ] if ;
 
 : ?when ( object quot -- object' ) dupd when ; inline
 

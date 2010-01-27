@@ -1,7 +1,7 @@
-! Copyright (C) 2009 Slava Pestov.
+! Copyright (C) 2009, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: assocs classes.algebra fry kernel math namespaces
-sequences words ;
+USING: assocs classes.algebra classes.algebra.private fry kernel
+math namespaces sequences words accessors classes ;
 IN: stack-checker.dependencies
 
 ! Words that the current quotation depends on
@@ -35,3 +35,17 @@ SYMBOL: generic-dependencies
 : depends-on-generic ( class generic -- )
     generic-dependencies get dup
     [ [ ?class-or ] change-at ] [ 3drop ] if ;
+
+GENERIC: depends-on-class ( class -- )
+
+M: anonymous-union depends-on-class
+    members>> [ depends-on-class ] each ;
+
+M: anonymous-intersection depends-on-class
+    members>> [ depends-on-class ] each ;
+
+M: anonymous-complement depends-on-class
+    class>> depends-on-class ;
+
+M: class depends-on-class
+    inlined-dependency depends-on ;

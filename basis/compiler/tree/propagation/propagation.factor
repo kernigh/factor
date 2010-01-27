@@ -1,4 +1,4 @@
-! Copyright (C) 2004, 2008 Slava Pestov.
+! Copyright (C) 2004, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel sequences namespaces hashtables arrays
 compiler.tree
@@ -19,4 +19,5 @@ IN: compiler.tree.propagation
     H{ } clone copies set
     H{ } clone 1array value-infos set
     H{ } clone 1array constraints set
+    H{ } clone declarations set
     dup (propagate) ;

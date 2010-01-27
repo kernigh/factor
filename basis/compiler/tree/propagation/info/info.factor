@@ -1,4 +1,4 @@
-! Copyright (C) 2008, 2009 Slava Pestov.
+! Copyright (C) 2008, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: assocs classes classes.algebra classes.tuple
 classes.tuple.private kernel accessors math math.intervals namespaces
@@ -339,3 +339,13 @@ SYMBOL: value-infos
         dup in-d>> last node-value-info
         literal>> first immutable-tuple-class?
     ] [ drop f ] if ;
+
+! Mapping values to sequences of declared classes; this is for
+! recompilation cross-referencing
+SYMBOL: declarations
+
+: record-declaration ( class value -- )
+    resolve-copy declarations get push-at ;
+
+: value-dependencies ( value -- seq )
+    resolve-copy declarations get at >array ;

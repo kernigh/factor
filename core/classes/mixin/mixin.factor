@@ -29,7 +29,8 @@ TUPLE: check-mixin-class class ;
 : redefine-mixin-class ( class members -- )
     [ (define-union-class) ]
     [ drop t "mixin" set-word-prop ]
-    2bi ;
+    [ drop changed-definition ]
+    2tri ;
 
 : if-mixin-member? ( class mixin true false -- )
     [ check-mixin-class 2dup members member-eq? ] 2dip if ; inline

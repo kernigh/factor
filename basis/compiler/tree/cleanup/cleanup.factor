@@ -53,7 +53,11 @@ GENERIC: cleanup* ( node -- node/nodes )
 
 : record-folding ( #call -- )
     dup word>> predicate?
-    [ [ node-input-infos first class>> ] [ word>> ] bi depends-on-generic ]
+    [
+        [ [ node-input-infos first class>> ] [ word>> ] bi depends-on-generic ]
+        [ dependencies>> [ depends-on-class ] each ]
+        bi
+    ]
     [ word>> inlined-dependency depends-on ]
     if ;
 
@@ -67,11 +71,14 @@ GENERIC: cleanup* ( node -- node/nodes )
     ] [ drop ] if ;
 
 : cleanup-inlining ( #call -- nodes )
+    [ dependencies>> [ depends-on-class ] each ]
     [
         dup method>>
         [ add-method-dependency ]
         [ word>> inlined-dependency depends-on ] if
-    ] [ body>> cleanup ] bi ;
+    ]
+    [ body>> cleanup ]
+    tri ;
 
 ! Removing overflow checks
 : (remove-overflow-check?) ( #call -- ? )

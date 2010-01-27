@@ -26,7 +26,7 @@ IN: compiler.tree.propagation.inlining
 
 ! Dispatch elimination
 : undo-inlining ( #call -- ? )
-    f >>method f >>body f >>class drop f ;
+    f >>method f >>body f >>class f >>dependencies drop f ;
 
 : propagate-body ( #call -- ? )
     body>> (propagate) t ;
@@ -37,21 +37,21 @@ M: word splicing-nodes splicing-call ;
 
 M: callable splicing-nodes splicing-body ;
 
-: eliminate-dispatch ( #call class/f word/quot/f -- ? )
+: eliminate-dispatch ( #call dependencies/f class/f word/quot/f -- ? )
     dup [
-        [ >>class ] dip
+        [ >>dependencies ] [ >>class ] [ ] tri*
         over method>> over = [ drop propagate-body ] [
             2dup splicing-nodes dup [
                 [ >>method ] [ >>body ] bi* propagate-body
             ] [ 2drop undo-inlining ] if
         ] if
-    ] [ 2drop undo-inlining ] if ;
+    ] [ 3drop undo-inlining ] if ;
 
-: inlining-standard-method ( #call word -- class/f method/f )
-    dup "methods" word-prop assoc-empty? [ 2drop f f ] [
-        2dup [ in-d>> length ] [ dispatch# ] bi* <= [ 2drop f f ] [
+: inlining-standard-method ( #call word -- dependencies/f class/f method/f )
+    dup "methods" word-prop assoc-empty? [ 2drop f f f ] [
+        2dup [ in-d>> length ] [ dispatch# ] bi* <= [ 2drop f f f ] [
             [ in-d>> <reversed> ] [ [ dispatch# ] keep ] bi*
-            [ swap nth value-info class>> dup ] dip
+            [ swap nth [ value-dependencies ] [ value-info class>> dup ] bi ] dip
             method-for-class
         ] if
     ] if ;
@@ -69,17 +69,17 @@ M: callable splicing-nodes splicing-body ;
         object
     } [ class<= ] with find nip ;
 
-: inlining-math-method ( #call word -- class/f quot/f )
+: inlining-math-method ( #call word -- dependencies/f class/f quot/f )
     swap in-d>>
     first2 [ value-info class>> normalize-math-class ] bi@
     3dup math-both-known?
     [ math-method* ] [ 3drop f ] if
-    number swap ;
+    [ f number ] dip ;
 
 : inline-math-method ( #call word -- ? )
     dupd inlining-math-method eliminate-dispatch ;
 
-: inlining-math-partial ( #call word -- class/f quot/f )
+: inlining-math-partial ( #call word -- dependencies/f class/f quot/f )
     [ "derived-from" word-prop first inlining-math-method ]
     [ nip 1quotation ] 2bi
     [ = not ] [ drop ] 2bi and ;
@@ -115,7 +115,7 @@ SYMBOL: history
 : inline-custom ( #call word -- ? )
     [ dup ] [ "custom-inlining" word-prop ] bi*
     call( #call -- word/quot/f )
-    object swap eliminate-dispatch ;
+    [ f object ] dip eliminate-dispatch ;
 
 : (do-inlining) ( #call word -- ? )
     #! If the generic was defined in an outer compilation unit,

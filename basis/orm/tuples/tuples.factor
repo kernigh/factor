@@ -23,8 +23,10 @@ IN: orm.tuples
     [ >persistent columns>> ] [ <mirror> >alist ] bi
     [ first2 dup IGNORE = [ 3drop f ] [ nip 2array ] if ] 2map sift ;
 
-: pair>binder ( pair binder-class -- binder )
-    new swap {
+GENERIC# pair>binder* 1 ( binder pair -- binder )
+
+: (pair>binder) ( binder pair -- binder )
+    {
         [ first persistent>> class>> >>class ]
         [
             first
@@ -32,8 +34,15 @@ IN: orm.tuples
             [ column-name>> ] bi <table-ordinal-column> >>toc
         ]
         [ first type>> >>type ]
-        [ second >>value ]
     } cleave ;
+
+M: in-binder pair>binder* ( binder-class pair -- binder )
+    [ (pair>binder) ] [ second >>value ] bi ;
+
+M: out-binder pair>binder* ( binder-class pair -- binder )
+    (pair>binder) ;
+
+: pair>binder ( pair binder-class -- binder ) new swap pair>binder* ;
 
 : tuple>binders ( tuple binder -- seq )
     [ tuple>pairs ] dip '[ _ pair>binder ] map ;
@@ -65,10 +74,22 @@ IN: orm.tuples
     tuple>primary-key-binders >>where
     query-object>statement sql-bind-typed-command ;
 
+SYMBOL: ordinal
+
+: next-ordinal ( -- string )
+    ordinal [ dup 1 + ] change number>string ;
+
 : (select-tuples) ( tuple -- tuple )
-    [ <select> ] dip {
-        [ tuple>pairs >>in ]
-    } cleave ;
+    0 ordinal [
+        [ <select> ] dip {
+            [ out-binder tuple>binders >>out ]
+            [ equal-binder tuple>binders >>in ]
+            [
+                tuple>pairs [ first persistent>> table-name>> ] map prune
+                [ next-ordinal <table-ordinal> ] map >>from
+            ]
+        } cleave
+    ] with-variable ;
 
 : select-tuples ( tuple -- tuples )
     ;
@@ -88,6 +109,7 @@ IN: orm.tuples
 
 
 (*
+
 (*
 TUPLE: foo a b ;
 
@@ -103,5 +125,5 @@ PERSISTENT: foo
 
 *)
 
-[ 1 f foo boa (select-tuples) ] test-sqlite
+[ 1 f foo boa (select-tuples) query-object>statement ] test-sqlite
 *)

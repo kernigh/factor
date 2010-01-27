@@ -1,6 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors db.binders db.connections
+db.postgresql.connections db.query-objects
 db.postgresql.connections.private db.query-objects
 db.sqlite.connections db.statements db.types namespaces
 tools.test ;
@@ -306,7 +307,7 @@ T{ statement
 [
 T{ statement
     { sql
-        "SELECT user.id, user.name, address.id, address.user_id, address.street, address.city, address.zip FROM user LEFT JOIN address ON user.id = address.user_id;"
+        "SELECT user0.id, user0.name, address0.id, address0.user_id, address0.street, address0.city, address0.zip FROM user AS user0 LEFT JOIN address AS address0 ON user0.id = address0.user_id;"
     }
     { in { } }
     { out

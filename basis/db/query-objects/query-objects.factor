@@ -62,19 +62,19 @@ M: and-binder >qualified-column-name
     binders>> [ toc>> toc>full-name ] map ", " join "(" ")" surround ;
 
 M: count-function >qualified-column-name
-    >qualified-column-name "COUNT(" ")" surround ;
+    toc>> toc>full-name "COUNT(" ")" surround ;
 M: sum-function >qualified-column-name
-    >qualified-column-name "SUM(" ")" surround ;
+    toc>> toc>full-name "SUM(" ")" surround ;
 M: average-function >qualified-column-name
-    >qualified-column-name "AVG(" ")" surround ;
+    toc>> toc>full-name "AVG(" ")" surround ;
 M: min-function >qualified-column-name
-    >qualified-column-name "MIN(" ")" surround ;
+    toc>> toc>full-name "MIN(" ")" surround ;
 M: max-function >qualified-column-name
-    >qualified-column-name "MAX(" ")" surround ;
+    toc>> toc>full-name "MAX(" ")" surround ;
 M: first-function >qualified-column-name
-    >qualified-column-name "FIRST(" ")" surround ;
+    toc>> toc>full-name "FIRST(" ")" surround ;
 M: last-function >qualified-column-name
-    >qualified-column-name "LAST(" ")" surround ;
+    toc>> toc>full-name "LAST(" ")" surround ;
 
 GENERIC: binder-operator ( obj -- string )
 M: equal-binder binder-operator drop " = " ;
@@ -102,8 +102,8 @@ GENERIC: >qualified-bind-pair ( obj -- string )
 : qualified-special-bind-pair ( obj join-string -- string )
     [ binders>> [ qualified-object-bind-pair ] map ] dip join "(" ")" surround ;
 M: object >qualified-bind-pair qualified-object-bind-pair ;
-M: and-binder >qualified-bind-pair " AND " special-bind-pair ;
-M: or-binder >qualified-bind-pair " OR " special-bind-pair ;
+M: and-binder >qualified-bind-pair " AND " qualified-special-bind-pair ;
+M: or-binder >qualified-bind-pair " OR " qualified-special-bind-pair ;
 
 : >qualified-column/bind-pairs ( seq -- string )
     [ >qualified-bind-pair ] map " AND " join ;

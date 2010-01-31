@@ -87,7 +87,11 @@ M: word subwords drop f ;
 : make-deprecated ( word -- )
     t "deprecated" set-word-prop ;
 
-: make-inline ( word -- )
+ERROR: cannot-be-inline word ;
+
+GENERIC: make-inline ( word -- )
+
+M: word make-inline
     dup inline? [ drop ] [
         [ t "inline" set-word-prop ]
         [ changed-effect ]
@@ -106,9 +110,14 @@ M: word subwords drop f ;
 : define-inline ( word def effect -- )
     [ define-declared ] [ 2drop make-inline ] 3bi ;
 
+GENERIC: flushable? ( word -- ? )
+
+M: word flushable? "flushable" word-prop ;
+
 GENERIC: reset-word ( word -- )
 
 M: word reset-word
+    dup flushable? [ dup changed-conditionally ] when
     {
         "unannotated-def" "parsing" "inline" "recursive"
         "foldable" "flushable" "reading" "writing" "reader"
@@ -155,7 +164,12 @@ ERROR: bad-create name vocab ;
 
 : create ( name vocab -- word )
     check-create 2dup lookup
-    dup [ 2nip ] [ drop vocab-name <word> dup reveal ] if ;
+    dup [ 2nip ] [
+        drop
+        vocab-name <word>
+        dup reveal
+        dup changed-definition
+    ] if ;
 
 : constructor-word ( name vocab -- word )
     [ "<" ">" surround ] dip create ;

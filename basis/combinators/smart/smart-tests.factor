@@ -1,6 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: tools.test combinators.smart math kernel accessors ;
+USING: accessors arrays combinators.smart kernel math
+tools.test ;
 IN: combinators.smart.tests
 
 : test-bi ( -- 9 11 )
@@ -53,3 +54,12 @@ IN: combinators.smart.tests
 { 2 0 } [ [ + ] nullary ] must-infer-as
 
 { 2 2 } [ [ [ + ] nullary ] preserving ] must-infer-as
+
+: smart-if-test ( a b -- b )
+    [ < ] [ swap - ] [ - ] smart-if ;
+
+[ 7 ] [ 10 3 smart-if-test ] unit-test
+[ 16 ] [ 25 41 smart-if-test ] unit-test
+
+[ { 1 2 } { 3 4 } { 5 6 } ] [ 1 2 3 4 5 6 [ 2array ] 3 smart-apply ] unit-test
+[ { 1 2 3 } { 4 5 6 } ] [ 1 2 3 4 5 6 [ 3array ] 2 smart-apply ] unit-test

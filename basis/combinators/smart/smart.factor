@@ -50,4 +50,7 @@ MACRO: nullary ( quot -- quot' )
     dup outputs '[ @ _ ndrop ] ;
 
 MACRO: smart-if ( pred true false -- )
-    '[ _ preserving _ _ if ] ; inline
+    '[ _ preserving _ _ if ] ;
+
+MACRO: smart-apply ( quot n -- )
+    [ dup inputs ] dip '[ _ _ _ mnapply ] ;

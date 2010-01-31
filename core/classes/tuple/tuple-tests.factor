@@ -6,7 +6,7 @@ io.streams.string kernel kernel.private math math.constants
 math.order namespaces parser parser.notes prettyprint
 quotations random see sequences sequences.private slots
 slots.private splitting strings summary threads tools.test
-vectors vocabs words words.symbol fry literals ;
+vectors vocabs words words.symbol fry literals memory ;
 IN: classes.tuple.tests
 
 TUPLE: rect x y w h ;
@@ -443,14 +443,14 @@ TUPLE: redefinition-problem-2 ;
 
 [ ] [
     [
-        \ vocab tuple { "xxx" } "slots" get append
+        \ vocab identity-tuple { "xxx" } "slots" get append
         define-tuple-class
     ] with-compilation-unit
 
     all-words drop
 
     [
-        \ vocab tuple "slots" get
+        \ vocab identity-tuple "slots" get
         define-tuple-class
     ] with-compilation-unit
 ] unit-test
@@ -510,58 +510,6 @@ TUPLE: another-forget-accessors-test ;
 
 ! Missing error check
 [ "IN: classes.tuple.tests USE: words TUPLE: wrong-superclass < word ;" eval( -- ) ] must-fail
-
-! Class forget messyness
-TUPLE: subclass-forget-test ;
-
-TUPLE: subclass-forget-test-1 < subclass-forget-test ;
-TUPLE: subclass-forget-test-2 < subclass-forget-test ;
-TUPLE: subclass-forget-test-3 < subclass-forget-test-2 ;
-
-[ ] [ "IN: classes.tuple.tests FORGET: subclass-forget-test" eval( -- ) ] unit-test
-
-[ { subclass-forget-test-2 } ]
-[ subclass-forget-test-2 class-usages ]
-unit-test
-
-[ { subclass-forget-test-3 } ]
-[ subclass-forget-test-3 class-usages ]
-unit-test
-
-[ f ] [ subclass-forget-test-1 tuple-class? ] unit-test
-[ f ] [ subclass-forget-test-2 tuple-class? ] unit-test
-[ subclass-forget-test-3 new ] must-fail
-
-[ "IN: classes.tuple.tests TUPLE: subclass-forget-test-4 < subclass-forget-test-2 ;" eval( -- ) ] must-fail
-
-! More
-DEFER: subclass-reset-test
-DEFER: subclass-reset-test-1
-DEFER: subclass-reset-test-2
-DEFER: subclass-reset-test-3
-
-GENERIC: break-me ( obj -- )
-
-[ ] [ [ M\ integer break-me forget ] with-compilation-unit ] unit-test
-
-[ ] [ "IN: classes.tuple.tests TUPLE: subclass-reset-test ;" <string-reader> "subclass-reset-test" parse-stream drop ] unit-test
-[ ] [ "IN: classes.tuple.tests TUPLE: subclass-reset-test-1 < subclass-reset-test ;" eval( -- ) ] unit-test
-[ ] [ "IN: classes.tuple.tests TUPLE: subclass-reset-test-2 < subclass-reset-test ;" eval( -- ) ] unit-test
-[ ] [ "IN: classes.tuple.tests TUPLE: subclass-reset-test-3 < subclass-reset-test-2 ;" eval( -- ) ] unit-test
-
-[ ] [ "IN: classes.tuple.tests USE: kernel M: subclass-reset-test-1 break-me drop ;" eval( -- ) ] unit-test
-
-[ ] [ "IN: classes.tuple.tests : subclass-reset-test ( -- ) ;" <string-reader> "subclass-reset-test" parse-stream drop ] unit-test
-
-[ f ] [ subclass-reset-test-1 tuple-class? ] unit-test
-[ f ] [ subclass-reset-test-2 tuple-class? ] unit-test
-[ subclass-forget-test-3 new ] must-fail
-
-[ t ] [ \ break-me "methods" word-prop assoc-empty? ] unit-test
-
-[ ] [ "IN: classes.tuple.tests USE: math USE: kernel M: integer break-me drop ;" eval( -- ) ] unit-test
-
-[ f ] [ \ break-me "methods" word-prop assoc-empty? ] unit-test
 
 ! Insufficient type checking
 [ \ vocab tuple>array drop ] must-fail
@@ -765,3 +713,44 @@ USE: classes.struct
     [ "prototype" word-prop ] map
     [ '[ _ hashcode drop f ] [ drop t ] recover ] filter
 ] unit-test
+
+! Make sure that tuple reshaping updates code heap roots
+TUPLE: code-heap-ref ;
+
+: code-heap-ref' ( -- a ) T{ code-heap-ref } ;
+
+! Push foo's literal to tenured space
+[ ] [ gc ] unit-test
+
+! Reshape!
+[ ] [ "IN: classes.tuple.tests USE: math TUPLE: code-heap-ref { x integer initial: 5 } ;" eval( -- ) ] unit-test
+
+! Code heap reference
+[ t ] [ code-heap-ref' code-heap-ref? ] unit-test
+[ 5 ] [ code-heap-ref' x>> ] unit-test
+
+! Data heap reference
+[ t ] [ \ code-heap-ref' def>> first code-heap-ref? ] unit-test
+[ 5 ] [ \ code-heap-ref' def>> first x>> ] unit-test
+
+! If the metaclass of a superclass changes into something other
+! than a tuple class, the tuple needs to have its superclass reset
+TUPLE: metaclass-change ;
+TUPLE: metaclass-change-subclass < metaclass-change ;
+
+[ metaclass-change ] [ metaclass-change-subclass superclass ] unit-test
+
+[ ] [ "IN: classes.tuple.tests MIXIN: metaclass-change" eval( -- ) ] unit-test
+
+[ t ] [ metaclass-change-subclass tuple-class? ] unit-test
+[ tuple ] [ metaclass-change-subclass superclass ] unit-test
+
+! Reshaping bug related to the above
+TUPLE: a-g ;
+TUPLE: g < a-g ;
+
+[ ] [ g new "g" set ] unit-test
+
+[ ] [ "IN: classes.tuple.tests MIXIN: a-g TUPLE: g ;" eval( -- ) ] unit-test
+
+[ t ] [ g new layout-of "g" get layout-of eq? ] unit-test

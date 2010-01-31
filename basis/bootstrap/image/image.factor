@@ -5,12 +5,13 @@ hashtables.private io io.binary io.files io.encodings.binary
 io.pathnames kernel kernel.private math namespaces make parser
 prettyprint sequences strings sbufs vectors words quotations
 assocs system layouts splitting grouping growable classes
-classes.builtin classes.tuple classes.tuple.private vocabs
-vocabs.loader source-files definitions debugger
-quotations.private combinators combinators.short-circuit
-math.order math.private accessors slots.private
-generic.single.private compiler.units compiler.constants fry
-locals bootstrap.image.syntax generalizations ;
+classes.private classes.builtin classes.tuple
+classes.tuple.private vocabs vocabs.loader source-files
+definitions debugger quotations.private combinators
+combinators.short-circuit math.order math.private accessors
+slots.private generic.single.private compiler.units
+compiler.constants fry locals bootstrap.image.syntax
+generalizations ;
 IN: bootstrap.image
 
 : arch ( os cpu -- arch )
@@ -342,9 +343,7 @@ M: float '
 
 : t, ( -- ) t t-offset fixup ;
 
-M: f '
-    #! f is #define F RETAG(0,F_TYPE)
-    drop \ f type-number ;
+M: f ' drop \ f type-number ;
 
 :  0, ( -- )  0 >bignum '  0-offset fixup ;
 :  1, ( -- )  1 >bignum '  1-offset fixup ;
@@ -554,12 +553,19 @@ M: quotation '
 : fixup-header ( -- )
     heap-size data-heap-size-offset fixup ;
 
+: build-generics ( -- )
+    [
+        all-words
+        [ generic? ] filter
+        [ make-generic ] each
+    ] with-compilation-unit ;
+
 : build-image ( -- image )
     800000 <vector> image set
     20000 <hashtable> objects set
     emit-image-header t, 0, 1, -1,
     "Building generic words..." print flush
-    remake-generics
+    build-generics
     "Serializing words..." print flush
     emit-words
     "Serializing JIT data..." print flush

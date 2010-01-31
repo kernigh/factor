@@ -3,11 +3,12 @@
 USING: alien alien.strings arrays byte-arrays generic hashtables
 hashtables.private io io.encodings.ascii kernel math
 math.private math.order namespaces make parser sequences strings
-vectors words quotations assocs layouts classes classes.builtin
-classes.tuple classes.tuple.private kernel.private vocabs
-vocabs.loader source-files definitions slots classes.union
-classes.intersection classes.predicate compiler.units
-bootstrap.image.private io.files accessors combinators ;
+vectors words quotations assocs layouts classes classes.private
+classes.builtin classes.tuple classes.tuple.private
+kernel.private vocabs vocabs.loader source-files definitions
+slots classes.union classes.intersection classes.predicate
+compiler.units bootstrap.image.private io.files accessors
+combinators ;
 IN: bootstrap.primitives
 
 "Creating primitives and basic runtime structures..." print flush
@@ -31,31 +32,30 @@ architecture get {
 ! Now we have ( syntax-quot arch-quot layouts-quot ) on the stack
 
 ! Bring up a bare cross-compiling vocabulary.
-"syntax" vocab vocab-words bootstrap-syntax set {
-    dictionary
-    new-classes
-    changed-definitions changed-generics changed-effects
-    outdated-generics forgotten-definitions
-    root-cache source-files update-map implementors-map
-} [ H{ } clone swap set ] each
+"syntax" vocab vocab-words bootstrap-syntax set
+
+H{ } clone dictionary set
+H{ } clone root-cache set
+H{ } clone source-files set
+H{ } clone update-map set
+H{ } clone implementors-map set
 
 init-caches
+
+bootstrapping? on
+
+call( -- )
+call( -- )
 
 ! Vocabulary for slot accessors
 "accessors" create-vocab drop
 
-dummy-compiler compiler-impl set
-
-call( -- )
-call( -- )
-call( -- )
-
 ! After we execute bootstrap/layouts
 num-types get f <array> builtins set
 
-bootstrapping? on
-
 [
+
+call( -- )
 
 ! Create some empty vocabs where the below primitives and
 ! classes will go
@@ -126,6 +126,9 @@ bootstrapping? on
 : define-builtin-slots ( class slots -- )
     prepare-slots make-slots 1 finalize-slots
     [ "slots" set-word-prop ] [ define-accessors ] 2bi ;
+
+: define-builtin-predicate ( class -- )
+    dup class>type [ eq? ] curry [ tag ] prepend define-predicate ;
 
 : define-builtin ( symbol slotspec -- )
     [ [ define-builtin-predicate ] keep ] dip define-builtin-slots ;

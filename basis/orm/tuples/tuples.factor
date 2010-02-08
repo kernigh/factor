@@ -130,3 +130,28 @@ PERSISTENT: foo
 
 [ 1 f foo boa (select-tuples) query-object>statement ] test-sqlite
 *)
+
+
+
+: select-relations ( tuple relations -- seq )
+    drop
+    ;
+
+: select-no-relations ( tuple -- seq )
+    ;
+
+
+
+: select-tuples2 ( tuple -- seq )
+    dup tuple>relations [
+        select-no-relations
+    ] [
+        select-relations
+    ] if-empty ;
+
+
+
+
+
+
+

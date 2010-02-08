@@ -64,8 +64,7 @@ PERSISTENT: bar-2
 : test-2 ( -- )
     setup-test-2-sql
 
-    [ ]
-    [ T{ bar-2 f 0 } select-tuples ] unit-test
+    ! [ ] [ T{ bar-2 f 0 } select-tuples ] unit-test
     ;
 
 [ setup-test-2-sql ] test-sqlite
@@ -73,3 +72,60 @@ PERSISTENT: bar-2
 
 [ test-2 ] test-sqlite
 [ test-2 ] test-postgresql
+
+
+
+
+
+TUPLE: foo-3 id a ;
+PERSISTENT: foo-3
+{ "id" INTEGER +primary-key+ }
+{ "a" VARCHAR } ;
+
+TUPLE: bar-3 id ;
+PERSISTENT: bar-3
+{ "id" INTEGER +primary-key+ }
+{ "b" { foo-3 sequence } } ;
+
+TUPLE: baz-3 id b ;
+PERSISTENT: baz-3
+{ "id" INTEGER +primary-key+ }
+{ "c" { bar-3 sequence } } ;
+
+: setup-test-3-sql ( -- )
+    [ "drop table foo_3" sql-command ] try
+    [ "drop table bar_3" sql-command ] try
+    [ "drop table baz_3" sql-command ] try
+
+    [ ] [ "create table foo_3(id integer primary key, a varchar, bar_3_id integer)" sql-command ] unit-test
+    [ ] [ "create table bar_3(id integer primary key, baz_3_id integer)" sql-command ] unit-test
+    [ ] [ "create table baz_3(id integer primary key)" sql-command ] unit-test
+
+    [ ] [ "insert into foo_3(id, a, bar_3_id) values(0, 'first', 0);" sql-command ] unit-test
+    [ ] [ "insert into foo_3(id, a, bar_3_id) values(1, 'second', 0);" sql-command ] unit-test
+
+    [ ] [ "insert into foo_3(id, a, bar_3_id) values(2, 'third', 1);" sql-command ] unit-test
+    [ ] [ "insert into foo_3(id, a, bar_3_id) values(3, 'fourth', 1);" sql-command ] unit-test
+
+    [ ] [ "insert into bar_3(id, baz_3_id) values(0, 0);" sql-command ] unit-test
+    [ ] [ "insert into bar_3(id, baz_3_id) values(1, 0);" sql-command ] unit-test
+
+    [ ] [ "insert into baz_3(id) values(0);" sql-command ] unit-test
+
+    [
+        {
+            { "0" "0" "0" "first" }
+            { "0" "0" "1" "second" }
+            { "0" "1" "2" "third" }
+            { "0" "1" "3" "fourth" }
+        }
+    ] [ """select baz_3.id, bar_3.id, foo_3.id, foo_3.a
+            from baz_3
+                left join bar_3 on baz_3.id = bar_3.baz_3_id
+                left join foo_3 on bar_3.id = foo_3.bar_3_id
+                where baz_3.id = 0"""
+        sql-query
+    ] unit-test ;
+
+[ setup-test-3-sql ] test-sqlite
+[ setup-test-3-sql ] test-postgresql

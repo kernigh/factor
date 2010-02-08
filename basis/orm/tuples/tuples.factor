@@ -103,7 +103,9 @@ SYMBOL: ordinal
     ;
 
 : select-tuple ( tuple -- tuple/f )
-    [ (select-tuples) 1 >>limit sql-query ] [ make-reconstructor ] [ ] tri reconstruct ;
+    [ (select-tuples) 1 >>limit sql-query ]
+    [ make-reconstructor ]
+    [ ] tri reconstruct ;
 
 : count-tuples ( tuple -- n )
     ;

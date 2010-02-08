@@ -1,7 +1,7 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: db db.debug db.types debugger kernel orm.persistent
-orm.tuples tools.test sequences ;
+orm.tuples tools.test sequences nested-comments ;
 IN: orm.tuples.tests
 
 TUPLE: foo-1 a b ;
@@ -40,7 +40,7 @@ PERSISTENT: bar-2
 { "id" INTEGER +primary-key+ }
 { "b" { foo-2 sequence } } ;
 
-: test-2 ( -- )
+: setup-test-2-sql ( -- )
     [ "drop table foo_2" sql-command ] try
     [ "drop table bar_2" sql-command ] try
 
@@ -52,9 +52,24 @@ PERSISTENT: bar-2
 
     [ ] [ "insert into bar_2(id) values(0);" sql-command ] unit-test
 
-    ! [ ] [ "select 
+    [
+        {
+            { "0" "0" "first" }
+            { "0" "1" "second" }
+        }
+    ] [ "select bar_2.id, foo_2.id, foo_2.a from bar_2 left join foo_2 on foo_2.bar_2_id = bar_2.id where bar_2.id = 0" sql-query ] unit-test
 
     ;
+
+: test-2 ( -- )
+    setup-test-2-sql
+
+    [ ]
+    [ T{ bar-2 f 0 } select-tuples ] unit-test
+    ;
+
+[ setup-test-2-sql ] test-sqlite
+[ setup-test-2-sql ] test-postgresql
 
 [ test-2 ] test-sqlite
 [ test-2 ] test-postgresql

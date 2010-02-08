@@ -4,6 +4,7 @@ USING: constructors continuations db.connections fry kernel ;
 IN: db.errors
 
 ERROR: db-error ;
+
 ERROR: sql-error location ;
 HOOK: parse-sql-error db-connection ( error -- error' )
 

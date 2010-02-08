@@ -35,7 +35,7 @@ M: form clone
     [ [ value ] keep ] dip ; inline
 
 : from-object ( object -- )
-    [ values ] [ make-mirror ] bi* update ;
+    [ values ] [ make-mirror ] bi* assoc-union! drop ;
 
 : make-qualified-mirror ( object -- assoc )
     [ make-mirror ] keep dup tuple? [
@@ -48,7 +48,7 @@ M: form clone
     [ values ] [ make-qualified-mirror ] bi* update ;
 
 : to-object ( destination names -- )
-    [ make-mirror ] [ values extract-keys ] bi* update ;
+    [ make-mirror ] [ values extract-keys ] bi* assoc-union! drop ;
 
 : with-each-value ( name quot -- )
     [ value ] dip '[

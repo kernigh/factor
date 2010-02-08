@@ -1,8 +1,9 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators db db.binders
-db.query-objects db.types db.utils fry kernel mirrors
-orm.persistent sequences ;
+db.query-objects db.types db.utils fry kernel math math.parser
+mirrors namespaces nested-comments orm.persistent sequences
+sets ;
 IN: orm.tuples
 
 ! : create-table ( class -- ) ; "CREATE TABLE " ;

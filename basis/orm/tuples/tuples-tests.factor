@@ -25,7 +25,8 @@ PERSISTENT: foo-1
 
     [ ] [ 1 f foo-1 boa delete-tuples ] unit-test
 
-    [ { } ] [ "select * from foo_1" sql-query ] unit-test ;
+    [ { } ] [ "select * from foo_1" sql-query ] unit-test
+    [ { } ] [ T{ foo-1 } select-tuples ] unit-test ;
 
 [ test-1 ] test-sqlite
 [ test-1 ] test-postgresql
@@ -82,12 +83,12 @@ PERSISTENT: foo-3
 { "id" INTEGER +primary-key+ }
 { "a" VARCHAR } ;
 
-TUPLE: bar-3 id ;
+TUPLE: bar-3 id b ;
 PERSISTENT: bar-3
 { "id" INTEGER +primary-key+ }
 { "b" { foo-3 sequence } } ;
 
-TUPLE: baz-3 id b ;
+TUPLE: baz-3 id c ;
 PERSISTENT: baz-3
 { "id" INTEGER +primary-key+ }
 { "c" { bar-3 sequence } } ;

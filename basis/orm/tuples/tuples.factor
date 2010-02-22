@@ -1,9 +1,9 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators db db.binders
-db.query-objects db.types db.utils fry kernel math math.parser
-mirrors namespaces nested-comments orm.persistent sequences
-sets orm ;
+db.query-objects db.types db.utils fry kernel make math
+math.parser mirrors namespaces nested-comments orm
+orm.persistent sequences sets splitting.monotonic ;
 IN: orm.tuples
 
 ! : create-table ( class -- ) ; "CREATE TABLE " ;
@@ -17,7 +17,6 @@ IN: orm.tuples
 : ensure-tables ( classes -- ) [ ensure-table ] each ;
 
 : recreate-table ( class -- ) drop ;
-
 
 
 : tuple>pairs ( tuple -- seq )
@@ -75,6 +74,25 @@ M: out-binder pair>binder* ( binder-class pair -- binder )
     tuple>primary-key-binders >>where
     query-object>statement sql-bind-typed-command ;
 
+ERROR: no-setter ;
+
+: out-binder>setter ( toc -- word )
+    [ class>> >persistent columns>> ]
+    [ toc>> column-name>> ] bi '[ column-name>> _ = ] find
+    nip [ no-setter ] unless* setter>> ;
+
+MACRO: query-object>reconstructor ( tuple -- quot )
+B
+    out>> [ [ class>> ] bi@ = ] monotonic-split
+    [ [ first class>> ] [ [ out-binder>setter ] map ] bi ] { } map>assoc 
+    [
+        [
+            first2
+            [ , \ new , ]
+            [ reverse [ \ swap , , (( obj obj -- obj )) , \ call-effect , ] each ] bi*
+        ] each
+    ] [ ] make '[ [ _ input<sequence ] ] ;
+
 SYMBOL: ordinal
 
 : next-ordinal ( -- string )
@@ -92,27 +110,25 @@ SYMBOL: ordinal
         } cleave
     ] with-variable ;
 
-: select-tuples ( tuple -- tuples )
-    (select-tuples) query-object>statement sql-bind-typed-query ;
-
-: make-reconstructor ( tuple -- quot )
-    ;
+MACRO: select-tuples ( tuple -- tuples )
+    (select-tuples)
+    [ query-object>statement sql-bind-typed-query ] keep
+B
+    query-object>reconstructor
+    '[ [ @ ] map ] ;
 
 : reconstruct ( seq quot tuple -- seq' )
     2drop
     ;
 
-: select-tuple ( tuple -- tuple/f )
-    [ (select-tuples) 1 >>limit sql-query ]
-    [ make-reconstructor ]
-    [ ] tri reconstruct ;
+! : select-tuple ( tuple -- tuple/f )
+    ! [ (select-tuples) 1 >>limit sql-query ] [ make-reconstructor ] [ ] tri reconstruct ;
 
 : count-tuples ( tuple -- n )
     ;
 
 
 (*
-
 (*
 TUPLE: foo a b ;
 
@@ -125,9 +141,7 @@ PERSISTENT: foo
 [ "select * from foo" sql-query . ] test-sqlite
 [ "update foo set a=1, b='omg' where a=1" sql-command ] test-sqlite
 [ "select * from foo" sql-query . ] test-sqlite
-
 *)
-
 [ 1 f foo boa (select-tuples) query-object>statement ] test-sqlite
 *)
 
@@ -151,4 +165,3 @@ ERROR: unimplemented ;
     ] [
         select-relations
     ] if-empty ;
-

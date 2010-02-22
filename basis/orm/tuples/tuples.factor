@@ -3,7 +3,7 @@
 USING: accessors arrays assocs combinators db db.binders
 db.query-objects db.types db.utils fry kernel math math.parser
 mirrors namespaces nested-comments orm.persistent sequences
-sets ;
+sets orm ;
 IN: orm.tuples
 
 ! : create-table ( class -- ) ; "CREATE TABLE " ;
@@ -84,7 +84,7 @@ SYMBOL: ordinal
     0 ordinal [
         [ <select> ] dip {
             [ out-binder tuple>binders >>out ]
-            [ equal-binder tuple>binders >>in ]
+            [ equal-binder tuple>binders [ value>> ] filter >>in ]
             [
                 tuple>pairs [ first persistent>> table-name>> ] map prune
                 [ next-ordinal <table-ordinal> ] map >>from
@@ -93,7 +93,7 @@ SYMBOL: ordinal
     ] with-variable ;
 
 : select-tuples ( tuple -- tuples )
-    ;
+    (select-tuples) query-object>statement sql-bind-typed-query ;
 
 : make-reconstructor ( tuple -- quot )
     ;
@@ -132,12 +132,15 @@ PERSISTENT: foo
 *)
 
 
+ERROR: unimplemented ;
 
 : select-relations ( tuple relations -- seq )
+    unimplemented
     drop
     ;
 
 : select-no-relations ( tuple -- seq )
+    
     ;
 
 

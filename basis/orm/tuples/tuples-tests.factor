@@ -23,10 +23,14 @@ PERSISTENT: foo-1
 
     [ { { "1" "omg" } } ] [ "select * from foo_1" sql-query ] unit-test
 
-    [ ] [ 1 f foo-1 boa delete-tuples ] unit-test
-
     [ { } ] [ "select * from foo_1" sql-query ] unit-test
-    [ { } ] [ T{ foo-1 } select-tuples ] unit-test ;
+    [ { } ] [ T{ foo-1 } select-tuples ] unit-test
+
+    ! [ ] [ 1 f foo-1 boa delete-tuples ] unit-test
+
+    ! [ { } ] [ "select * from foo_1" sql-query ] unit-test
+    ! [ { } ] [ T{ foo-1 } select-tuples ] unit-test
+    ;
 
 [ test-1 ] test-sqlite
 [ test-1 ] test-postgresql

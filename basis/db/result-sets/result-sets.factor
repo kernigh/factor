@@ -31,7 +31,7 @@ GENERIC: get-type ( binder/word -- type )
     dup #columns iota [ column ] with map ;
 
 : sql-row-typed ( result-set -- seq )
-    [ #columns ] [ out>> ] [ ] tri
+    [ #columns iota ] [ out>> ] [ ] tri
     '[ [ _ ] 2dip get-type column-typed ] 2map ;
 
 M: sql-type get-type ;

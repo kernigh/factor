@@ -57,13 +57,6 @@ M: anonymous-complement classoid? class>> classoid? ;
         [ [ rank-class ] bi@ < ]
     } cond ;
 
-: class<=> ( first second -- ? )
-    {
-        { [ 2dup class<= not ] [ 2drop +gt+ ] }
-        { [ 2dup swap class<= not ] [ 2drop +lt+ ] }
-        [ [ rank-class ] bi@ <=> ]
-    } cond ;
-
 : class= ( first second -- ? )
     [ class<= ] [ swap class<= ] 2bi and ;
 
@@ -241,3 +234,12 @@ ERROR: topological-sort-failed ;
 
 : flatten-class ( class -- assoc )
     [ (flatten-class) ] H{ } make-assoc ;
+
+SYMBOL: +incomparable+
+
+: compare-classes ( class1 class2 -- ? )
+    {
+        { [ 2dup class<= ] [ t ] }
+        { [ 2dup classes-intersect? not ] [ f ] }
+        [ +incomparable+ ]
+    } cond 2nip ;

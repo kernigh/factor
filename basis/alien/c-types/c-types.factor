@@ -17,8 +17,9 @@ SYMBOLS:
     long ulong
     longlong ulonglong
     float double
-    void* bool
-    void ;
+    void* bool ;
+
+SINGLETON: void
 
 DEFER: <int>
 DEFER: *char
@@ -43,12 +44,6 @@ stack-align? ;
 : <c-type> ( -- c-type )
     \ c-type new ; inline
 
-SYMBOL: c-types
-
-global [
-    c-types [ H{ } assoc-like ] change
-] bind
-
 ERROR: no-c-type name ;
 
 PREDICATE: c-type-word < word
@@ -63,20 +58,9 @@ GENERIC: resolve-pointer-type ( name -- c-type )
 
 << \ void \ void* "pointer-c-type" set-word-prop >>
 
-: void? ( c-type -- ? )
-    { void "void" } member? ;
-
 M: word resolve-pointer-type
     dup "pointer-c-type" word-prop
     [ ] [ drop void* ] ?if ;
-
-M: string resolve-pointer-type
-    dup "*" append dup c-types get at
-    [ nip ] [
-        drop
-        c-types get at dup c-type-name?
-        [ resolve-pointer-type ] [ drop void* ] if
-    ] if ;
 
 M: array resolve-pointer-type
     first resolve-pointer-type ;
@@ -84,23 +68,6 @@ M: array resolve-pointer-type
 : resolve-typedef ( name -- c-type )
     dup void? [ no-c-type ] when
     dup c-type-name? [ c-type ] when ;
-
-<PRIVATE
-
-: parse-array-type ( name -- dims c-type )
-    "[" split unclip
-    [ [ "]" ?tail drop string>number ] map ] dip ;
-
-PRIVATE>
-
-M: string c-type ( name -- c-type )
-    CHAR: ] over member? [
-        parse-array-type prefix
-    ] [
-        dup c-types get at [ ] [
-            "*" ?tail [ resolve-pointer-type ] [ no-c-type ] if
-        ] ?if resolve-typedef
-    ] if ;
 
 M: word c-type
     dup "c-type" word-prop resolve-typedef
@@ -268,12 +235,9 @@ GENERIC: typedef ( old new -- )
 PREDICATE: typedef-word < c-type-word
     "c-type" word-prop c-type-name? ;
 
-M: string typedef ( old new -- ) c-types get set-at ;
-
 M: word typedef ( old new -- )
     {
         [ nip define-symbol ]
-        [ name>> typedef ]
         [ swap "c-type" set-word-prop ]
         [
             swap dup c-type-name? [
@@ -553,9 +517,6 @@ M: longlong-2-rep rep-component-type drop longlong ;
 M: ulonglong-2-rep rep-component-type drop ulonglong ;
 M: float-4-rep rep-component-type drop float ;
 M: double-2-rep rep-component-type drop double ;
-
-: rep-length ( rep -- n )
-    16 swap rep-component-type heap-size /i ; foldable
 
 : (unsigned-interval) ( bytes -- from to ) [ 0 ] dip 8 * 2^ 1 - ; foldable
 : unsigned-interval ( c-type -- from to ) heap-size (unsigned-interval) ; foldable

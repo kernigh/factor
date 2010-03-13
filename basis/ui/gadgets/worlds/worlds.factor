@@ -33,7 +33,8 @@ CONSTANT: default-world-window-controls
     }
 
 TUPLE: world < track
-    active? focused? grab-input?
+    active? focused? grab-input? fullscreen?
+    saved-position
     layers
     title status status-owner
     text-handle handle images
@@ -217,8 +218,7 @@ ui-error-hook [ [ rethrow ] ] initialize
                 dup [ draw-world* ] with-gl-context
                 flush-layout-cache-hook get call( -- )
             ] [
-                over <world-error> ui-error
-                f >>active? drop
+                swap f >>active? <world-error> ui-error
             ] recover
         ] with-variable
     ] [ drop ] if ;

@@ -2,15 +2,19 @@
 ! See http:// factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.syntax classes.struct combinators
 combinators.short-circuit kernel math math.order sequences
-specialized-arrays.instances.alien.c-types.void* typed
-specialized-arrays locals system alien.libraries ;
-IN: chipmunk
+typed specialized-arrays locals system alien.libraries ;
+SPECIALIZED-ARRAY: void*
+IN: chipmunk.ffi
 
-<< "chipmunk" {
-        { [ os windows? ] [ "chipmunk.dll" ] }
-        { [ os macosx? ] [ "libchipmunk.dylib"  ] }
-        { [ os unix?  ] [ "libchipmunk.so" ] }
-    } cond "cdecl" add-library >>
+<<
+"chipmunk" {
+    { [ os windows? ] [ "chipmunk.dll" ] }
+    { [ os macosx? ] [ "libchipmunk.dylib"  ] }
+    { [ os unix?  ] [ "libchipmunk.so" ] }
+} cond "cdecl" add-library
+
+"chipmunk" deploy-library
+>>
 LIBRARY: chipmunk
 
 ! chipmunk_types.h
@@ -41,7 +45,7 @@ FUNCTION: cpVect cpvslerp ( cpVect v1, cpVect v2, cpFloat t ) ;
 FUNCTION: cpVect cpvslerpconst ( cpVect v1, cpVect v2, cpFloat a ) ;
 FUNCTION: cpVect cpvforangle ( cpFloat a ) ;
 FUNCTION: cpFloat cpvtoangle ( cpVect v ) ;
-FUNCTION: char* cpvstr ( cpVect v ) ;
+FUNCTION: c-string cpvstr ( cpVect v ) ;
 
 TYPED: cpvadd ( v1: cpVect v2: cpVect -- v3: cpVect )
     [ [ x>> ] bi@ + ]
@@ -512,9 +516,9 @@ FUNCTION: void cpArbiterIgnore ( cpArbiter* arb ) ;
 
 TYPED: cpArbiterGetShapes ( arb: cpArbiter -- a: cpShape b: cpShape )
     dup swappedColl>> 0 = [
-        [ a>> cpShape memory>struct ] [ b>> cpShape memory>struct ] bi
+        [ a>> ] [ b>> ] bi
     ] [
-        [ b>> cpShape memory>struct ] [ a>> cpShape memory>struct ] bi
+        [ b>> ] [ a>> ] bi
     ] if ; inline
 
 TYPED: cpArbiterIsFirstContact ( arb: cpArbiter -- ? )

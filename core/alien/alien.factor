@@ -1,20 +1,41 @@
 ! Copyright (C) 2004, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs kernel math namespaces sequences system
-kernel.private byte-arrays arrays init ;
+kernel.private byte-arrays byte-vectors arrays init ;
 IN: alien
 
 PREDICATE: pinned-alien < alien underlying>> not ;
 
 UNION: pinned-c-ptr pinned-alien POSTPONE: f ;
 
-GENERIC: >c-ptr ( obj -- c-ptr )
+GENERIC: element-size ( seq -- n ) flushable
+
+M: byte-array element-size drop 1 ; inline
+
+M: byte-vector element-size drop 1 ; inline
+
+M: slice element-size seq>> element-size ; inline
+
+M: f element-size drop 1 ; inline
+
+GENERIC: byte-length ( obj -- n ) flushable
+
+M: object byte-length [ length ] [ element-size ] bi * ; inline
+
+GENERIC: >c-ptr ( obj -- c-ptr ) flushable
 
 M: c-ptr >c-ptr ; inline
+
+M: slice >c-ptr
+    [ [ from>> ] [ element-size ] bi * ] [ seq>> >c-ptr ] bi
+    <displaced-alien> ; inline
 
 SLOT: underlying
 
 M: object >c-ptr underlying>> ; inline
+
+: binary-object ( obj -- c-ptr n )
+    [ >c-ptr ] [ byte-length ] bi ; inline
 
 GENERIC: expired? ( c-ptr -- ? ) flushable
 
@@ -49,17 +70,17 @@ ERROR: alien-callback-error ;
 
 ERROR: alien-indirect-error ;
 
-: alien-indirect ( ... funcptr return parameters abi -- ... )
+: alien-indirect ( args... funcptr return parameters abi -- return... )
     alien-indirect-error ;
 
 ERROR: alien-invoke-error library symbol ;
 
-: alien-invoke ( ... return library function parameters -- ... )
+: alien-invoke ( args... return library function parameters -- return... )
     2over alien-invoke-error ;
 
 ERROR: alien-assembly-error code ;
 
-: alien-assembly ( ... return parameters abi quot -- ... )
+: alien-assembly ( args... return parameters abi quot -- return... )
     dup alien-assembly-error ;
 
 ! Callbacks are registered in a global hashtable. Note that they

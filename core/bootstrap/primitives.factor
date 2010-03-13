@@ -420,7 +420,7 @@ tuple
     { "(byte-array)" "byte-arrays" "primitive_uninitialized_byte_array" (( n -- byte-array )) }
     { "<byte-array>" "byte-arrays" "primitive_byte_array" (( n -- byte-array )) }
     { "resize-byte-array" "byte-arrays" "primitive_resize_byte_array" (( n byte-array -- newbyte-array )) }
-    { "<tuple-boa>" "classes.tuple.private" "primitive_tuple_boa" (( ... layout -- tuple )) }
+    { "<tuple-boa>" "classes.tuple.private" "primitive_tuple_boa" (( slots... layout -- tuple )) }
     { "<tuple>" "classes.tuple.private" "primitive_tuple" (( layout -- tuple )) }
     { "modify-code-heap" "compiler.units" "primitive_modify_code_heap" (( alist update-existing? reset-pics? -- )) }
     { "lookup-method" "generic.single.private" "primitive_lookup_method" (( object methods -- method )) }
@@ -434,7 +434,7 @@ tuple
     { "fread" "io.streams.c" "primitive_fread" (( n alien -- str/f )) }
     { "fseek" "io.streams.c" "primitive_fseek" (( alien offset whence -- )) }
     { "ftell" "io.streams.c" "primitive_ftell" (( alien -- n )) }
-    { "fwrite" "io.streams.c" "primitive_fwrite" (( string alien -- )) }
+    { "fwrite" "io.streams.c" "primitive_fwrite" (( data length alien -- )) }
     { "(clone)" "kernel" "primitive_clone" (( obj -- newobj )) }
     { "<wrapper>" "kernel" "primitive_wrapper" (( obj -- wrapper )) }
     { "callstack" "kernel" "primitive_callstack" (( -- cs )) }

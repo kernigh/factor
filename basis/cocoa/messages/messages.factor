@@ -110,7 +110,7 @@ H{
     { "d" c:double }
     { "B" c:bool }
     { "v" c:void }
-    { "*" c:char* }
+    { "*" c:c-string }
     { "?" unknown_type }
     { "@" id }
     { "#" Class }
@@ -237,8 +237,8 @@ ERROR: no-objc-type name ;
 
 : import-objc-class ( name quot -- )
     2dup swap define-objc-class-word
-    over objc_getClass [ drop ] [ call( -- ) ] if
-    dup objc_getClass [
+    over class-exists? [ drop ] [ call( -- ) ] if
+    dup class-exists? [
         [ objc_getClass register-objc-methods ]
         [ objc_getMetaClass register-objc-methods ] bi
     ] [ drop ] if ;

@@ -1,4 +1,4 @@
-! Copyright (C) 2007, 2008 Slava Pestov
+! Copyright (C) 2007, 2010 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors calendar db.orm db.orm.persistent
 db.transactions db.types furnace.actions furnace.auth
@@ -139,8 +139,8 @@ M: annotation entity-url
         { "author" [ v-one-line ] }
         { "mode" [ v-mode ] }
         { "contents" [ v-required ] }
-        { "captcha" [ v-captcha ] }
-    } validate-params ;
+    } validate-params
+    validate-recaptcha ;
 
 : deposit-entity-slots ( tuple -- )
     now >>date

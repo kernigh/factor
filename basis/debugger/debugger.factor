@@ -328,6 +328,10 @@ M: lexer-error error-help
 
 M: bad-effect summary
     drop "Bad stack effect declaration" ;
+M: invalid-row-variable summary
+    drop "Stack effect row variables can only occur as the first input or output" ;
+M: row-variable-can't-have-type summary
+    drop "Stack effect row variables cannot have a declared type" ;
 
 M: bad-escape error.
     "Bad escape code: \\" write

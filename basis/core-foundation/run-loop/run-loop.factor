@@ -1,4 +1,4 @@
-! Copyright (C) 2008 Slava Pestov
+! Copyright (C) 2008, 2010 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.syntax kernel math
 namespaces sequences destructors combinators threads heaps
@@ -91,24 +91,26 @@ TUPLE: run-loop fds sources timers ;
         CFRunLoopAddTimer
     ] bi ;
 
+: invalidate-run-loop-timers ( -- )
+    run-loop [
+        [ [ CFRunLoopTimerInvalidate ] [ CFRelease ] bi ] each
+        V{ } clone
+    ] change-timers drop ;
+
 <PRIVATE
 
-: ((reset-timer)) ( timer counter timestamp -- )
-    nip >CFAbsoluteTime CFRunLoopTimerSetNextFireDate ;
+: (reset-timer) ( timer timestamp -- )
+    >CFAbsoluteTime CFRunLoopTimerSetNextFireDate ;
 
-: nano-count>timestamp ( x -- timestamp )
-    nano-count - nanoseconds now time+ ;
-
-: (reset-timer) ( timer counter -- )
-    yield {
-        { [ dup 0 = ] [ now ((reset-timer)) ] }
-        { [ run-queue deque-empty? not ] [ 1 - (reset-timer) ] }
-        { [ sleep-queue heap-empty? ] [ 5 minutes hence ((reset-timer)) ] }
-        [ sleep-queue heap-peek nip nano-count>timestamp ((reset-timer)) ]
-    } cond ;
+: nano-count>micros ( x -- n )
+    nano-count - 1,000 /f system-micros + ;
 
 : reset-timer ( timer -- )
-    10 (reset-timer) ;
+    yield {
+        { [ run-queue deque-empty? not ] [ yield system-micros (reset-timer) ] }
+        { [ sleep-queue heap-empty? ] [ system-micros 1,000,000 + (reset-timer) ] }
+        [ sleep-queue heap-peek nip nano-count>micros (reset-timer) ]
+    } cond ;
 
 PRIVATE>
 

@@ -1,8 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs combinators db db.binders
-db.query-objects db.types db.utils fry kernel make math
-math.parser mirrors namespaces nested-comments orm
+USING: accessors arrays assocs combinators combinators.smart db
+db.binders db.query-objects db.types db.utils fry kernel macros
+make math math.parser mirrors namespaces nested-comments orm
 orm.persistent sequences sets splitting.monotonic ;
 IN: orm.tuples
 

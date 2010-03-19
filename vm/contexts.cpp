@@ -3,18 +3,26 @@
 namespace factor
 {
 
-context::context(cell datastack_size, cell retainstack_size) :
+context::context(cell datastack_size, cell retainstack_size, cell callstack_size) :
 	callstack_top(NULL),
 	callstack_bottom(NULL),
 	datastack(0),
 	retainstack(0),
 	datastack_region(new segment(datastack_size,false)),
 	retainstack_region(new segment(retainstack_size,false)),
+	callstack_region(new segment(callstack_size,false)),
 	next(NULL)
 {
 	reset_datastack();
 	reset_retainstack();
 	reset_context_objects();
+}
+
+context::~context()
+{
+	delete datastack_region;
+	delete retainstack_region;
+	delete callstack_region;
 }
 
 void context::reset_datastack()
@@ -27,9 +35,35 @@ void context::reset_retainstack()
 	retainstack = retainstack_region->start - sizeof(cell);
 }
 
+void context::reset_callstack()
+{
+	
+}
+
 void context::reset_context_objects()
 {
 	memset_cell(context_objects,false_object,context_object_count * sizeof(cell));
+}
+
+/* called on startup */
+void factor_vm::init_contexts(cell datastack_size_, cell retainstack_size_, cell callstack_size_)
+{
+	datastack_size = datastack_size_;
+	retainstack_size = retainstack_size_;
+	callstack_size = callstack_size_;
+	ctx = NULL;
+	unused_contexts = NULL;
+}
+
+void factor_vm::delete_contexts()
+{
+	assert(!ctx);
+	while(unused_contexts)
+	{
+		context *next = unused_contexts->next;
+		delete unused_contexts;
+		unused_contexts = next;
+	}
 }
 
 context *factor_vm::alloc_context()
@@ -42,13 +76,18 @@ context *factor_vm::alloc_context()
 		unused_contexts = unused_contexts->next;
 	}
 	else
-		new_context = new context(datastack_size,retainstack_size);
+	{
+		new_context = new context(datastack_size,
+			retainstack_size,
+			callstack_size);
+	}
 
 	new_context->callstack_bottom = (stack_frame *)-1;
 	new_context->callstack_top = (stack_frame *)-1;
 
 	new_context->reset_datastack();
 	new_context->reset_retainstack();
+	new_context->reset_callstack();
 	new_context->reset_context_objects();
 
 	return new_context;
@@ -84,15 +123,6 @@ void factor_vm::unnest_context()
 void unnest_context(factor_vm *parent)
 {
 	return parent->unnest_context();
-}
-
-/* called on startup */
-void factor_vm::init_stacks(cell datastack_size_, cell retainstack_size_)
-{
-	datastack_size = datastack_size_;
-	retainstack_size = retainstack_size_;
-	ctx = NULL;
-	unused_contexts = NULL;
 }
 
 void factor_vm::primitive_current_callback()

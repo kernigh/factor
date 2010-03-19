@@ -18,4 +18,9 @@ factor_vm::factor_vm() :
 	primitive_reset_dispatch_stats();
 }
 
+factor_vm::~factor_vm()
+{
+	delete_contexts();
+}
+
 }

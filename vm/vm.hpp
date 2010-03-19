@@ -6,7 +6,7 @@ struct code_root;
 
 struct factor_vm
 {
-	// First five fields accessed directly by assembler. See vm.factor
+	// First 5 fields accessed directly by compiler. See basis/vm/vm.factor
 
 	/* Current context */
 	context *ctx;
@@ -29,9 +29,9 @@ struct factor_vm
 	int callback_id;
 
 	/* Data stack and retain stack sizes */
-	cell datastack_size, retainstack_size;
+	cell datastack_size, retainstack_size, callstack_size;
 
-	/* Pooling unused contexts to make callbacks cheaper */
+	/* Pooling unused contexts to make context allocation cheaper */
 	context *unused_contexts;
 
 	/* Canonical truth value. In Factor, 't' */
@@ -106,7 +106,8 @@ struct factor_vm
 	void dealloc_context(context *old_context);
 	void nest_context();
 	void unnest_context();
-	void init_stacks(cell datastack_size_, cell retainstack_size_);
+	void init_contexts(cell datastack_size_, cell retainstack_size_, cell callstack_size_);
+	void delete_contexts();
 	void primitive_current_callback();
 	void primitive_context_object();
 	void primitive_set_context_object();
@@ -701,6 +702,7 @@ struct factor_vm
   #endif
 
 	factor_vm();
+	~factor_vm();
 
 };
 

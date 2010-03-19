@@ -16,6 +16,7 @@ void factor_vm::default_parameters(vm_parameters *p)
 
 	p->datastack_size = 32 * sizeof(cell);
 	p->retainstack_size = 32 * sizeof(cell);
+	p->callstack_size = 128 * sizeof(cell);
 
 	p->code_size = 8 * sizeof(cell);
 	p->young_size = sizeof(cell) / 4;
@@ -61,6 +62,7 @@ void factor_vm::init_parameters_from_args(vm_parameters *p, int argc, vm_char **
 		if(STRCMP(arg,STRING_LITERAL("--")) == 0) break;
 		else if(factor_arg(arg,STRING_LITERAL("-datastack=%d"),&p->datastack_size));
 		else if(factor_arg(arg,STRING_LITERAL("-retainstack=%d"),&p->retainstack_size));
+		else if(factor_arg(arg,STRING_LITERAL("-callstack=%d"),&p->callstack_size));
 		else if(factor_arg(arg,STRING_LITERAL("-young=%d"),&p->young_size));
 		else if(factor_arg(arg,STRING_LITERAL("-aging=%d"),&p->aging_size));
 		else if(factor_arg(arg,STRING_LITERAL("-tenured=%d"),&p->tenured_size));
@@ -93,6 +95,7 @@ void factor_vm::init_factor(vm_parameters *p)
 	/* Kilobytes */
 	p->datastack_size = align_page(p->datastack_size << 10);
 	p->retainstack_size = align_page(p->retainstack_size << 10);
+	p->callstack_size = align_page(p->retainstack_size << 10);
 	p->callback_size = align_page(p->callback_size << 10);
 
 	/* Megabytes */
@@ -117,7 +120,7 @@ void factor_vm::init_factor(vm_parameters *p)
 
 	srand((unsigned int)system_micros());
 	init_ffi();
-	init_stacks(p->datastack_size,p->retainstack_size);
+	init_contexts(p->datastack_size,p->retainstack_size,p->callstack_size);
 	init_callbacks(p->callback_size);
 	load_image(p);
 	init_c_io();

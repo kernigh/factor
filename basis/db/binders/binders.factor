@@ -21,15 +21,17 @@ TUPLE: binder ;
 TUPLE: high-binder < binder class toc type value ;
 
 TUPLE: in-binder < high-binder ;
-TUPLE: in-binder-low < binder type value ;
+TUPLE: in-binder-low < binder value type ;
 CONSTRUCTOR: in-binder ( -- obj ) ;
-! CONSTRUCTOR: in-binder ( class toc type value -- obj ) ;
-! CONSTRUCTOR: in-binder-low ( type value -- obj ) ;
+CONSTRUCTOR: in-binder-low ( value type -- obj ) ;
+
+SYNTAX: TYPED{
+    \ } [ first2 <in-binder-low> ] parse-literal ;
 
 TUPLE: out-binder < high-binder ;
 TUPLE: out-binder-low < binder type ;
-! CONSTRUCTOR: out-binder ( toc type -- obj ) ;
-! CONSTRUCTOR: out-binder-low ( type -- obj ) ;
+CONSTRUCTOR: out-binder ( toc type -- obj ) ;
+CONSTRUCTOR: out-binder-low ( type -- obj ) ;
 
 TUPLE: and-binder binders ;
 TUPLE: or-binder binders ;

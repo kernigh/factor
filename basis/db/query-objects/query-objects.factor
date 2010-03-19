@@ -109,7 +109,7 @@ M: or-binder >qualified-bind-pair " OR " qualified-special-bind-pair ;
     [ >qualified-bind-pair ] map " AND " join ;
 
 : >table-names ( in -- string )
-    [ >table-name ] map prune ", " join ;
+    [ >table-name ] map members ", " join ;
 
 : >column-names ( in -- string )
     [ >column-name ] map ", " join ;

@@ -4,30 +4,35 @@ USING: accessors arrays continuations db.connections db.errors
 db.result-sets db.utils destructors fry kernel sequences math ;
 IN: db.statements
 
-TUPLE: statement handle sql in out after
+TUPLE: statement handle sql in in-types out after
 retries errors retry-quotation ;
 ! reconstructor
 
 : normalize-statement ( statement -- statement )
-    [ obj>vector ] change-out
-    [ obj>vector ] change-in ;
+    [ obj>vector ] change-in
+    [ obj>vector ] change-in-types
+    [ obj>vector ] change-out ;
+
+: initialize-statement ( statement -- statement )
+    V{ } clone >>in
+    V{ } clone >>in-types
+    V{ } clone >>out
+    V{ } clone >>errors ;
+ 
+: <sql> ( string -- statement )
+    statement new
+        swap >>sql
+        initialize-statement ;
 
 : <statement> ( -- statement )
     statement new
-        V{ } clone >>out
-        V{ } clone >>in
-        V{ } clone >>errors ;
+        initialize-statement ;
 
 HOOK: next-bind-index db-connection ( -- string )
 HOOK: init-bind-index db-connection ( -- )
 
 : add-sql ( statement sql -- statement )
     '[ _ "" append-as ] change-sql ;
-
-: add-in-params ( statement sql -- statement ) over in>> push-all ;
-: add-in-param ( statement sql -- statement ) 1array add-in-params ;
-: add-out-params ( statement sql -- statement ) over out>> push-all ;
-: add-out-param ( statement sql -- statement ) 1array add-out-params ;
 
 HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: prepare-statement* db-connection ( statement -- statement' )

@@ -29,7 +29,7 @@ struct factor_vm
 	int callback_id;
 
 	/* Data stack and retain stack sizes */
-	cell ds_size, rs_size;
+	cell datastack_size, retainstack_size;
 
 	/* Pooling unused contexts to make callbacks cheaper */
 	context *unused_contexts;
@@ -106,7 +106,7 @@ struct factor_vm
 	void dealloc_context(context *old_context);
 	void nest_context();
 	void unnest_context();
-	void init_stacks(cell ds_size_, cell rs_size_);
+	void init_stacks(cell datastack_size_, cell retainstack_size_);
 	void primitive_current_callback();
 	void primitive_context_object();
 	void primitive_set_context_object();

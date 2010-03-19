@@ -32,7 +32,7 @@ struct context {
 
 	context *next;
 
-	context(cell ds_size, cell rs_size);
+	context(cell datastack_size, cell retainstack_size);
 	void reset_datastack();
 	void reset_retainstack();
 	void reset_context_objects();

@@ -3,13 +3,13 @@
 namespace factor
 {
 
-context::context(cell ds_size, cell rs_size) :
+context::context(cell datastack_size, cell retainstack_size) :
 	callstack_top(NULL),
 	callstack_bottom(NULL),
 	datastack(0),
 	retainstack(0),
-	datastack_region(new segment(ds_size,false)),
-	retainstack_region(new segment(rs_size,false)),
+	datastack_region(new segment(datastack_size,false)),
+	retainstack_region(new segment(retainstack_size,false)),
 	next(NULL)
 {
 	reset_datastack();
@@ -42,7 +42,7 @@ context *factor_vm::alloc_context()
 		unused_contexts = unused_contexts->next;
 	}
 	else
-		new_context = new context(ds_size,rs_size);
+		new_context = new context(datastack_size,retainstack_size);
 
 	new_context->callstack_bottom = (stack_frame *)-1;
 	new_context->callstack_top = (stack_frame *)-1;
@@ -87,10 +87,10 @@ void unnest_context(factor_vm *parent)
 }
 
 /* called on startup */
-void factor_vm::init_stacks(cell ds_size_, cell rs_size_)
+void factor_vm::init_stacks(cell datastack_size_, cell retainstack_size_)
 {
-	ds_size = ds_size_;
-	rs_size = rs_size_;
+	datastack_size = datastack_size_;
+	retainstack_size = retainstack_size_;
 	ctx = NULL;
 	unused_contexts = NULL;
 }

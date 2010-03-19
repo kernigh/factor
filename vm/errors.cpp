@@ -101,11 +101,11 @@ void factor_vm::memory_protection_error(cell addr, stack_frame *native_stack)
 {
 	if(in_page(addr, ctx->datastack_region->start, 0, -1))
 		general_error(ERROR_DS_UNDERFLOW,false_object,false_object,native_stack);
-	else if(in_page(addr, ctx->datastack_region->start, ds_size, 0))
+	else if(in_page(addr, ctx->datastack_region->start, datastack_size, 0))
 		general_error(ERROR_DS_OVERFLOW,false_object,false_object,native_stack);
 	else if(in_page(addr, ctx->retainstack_region->start, 0, -1))
 		general_error(ERROR_RS_UNDERFLOW,false_object,false_object,native_stack);
-	else if(in_page(addr, ctx->retainstack_region->start, rs_size, 0))
+	else if(in_page(addr, ctx->retainstack_region->start, retainstack_size, 0))
 		general_error(ERROR_RS_OVERFLOW,false_object,false_object,native_stack);
 	else if(in_page(addr, nursery.end, 0, 0))
 		critical_error("allot_object() missed GC check",0);

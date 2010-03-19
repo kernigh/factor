@@ -230,11 +230,11 @@ M:: x86.32 %unbox-large-struct ( n c-type -- )
 
 M: x86.32 %nest-stacks ( -- )
     0 save-vm-ptr
-    "nest_stacks" f %alien-invoke ;
+    "nest_context" f %alien-invoke ;
 
 M: x86.32 %unnest-stacks ( -- )
     0 save-vm-ptr
-    "unnest_stacks" f %alien-invoke ;
+    "unnest_context" f %alien-invoke ;
 
 M: x86.32 %prepare-alien-indirect ( -- )
     EAX ds-reg [] MOV
@@ -258,7 +258,7 @@ M: x86.32 %callback-value ( ctype -- )
     4 stack@ EAX MOV
     0 save-vm-ptr
     ! Restore data/call/retain stacks
-    "unnest_stacks" f %alien-invoke
+    "unnest_context" f %alien-invoke
     ! Place former top of data stack back in EAX
     EAX 4 stack@ MOV
     ! Unbox EAX

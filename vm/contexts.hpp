@@ -6,7 +6,6 @@ static const cell context_object_count = 10;
 enum context_object {
 	OBJ_NAMESTACK,
 	OBJ_CATCHSTACK,
-	OBJ_CONTEXT_ID,
 };
 
 /* Assembly code makes assumptions about the layout of this struct */
@@ -75,7 +74,7 @@ struct context {
 	}
 };
 
-VM_C_API void nest_stacks(factor_vm *vm);
-VM_C_API void unnest_stacks(factor_vm *vm);
+VM_C_API void nest_context(factor_vm *vm);
+VM_C_API void unnest_context(factor_vm *vm);
 
 }

@@ -44,6 +44,13 @@ context *factor_vm::alloc_context()
 	else
 		new_context = new context(ds_size,rs_size);
 
+	new_context->callstack_bottom = (stack_frame *)-1;
+	new_context->callstack_top = (stack_frame *)-1;
+
+	new_context->reset_datastack();
+	new_context->reset_retainstack();
+	new_context->reset_context_objects();
+
 	return new_context;
 }
 
@@ -53,38 +60,30 @@ void factor_vm::dealloc_context(context *old_context)
 	unused_contexts = old_context;
 }
 
-/* called on entry into a compiled callback */
-void factor_vm::nest_stacks()
+void factor_vm::nest_context()
 {
 	context *new_ctx = alloc_context();
-
-	new_ctx->callstack_bottom = (stack_frame *)-1;
-	new_ctx->callstack_top = (stack_frame *)-1;
-
-	new_ctx->reset_datastack();
-	new_ctx->reset_retainstack();
-	new_ctx->reset_context_objects();
-
 	new_ctx->next = ctx;
 	ctx = new_ctx;
+	callback_ids.push_back(callback_id++);
 }
 
-void nest_stacks(factor_vm *parent)
+void nest_context(factor_vm *parent)
 {
-	return parent->nest_stacks();
+	return parent->nest_context();
 }
 
-/* called when leaving a compiled callback */
-void factor_vm::unnest_stacks()
+void factor_vm::unnest_context()
 {
+	callback_ids.pop_back();
 	context *old_ctx = ctx;
 	ctx = old_ctx->next;
 	dealloc_context(old_ctx);
 }
 
-void unnest_stacks(factor_vm *parent)
+void unnest_context(factor_vm *parent)
 {
-	return parent->unnest_stacks();
+	return parent->unnest_context();
 }
 
 /* called on startup */
@@ -94,6 +93,11 @@ void factor_vm::init_stacks(cell ds_size_, cell rs_size_)
 	rs_size = rs_size_;
 	ctx = NULL;
 	unused_contexts = NULL;
+}
+
+void factor_vm::primitive_current_callback()
+{
+	ctx->push(tag_fixnum(callback_ids.back()));
 }
 
 void factor_vm::primitive_context_object()

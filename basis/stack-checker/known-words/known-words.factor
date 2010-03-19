@@ -504,6 +504,9 @@ M: bad-executable summary
 \ word-code { word } { integer integer } define-primitive
 \ word-code make-flushable
 
+\ current-callback { } { fixnum } define-primitive
+\ current-callback make-flushable
+
 \ special-object { fixnum } { object } define-primitive
 \ special-object make-flushable
 

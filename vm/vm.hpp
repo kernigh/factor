@@ -8,9 +8,9 @@ struct factor_vm
 {
 	// First five fields accessed directly by assembler. See vm.factor
 
-	/* Current stacks */
+	/* Current context */
 	context *ctx;
-	
+
 	/* New objects are allocated here */
 	nursery_space nursery;
 
@@ -21,6 +21,12 @@ struct factor_vm
 	/* Various special objects, accessed by special-object and
 	set-special-object primitives */
 	cell special_objects[special_object_count];
+
+	/* Stack of callback IDs */
+	std::vector<int> callback_ids;
+
+	/* Current callback ID */
+	int callback_id;
 
 	/* Data stack and retain stack sizes */
 	cell ds_size, rs_size;
@@ -98,9 +104,10 @@ struct factor_vm
 	// contexts
 	context *alloc_context();
 	void dealloc_context(context *old_context);
-	void nest_stacks();
-	void unnest_stacks();
+	void nest_context();
+	void unnest_context();
 	void init_stacks(cell ds_size_, cell rs_size_);
+	void primitive_current_callback();
 	void primitive_context_object();
 	void primitive_set_context_object();
 	bool stack_to_array(cell bottom, cell top);

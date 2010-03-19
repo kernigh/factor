@@ -448,6 +448,7 @@ tuple
     { "check-datastack" "kernel.private" "primitive_check_datastack" (( array in# out# -- ? )) }
     { "compute-identity-hashcode" "kernel.private" "primitive_compute_identity_hashcode" (( obj -- )) }
     { "context-object" "kernel.private" "primitive_context_object" (( n -- obj )) }
+    { "current-callback" "kernel.private" "primitive_current_callback" (( -- n )) }
     { "innermost-frame-executing" "kernel.private" "primitive_innermost_stack_frame_executing" (( callstack -- obj )) }
     { "innermost-frame-scan" "kernel.private" "primitive_innermost_stack_frame_scan" (( callstack -- n )) }
     { "set-context-object" "kernel.private" "primitive_set_context_object" (( obj n -- )) }

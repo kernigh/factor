@@ -217,11 +217,11 @@ M: x86.64 %alien-invoke
 
 M: x86.64 %nest-stacks ( -- )
     param-reg-0 %mov-vm-ptr
-    "nest_stacks" f %alien-invoke ;
+    "nest_context" f %alien-invoke ;
 
 M: x86.64 %unnest-stacks ( -- )
     param-reg-0 %mov-vm-ptr
-    "unnest_stacks" f %alien-invoke ;
+    "unnest_context" f %alien-invoke ;
 
 M: x86.64 %prepare-alien-indirect ( -- )
     param-reg-0 ds-reg [] MOV
@@ -245,7 +245,7 @@ M: x86.64 %callback-value ( ctype -- )
     param-reg-0 PUSH
     param-reg-0 %mov-vm-ptr
     ! Restore data/call/retain stacks
-    "unnest_stacks" f %alien-invoke
+    "unnest_context" f %alien-invoke
     ! Put former top of data stack in param-reg-0
     param-reg-0 POP
     RSP 8 ADD

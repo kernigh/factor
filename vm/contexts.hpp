@@ -26,9 +26,9 @@ struct context {
 	set-context-object primitives */
 	cell context_objects[context_object_count];
 
-	segment *datastack_region;
-	segment *retainstack_region;
-	segment *callstack_region;
+	segment *datastack_seg;
+	segment *retainstack_seg;
+	segment *callstack_seg;
 
 	context *next;
 
@@ -67,12 +67,12 @@ struct context {
 
 	void fix_stacks()
 	{
-		if(datastack + sizeof(cell) < datastack_region->start
-			|| datastack + stack_reserved >= datastack_region->end)
+		if(datastack + sizeof(cell) < datastack_seg->start
+			|| datastack + stack_reserved >= datastack_seg->end)
 			reset_datastack();
 
-		if(retainstack + sizeof(cell) < retainstack_region->start
-			|| retainstack + stack_reserved >= retainstack_region->end)
+		if(retainstack + sizeof(cell) < retainstack_seg->start
+			|| retainstack + stack_reserved >= retainstack_seg->end)
 			reset_retainstack();
 	}
 };

@@ -174,8 +174,8 @@ void slot_visitor<Visitor>::visit_contexts()
 
 	while(ctx)
 	{
-		visit_stack_elements(ctx->datastack_region,(cell *)ctx->datastack);
-		visit_stack_elements(ctx->retainstack_region,(cell *)ctx->retainstack);
+		visit_stack_elements(ctx->datastack_seg,(cell *)ctx->datastack);
+		visit_stack_elements(ctx->retainstack_seg,(cell *)ctx->retainstack);
 		visit_object_array(ctx->context_objects,ctx->context_objects + context_object_count);
 
 		ctx = ctx->next;

@@ -8,9 +8,9 @@ context::context(cell datastack_size, cell retainstack_size, cell callstack_size
 	callstack_bottom(NULL),
 	datastack(0),
 	retainstack(0),
-	datastack_region(new segment(datastack_size,false)),
-	retainstack_region(new segment(retainstack_size,false)),
-	callstack_region(new segment(callstack_size,false)),
+	datastack_seg(new segment(datastack_size,false)),
+	retainstack_seg(new segment(retainstack_size,false)),
+	callstack_seg(new segment(callstack_size,false)),
 	next(NULL)
 {
 	reset_datastack();
@@ -20,24 +20,23 @@ context::context(cell datastack_size, cell retainstack_size, cell callstack_size
 
 context::~context()
 {
-	delete datastack_region;
-	delete retainstack_region;
-	delete callstack_region;
+	delete datastack_seg;
+	delete retainstack_seg;
+	delete callstack_seg;
 }
 
 void context::reset_datastack()
 {
-	datastack = datastack_region->start - sizeof(cell);
+	datastack = datastack_seg->start - sizeof(cell);
 }
 
 void context::reset_retainstack()
 {
-	retainstack = retainstack_region->start - sizeof(cell);
+	retainstack = retainstack_seg->start - sizeof(cell);
 }
 
 void context::reset_callstack()
 {
-	
 }
 
 void context::reset_context_objects()
@@ -160,13 +159,13 @@ bool factor_vm::stack_to_array(cell bottom, cell top)
 
 void factor_vm::primitive_datastack()
 {
-	if(!stack_to_array(ctx->datastack_region->start,ctx->datastack))
+	if(!stack_to_array(ctx->datastack_seg->start,ctx->datastack))
 		general_error(ERROR_DS_UNDERFLOW,false_object,false_object,NULL);
 }
 
 void factor_vm::primitive_retainstack()
 {
-	if(!stack_to_array(ctx->retainstack_region->start,ctx->retainstack))
+	if(!stack_to_array(ctx->retainstack_seg->start,ctx->retainstack))
 		general_error(ERROR_RS_UNDERFLOW,false_object,false_object,NULL);
 }
 
@@ -180,12 +179,12 @@ cell factor_vm::array_to_stack(array *array, cell bottom)
 
 void factor_vm::primitive_set_datastack()
 {
-	ctx->datastack = array_to_stack(untag_check<array>(ctx->pop()),ctx->datastack_region->start);
+	ctx->datastack = array_to_stack(untag_check<array>(ctx->pop()),ctx->datastack_seg->start);
 }
 
 void factor_vm::primitive_set_retainstack()
 {
-	ctx->retainstack = array_to_stack(untag_check<array>(ctx->pop()),ctx->retainstack_region->start);
+	ctx->retainstack = array_to_stack(untag_check<array>(ctx->pop()),ctx->retainstack_seg->start);
 }
 
 /* Used to implement call( */
@@ -196,12 +195,12 @@ void factor_vm::primitive_check_datastack()
 	fixnum height = out - in;
 	array *saved_datastack = untag_check<array>(ctx->pop());
 	fixnum saved_height = array_capacity(saved_datastack);
-	fixnum current_height = (ctx->datastack - ctx->datastack_region->start + sizeof(cell)) / sizeof(cell);
+	fixnum current_height = (ctx->datastack - ctx->datastack_seg->start + sizeof(cell)) / sizeof(cell);
 	if(current_height - height != saved_height)
 		ctx->push(false_object);
 	else
 	{
-		cell *ds_bot = (cell *)ctx->datastack_region->start;
+		cell *ds_bot = (cell *)ctx->datastack_seg->start;
 		for(fixnum i = 0; i < saved_height - in; i++)
 		{
 			if(ds_bot[i] != array_nth(saved_datastack,i))

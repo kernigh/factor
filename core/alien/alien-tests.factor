@@ -1,6 +1,6 @@
 USING: accessors alien alien.accessors alien.syntax byte-arrays arrays
 kernel kernel.private namespaces tools.test sequences libc math
-system prettyprint layouts alien.libraries sets ;
+system prettyprint layouts alien.libraries alien.private sets ;
 FROM: namespaces => set ;
 IN: alien.tests
 
@@ -85,3 +85,5 @@ f initialize-test set-global
 [ 7575 ] [ initialize-test [ 7575 ] initialize-alien ] unit-test
 
 [ { BAD-ALIEN } ] [ { BAD-ALIEN BAD-ALIEN BAD-ALIEN } members ] unit-test
+
+[ f ] [ <context-id> <context-id> = ] unit-test

@@ -48,6 +48,8 @@ ERROR: retryable-failed statement ;
         with-disposal
     ] if ; inline
 
+! : typed-statement? ( statement -- ? ) ;
+
 M: statement sql-command ( statement -- )
     [
         prepare-statement

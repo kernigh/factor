@@ -32,6 +32,7 @@ CONSTANT: deck-bits 18
 : context-callstack-bottom-offset ( -- n ) 1 bootstrap-cells ; inline
 : context-datastack-offset ( -- n ) 2 bootstrap-cells ; inline
 : context-retainstack-offset ( -- n ) 3 bootstrap-cells ; inline
+: context-callstack-save-offset ( -- n ) 4 bootstrap-cells ; inline
 
 ! Relocation classes
 CONSTANT: rc-absolute-cell 0

@@ -13,35 +13,61 @@ big-endian off
     ! Optimizing compiler's side of callback accesses
     ! arguments that are on the stack via the frame pointer.
     ! On x86-64, some arguments are passed in registers, and
-    ! so the only register that is safe for use here is safe-reg.
+    ! so the only registers safe for use here are safe-reg-1 and
+    ! safe-reg-2.
     frame-reg PUSH
     frame-reg stack-reg MOV
 
     ! Save all non-volatile registers
     nv-regs [ PUSH ] each
 
-    ! Save old stack pointer and align
-    safe-reg stack-reg MOV
-    stack-reg bootstrap-cell SUB
-    stack-reg -16 AND
-    stack-reg [] safe-reg MOV
-
-    ! Register shadow area - only required on Win64, but doesn't
-    ! hurt on other platforms
-    stack-reg 32 SUB
-
     ! Load VM into vm-reg
     vm-reg 0 MOV rc-absolute-cell rt-vm jit-rel
 
+    ! Pop an unused context from the linked list
+    safe-reg-1 vm-reg unused-context-offset [+] MOV
+    safe-reg-2 safe-reg-1 context-next-offset [+] MOV
+    vm-reg unused-context-offset [+] safe-reg-2 MOV
+
+    ! Make the new context's next context the current one
+    safe-reg-2 vm-reg vm-context-offset [+] MOV
+    safe-reg-1 context-next-offset [+] safe-reg-2 MOV
+
+    ! Set the current context
+    vm-reg vm-context-offset [+] safe-reg-1 MOV
+
+    ! Store callstack pointer to ctx->callstack_save
+    safe-reg-1 context-callstack-save-offset [+] stack-reg MOV
+
+    ! Load callstack pointer from ctx->callstack_bottom
+    stack-reg safe-reg-1 context-callstack-bottom-offset [+] MOV
+
+    ! Twiddle the stack pointer so that the following CALL puts
+    ! the return address in the right place
+    stack-reg cell ADD
+
     ! Call into Factor code
-    safe-reg 0 MOV rc-absolute-cell rt-entry-point jit-rel
-    safe-reg CALL
+    safe-reg-1 0 MOV rc-absolute-cell rt-entry-point jit-rel
+    safe-reg-1 CALL
 
-    ! Tear down register shadow area
-    stack-reg 32 ADD
+    ! Load VM into vm-reg -- only for x86.32, on x86.64 Factor
+    ! code preserves vm-reg
+    vm-reg 0 MOV rc-absolute-cell rt-vm jit-rel
 
-    ! Undo stack alignment
-    stack-reg stack-reg [] MOV
+    ! Get the current context
+    safe-reg-1 vm-reg vm-context-offset [+] MOV
+
+    ! Load callstack pointer from ctx->callstack_save
+    stack-reg safe-reg-1 context-callstack-save-offset [+] MOV
+
+    ! Make the next context into the current context
+    safe-reg-2 safe-reg-1 next-offset [+] MOV
+    vm-reg vm-context-offset [+] safe-reg-2 MOV
+
+    ! Add the old context to the unused context linked list
+    safe-reg-2 vm-reg unused-context-offset [+] MOV
+    safe-reg-1 context-next-offset [+] safe-reg-2 MOV
+    vm-reg unused-context-offset [+] safe-reg-1 MOV
 
     ! Restore non-volatile registers
     nv-regs <reversed> [ POP ] each
@@ -56,15 +82,15 @@ big-endian off
 
 [
     ! Load word
-    safe-reg 0 MOV rc-absolute-cell rt-literal jit-rel
+    safe-reg-1 0 MOV rc-absolute-cell rt-literal jit-rel
     ! Bump profiling counter
-    safe-reg profile-count-offset [+] 1 tag-fixnum ADD
+    safe-reg-1 profile-count-offset [+] 1 tag-fixnum ADD
     ! Load word->code
-    safe-reg safe-reg word-code-offset [+] MOV
+    safe-reg-1 safe-reg-1 word-code-offset [+] MOV
     ! Compute word entry point
-    safe-reg compiled-header-size ADD
+    safe-reg-1 compiled-header-size ADD
     ! Jump to entry point
-    safe-reg JMP
+    safe-reg-1 JMP
 ] jit-profiling jit-define
 
 [

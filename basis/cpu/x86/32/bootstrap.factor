@@ -16,7 +16,8 @@ IN: bootstrap.x86
 : temp1 ( -- reg ) EDX ;
 : temp2 ( -- reg ) ECX ;
 : temp3 ( -- reg ) EBX ;
-: safe-reg ( -- reg ) EAX ;
+: safe-reg-1 ( -- reg ) EAX ;
+: safe-reg-2 ( -- reg ) ECX ;
 : stack-reg ( -- reg ) ESP ;
 : frame-reg ( -- reg ) EBP ;
 : vm-reg ( -- reg ) ECX ;
@@ -76,8 +77,6 @@ IN: bootstrap.x86
     jit-load-vm
     jit-load-context
     jit-restore-context
-    EDX stack-reg stack-frame-size 4 - [+] LEA
-    ctx-reg context-callstack-bottom-offset [+] EDX MOV
     ! call the quotation
     EAX quot-entry-point-offset [+] CALL
     ! save ds, rs registers

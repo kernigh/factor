@@ -8,6 +8,7 @@ context::context(cell datastack_size, cell retainstack_size, cell callstack_size
 	callstack_bottom(NULL),
 	datastack(0),
 	retainstack(0),
+	callstack_save(0),
 	datastack_seg(new segment(datastack_size,false)),
 	retainstack_seg(new segment(retainstack_size,false)),
 	callstack_seg(new segment(callstack_size,false)),
@@ -37,6 +38,7 @@ void context::reset_retainstack()
 
 void context::reset_callstack()
 {
+	callstack_top = callstack_bottom = CALLSTACK_BOTTOM(this);
 }
 
 void context::reset_context_objects()
@@ -81,9 +83,6 @@ context *factor_vm::alloc_context()
 			callstack_size);
 	}
 
-	new_context->callstack_bottom = (stack_frame *)-1;
-	new_context->callstack_top = (stack_frame *)-1;
-
 	new_context->reset_datastack();
 	new_context->reset_retainstack();
 	new_context->reset_callstack();
@@ -98,30 +97,24 @@ void factor_vm::dealloc_context(context *old_context)
 	unused_contexts = old_context;
 }
 
-void factor_vm::nest_context()
+void factor_vm::nest_callback()
 {
-	context *new_ctx = alloc_context();
-	new_ctx->next = ctx;
-	ctx = new_ctx;
 	callback_ids.push_back(callback_id++);
 }
 
-void nest_context(factor_vm *parent)
+void nest_callback(factor_vm *parent)
 {
-	return parent->nest_context();
+	return parent->nest_callback();
 }
 
-void factor_vm::unnest_context()
+void factor_vm::unnest_callback()
 {
 	callback_ids.pop_back();
-	context *old_ctx = ctx;
-	ctx = old_ctx->next;
-	dealloc_context(old_ctx);
 }
 
-void unnest_context(factor_vm *parent)
+void unnest_callback(factor_vm *parent)
 {
-	return parent->unnest_context();
+	return parent->unnest_callback();
 }
 
 void factor_vm::primitive_current_callback()

@@ -104,8 +104,8 @@ struct factor_vm
 	// contexts
 	context *alloc_context();
 	void dealloc_context(context *old_context);
-	void nest_context();
-	void unnest_context();
+	void nest_callback();
+	void unnest_callback();
 	void init_contexts(cell datastack_size_, cell retainstack_size_, cell callstack_size_);
 	void delete_contexts();
 	void primitive_current_callback();

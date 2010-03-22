@@ -16,7 +16,8 @@ IN: bootstrap.x86
 : temp2 ( -- reg ) RDX ;
 : temp3 ( -- reg ) RBX ;
 : return-reg ( -- reg ) RAX ;
-: safe-reg ( -- reg ) RAX ;
+: safe-reg-1 ( -- reg ) RAX ;
+: safe-reg-2 ( -- reg ) R11 ;
 : stack-reg ( -- reg ) RSP ;
 : frame-reg ( -- reg ) RBP ;
 : ctx-reg ( -- reg ) R12 ;
@@ -28,11 +29,11 @@ IN: bootstrap.x86
 
 [
     ! load entry point
-    safe-reg 0 MOV rc-absolute-cell rt-this jit-rel
+    safe-reg-1 0 MOV rc-absolute-cell rt-this jit-rel
     ! save stack frame size
     stack-frame-size PUSH
     ! push entry point
-    safe-reg PUSH
+    safe-reg-1 PUSH
     ! alignment
     RSP stack-frame-size 3 bootstrap-cells - SUB
 ] jit-prolog jit-define
@@ -47,8 +48,8 @@ IN: bootstrap.x86
 
 : jit-save-context ( -- )
     jit-load-context
-    safe-reg RSP -8 [+] LEA
-    ctx-reg context-callstack-top-offset [+] safe-reg MOV
+    safe-reg-1 RSP -8 [+] LEA
+    ctx-reg context-callstack-top-offset [+] safe-reg-1 MOV
     ctx-reg context-datastack-offset [+] ds-reg MOV
     ctx-reg context-retainstack-offset [+] rs-reg MOV ;
 
@@ -68,9 +69,6 @@ IN: bootstrap.x86
 
 [
     jit-restore-context
-    ! save ctx->callstack_bottom
-    safe-reg stack-reg stack-frame-size 8 - [+] LEA
-    ctx-reg context-callstack-bottom-offset [+] safe-reg MOV
     ! call the quotation
     arg1 quot-entry-point-offset [+] CALL
     jit-save-context
@@ -124,8 +122,8 @@ IN: bootstrap.x86
     ! Call memcpy; arguments are now in the correct registers
     ! Create register shadow area for Win64
     RSP 32 SUB
-    safe-reg 0 MOV "factor_memcpy" f rc-absolute-cell jit-dlsym
-    safe-reg CALL
+    safe-reg-1 0 MOV "factor_memcpy" f rc-absolute-cell jit-dlsym
+    safe-reg-1 CALL
     ! Tear down register shadow area
     RSP 32 ADD
     ! Return with new callstack
@@ -135,8 +133,8 @@ IN: bootstrap.x86
 [
     jit-save-context
     arg2 vm-reg MOV
-    safe-reg 0 MOV "lazy_jit_compile" f rc-absolute-cell jit-dlsym
-    safe-reg CALL
+    safe-reg-1 0 MOV "lazy_jit_compile" f rc-absolute-cell jit-dlsym
+    safe-reg-1 CALL
 ]
 [ return-reg quot-entry-point-offset [+] CALL ]
 [ return-reg quot-entry-point-offset [+] JMP ]

@@ -164,16 +164,16 @@ void factor_vm::start_factor(vm_parameters *p)
 {
 	if(p->fep) factorbug();
 
-	nest_context();
+	nest_callback();
 	c_to_factor_toplevel(special_objects[OBJ_STARTUP_QUOT]);
-	unnest_context();
+	unnest_callback();
 }
 
 void factor_vm::stop_factor()
 {
-	nest_context();
+	nest_callback();
 	c_to_factor_toplevel(special_objects[OBJ_SHUTDOWN_QUOT]);
-	unnest_context();
+	unnest_callback();
 }
 
 char *factor_vm::factor_eval_string(char *string)

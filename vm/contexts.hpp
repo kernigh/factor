@@ -12,7 +12,7 @@ struct context {
 
 	// First 4 fields accessed directly by compiler. See basis/vm/vm.factor
 
-	/* C stack pointer on entry */
+	/* Factor call stack pointers */
 	stack_frame *callstack_top;
 	stack_frame *callstack_bottom;
 
@@ -21,6 +21,9 @@ struct context {
 
 	/* current retain stack top pointer */
 	cell retainstack;
+
+	/* C stack pointer saved on entry into callback */
+	cell callstack_save;
 
 	/* context-specific special objects, accessed by context-object and
 	set-context-object primitives */
@@ -77,7 +80,7 @@ struct context {
 	}
 };
 
-VM_C_API void nest_context(factor_vm *vm);
-VM_C_API void unnest_context(factor_vm *vm);
+VM_C_API void nest_callback(factor_vm *vm);
+VM_C_API void unnest_callback(factor_vm *vm);
 
 }

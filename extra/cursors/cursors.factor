@@ -1,6 +1,7 @@
 ! (c)2010 Joe Groff bsd license
-USING: accessors assocs combinators.short-circuit fry hashtables
-kernel locals math math.functions sequences sequences.private ;
+USING: accessors arrays assocs combinators.short-circuit fry
+hashtables kernel locals math math.functions math.order sequences ;
+FROM: sequences.private => nth-unsafe set-nth-unsafe ;
 FROM: hashtables.private => tombstone? ;
 IN: cursors
 
@@ -80,6 +81,40 @@ PRIVATE>
 M: output-cursor set-cursor-value-unsafe set-cursor-value ; inline
 M: output-cursor set-cursor-value
     dup cursor-valid? [ set-cursor-value-unsafe ] [ invalid-cursor ] if ; inline
+
+!
+! stream cursors
+!
+
+MIXIN: stream-cursor
+INSTANCE: stream-cursor forward-cursor
+
+M: stream-cursor cursor-compatible? 2drop f ; inline
+M: stream-cursor cursor-valid? drop t ; inline
+M: stream-cursor cursor= 2drop f ; inline
+
+MIXIN: infinite-stream-cursor
+INSTANCE: infinite-stream-cursor stream-cursor
+
+M: infinite-stream-cursor inc-cursor ; inline
+
+MIXIN: finite-stream-cursor
+INSTANCE: finite-stream-cursor stream-cursor
+
+SINGLETON: end-of-stream
+
+GENERIC: cursor-stream-ended? ( cursor -- ? )
+
+M: finite-stream-cursor inc-cursor
+    dup cursor-stream-ended? [ drop end-of-stream ] when ; inline
+
+INSTANCE: end-of-stream finite-stream-cursor
+
+M: end-of-stream cursor-compatible? drop finite-stream-cursor? ; inline
+M: end-of-stream cursor-valid? drop f ; inline
+M: end-of-stream cursor= eq? ; inline
+M: end-of-stream inc-cursor ; inline
+M: end-of-stream cursor-stream-ended? drop t ; inline
 
 !
 ! basic iterator
@@ -168,8 +203,11 @@ MIXIN: collection
 GENERIC: begin-cursor ( collection -- cursor )
 GENERIC: end-cursor ( collection -- cursor )
 
+: all ( collection -- begin end )
+    [ begin-cursor ] [ end-cursor ] bi ; inline
+
 : all- ( collection quot -- begin end quot )
-    [ [ begin-cursor ] [ end-cursor ] bi ] dip ; inline
+    [ all ] dip ; inline
 
 !
 ! containers
@@ -185,6 +223,11 @@ INSTANCE: container collection
     all- -container- ; inline
 
 : each ( ... container quot: ( ... x -- ... ) -- ... ) container- -each ; inline
+
+INSTANCE: finite-stream-cursor container
+
+M: finite-stream-cursor begin-cursor ; inline
+M: finite-stream-cursor end-cursor drop end-of-stream ; inline
 
 !
 ! sequence cursor
@@ -265,14 +308,7 @@ TUPLE: pusher-cursor
     { growable read-only } ;
 C: <pusher-cursor> pusher-cursor
 
-INSTANCE: pusher-cursor forward-cursor
-
-! XXX define a protocol for stream cursors that don't actually move
-M: pusher-cursor cursor-compatible? 2drop f ; inline
-M: pusher-cursor cursor-valid? drop t ; inline
-M: pusher-cursor cursor= 2drop f ; inline
-M: pusher-cursor inc-cursor ; inline
-
+INSTANCE: pusher-cursor infinite-stream-cursor
 INSTANCE: pusher-cursor output-cursor
 
 M: pusher-cursor set-cursor-value growable>> push ; inline
@@ -384,9 +420,75 @@ M: hashtable-cursor cursor-key-value
     [ n>> ] [ hashtable>> array>> ] bi
     [ nth-unsafe ] [ [ 1 + ] dip nth-unsafe ] 2bi ; inline
 
-INSTANCE: hashtable collection
+INSTANCE: hashtable-cursor input-cursor
+
+M: hashtable-cursor cursor-value
+    cursor-key-value 2array ; inline
+
+INSTANCE: hashtable container
 
 M: hashtable begin-cursor
     dup array>> 0 (inc-hashtable-cursor) <hashtable-cursor> ; inline
 M: hashtable end-cursor
     dup array>> length <hashtable-cursor> ; inline
+
+!
+! zip cursor
+!
+
+TUPLE: zip-cursor
+    { keys   read-only }
+    { values read-only } ;
+C: <zip-cursor> zip-cursor
+
+INSTANCE: zip-cursor forward-cursor
+
+M: zip-cursor cursor-compatible? ( cursor cursor -- ? )
+    {
+        [ [ zip-cursor? ] both? ]
+        [ [ keys>> ] bi@ cursor-compatible? ]
+        [ [ values>> ] bi@ cursor-compatible? ]
+    } 2&& ; inline
+
+M: zip-cursor cursor-valid? ( cursor -- ? )
+    [ keys>> ] [ values>> ] bi [ cursor-valid? ] both? ; inline
+M: zip-cursor cursor= ( cursor cursor -- ? )
+    {
+        [ [ keys>> ] bi@ cursor= ]
+        [ [ values>> ] bi@ cursor= ]
+    } 2|| ; inline
+
+M: zip-cursor cursor-distance-hint ( cursor cursor -- n )
+    [ [ keys>> ] bi@ cursor-distance-hint ]
+    [ [ values>> ] bi@ cursor-distance-hint ] 2bi max ; inline
+
+M: zip-cursor inc-cursor ( cursor -- cursor' )
+    [ keys>> inc-cursor ] [ values>> inc-cursor ] bi <zip-cursor> ; inline
+    
+INSTANCE: zip-cursor assoc-cursor
+
+M: zip-cursor cursor-key-value
+    [ keys>> cursor-value ] [ values>> cursor-value ] bi ; inline
+
+: zip-cursors ( a-begin a-end b-begin b-end -- begin end )
+    [ <zip-cursor> ] bi-curry@ bi* ; inline
+
+: 2all ( a b -- begin end )
+    [ all ] bi@ zip-cursors ; inline
+
+: 2all- ( a b quot -- begin end quot )
+    [ 2all ] dip ; inline
+
+ALIAS: -2container- -assoc-
+
+: 2container- ( a b quot -- begin end quot' )
+    2all- -2container- ; inline
+
+: 2each ( ... a b quot: ( ... x y -- ... ) -- ... )
+    2container- -each ; inline
+
+: 2map-as ( ... a b quot: ( ... x y -- ... z ) exemplar -- ... c )
+    [ 2container- ] dip -map-as ; inline
+
+: 2map ( ... a b quot: ( ... x y -- ... z ) -- ... c )
+    pick 2map-as ; inline 

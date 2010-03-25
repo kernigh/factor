@@ -11,8 +11,7 @@ context::context(cell datastack_size, cell retainstack_size, cell callstack_size
 	callstack_save(0),
 	datastack_seg(new segment(datastack_size,false)),
 	retainstack_seg(new segment(retainstack_size,false)),
-	callstack_seg(new segment(callstack_size,false)),
-	next(NULL)
+	callstack_seg(new segment(callstack_size,false))
 {
 	reset_datastack();
 	reset_retainstack();
@@ -53,34 +52,34 @@ void factor_vm::init_contexts(cell datastack_size_, cell retainstack_size_, cell
 	retainstack_size = retainstack_size_;
 	callstack_size = callstack_size_;
 	ctx = NULL;
-	unused_contexts = NULL;
 }
 
 void factor_vm::delete_contexts()
 {
 	assert(!ctx);
-	while(unused_contexts)
+	std::vector<context *>::const_iterator iter = unused_contexts.begin();
+	std::vector<context *>::const_iterator end = unused_contexts.end();
+	while(iter != end)
 	{
-		context *next = unused_contexts->next;
-		delete unused_contexts;
-		unused_contexts = next;
+		delete *iter;
+		iter++;
 	}
 }
 
-context *factor_vm::alloc_context()
+context *factor_vm::new_context()
 {
 	context *new_context;
 
-	if(unused_contexts)
-	{
-		new_context = unused_contexts;
-		unused_contexts = unused_contexts->next;
-	}
-	else
+	if(unused_contexts.empty())
 	{
 		new_context = new context(datastack_size,
 			retainstack_size,
 			callstack_size);
+	}
+	else
+	{
+		new_context = unused_contexts.back();
+		unused_contexts.pop_back();
 	}
 
 	new_context->reset_datastack();
@@ -88,39 +87,45 @@ context *factor_vm::alloc_context()
 	new_context->reset_callstack();
 	new_context->reset_context_objects();
 
+	active_contexts.insert(new_context);
+
 	return new_context;
 }
 
-void factor_vm::dealloc_context(context *old_context)
+void factor_vm::delete_context(context *old_context)
 {
-	old_context->next = unused_contexts;
-	unused_contexts = old_context;
+	unused_contexts.push_back(old_context);
+	active_contexts.erase(old_context);
 }
 
 void factor_vm::nest_context()
 {
-	context *new_ctx = alloc_context();
-	new_ctx->next = ctx;
-	ctx = new_ctx;
+	ctx = new_context();
+
+	nested_contexts.push_back(ctx);
 	callback_ids.push_back(callback_id++);
 }
 
 void nest_context(factor_vm *parent)
 {
-	return parent->nest_context();
+	parent->nest_context();
 }
 
 void factor_vm::unnest_context()
 {
+	assert(ctx == nested_contexts.back());
+
+	delete_context(ctx);
+
+	nested_contexts.pop_back();
 	callback_ids.pop_back();
-	context *old_ctx = ctx;
-	ctx = old_ctx->next;
-	dealloc_context(old_ctx);
+
+	ctx = nested_contexts.back();
 }
 
 void unnest_context(factor_vm *parent)
 {
-	return parent->unnest_context();
+	parent->unnest_context();
 }
 
 void factor_vm::primitive_current_callback()
@@ -220,6 +225,24 @@ void factor_vm::primitive_load_locals()
 		sizeof(cell) * count);
 	ctx->datastack -= sizeof(cell) * count;
 	ctx->retainstack += sizeof(cell) * count;
+}
+
+void factor_vm::primitive_current_context()
+{
+	ctx->push(allot_alien(ctx));
+}
+
+void factor_vm::primitive_start_context()
+{
+	cell quot = ctx->pop();
+	ctx = new_context();
+	unwind_native_frames(quot,ctx->callstack_bottom);
+}
+
+void factor_vm::primitive_delete_context()
+{
+	context *old_context = (context *)pinned_alien_offset(ctx->pop());
+	delete_context(old_context);
 }
 
 }

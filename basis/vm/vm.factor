@@ -14,8 +14,7 @@ STRUCT: context
 { context-objects cell[10] }
 { datastack-region void* }
 { retainstack-region void* }
-{ callstack-region void* }
-{ next context* } ;
+{ callstack-region void* } ;
 
 : context-field-offset ( field -- offset ) context offset-of ; inline
 

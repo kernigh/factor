@@ -63,6 +63,7 @@ call( -- )
     "alien"
     "alien.accessors"
     "alien.libraries"
+    "alien.private"
     "arrays"
     "byte-arrays"
     "classes.private"
@@ -415,6 +416,7 @@ tuple
     { "(dlsym)" "alien.libraries" "primitive_dlsym" (( name dll -- alien )) }
     { "dlclose" "alien.libraries" "primitive_dlclose" (( dll -- )) }
     { "dll-valid?" "alien.libraries" "primitive_dll_validp" (( dll -- ? )) }
+    { "current-callback" "alien.private" "primitive_current_callback" (( -- n )) }
     { "<array>" "arrays" "primitive_array" (( n elt -- array )) }
     { "resize-array" "arrays" "primitive_resize_array" (( n array -- newarray )) }
     { "(byte-array)" "byte-arrays" "primitive_uninitialized_byte_array" (( n -- byte-array )) }
@@ -448,7 +450,6 @@ tuple
     { "check-datastack" "kernel.private" "primitive_check_datastack" (( array in# out# -- ? )) }
     { "compute-identity-hashcode" "kernel.private" "primitive_compute_identity_hashcode" (( obj -- )) }
     { "context-object" "kernel.private" "primitive_context_object" (( n -- obj )) }
-    { "current-callback" "kernel.private" "primitive_current_callback" (( -- n )) }
     { "innermost-frame-executing" "kernel.private" "primitive_innermost_stack_frame_executing" (( callstack -- obj )) }
     { "innermost-frame-scan" "kernel.private" "primitive_innermost_stack_frame_scan" (( callstack -- n )) }
     { "set-context-object" "kernel.private" "primitive_set_context_object" (( obj n -- )) }
@@ -533,6 +534,9 @@ tuple
     { "nano-count" "system" "primitive_nano_count" (( -- ns )) }
     { "system-micros" "system" "primitive_system_micros" (( -- us )) }
     { "(sleep)" "threads.private" "primitive_sleep" (( nanos -- )) }
+    { "current-context" "threads.private" "primitive_current_context" (( -- c-ptr )) }
+    { "delete-context" "threads.private" "primitive_delete_context" (( c-ptr -- )) }
+    { "start-context" "threads.private" "primitive_start_context" (( quot -- )) }
     { "dispatch-stats" "tools.dispatch.private" "primitive_dispatch_stats" (( -- stats )) }
     { "reset-dispatch-stats" "tools.dispatch.private" "primitive_reset_dispatch_stats" (( -- )) }
     { "profiling" "tools.profiler.private" "primitive_profiling" (( ? -- )) }

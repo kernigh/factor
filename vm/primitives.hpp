@@ -45,8 +45,10 @@ namespace factor
 	_(compute_identity_hashcode) \
 	_(context_object) \
 	_(current_callback) \
+	_(current_context) \
 	_(data_room) \
 	_(datastack) \
+	_(delete_context) \
 	_(die) \
 	_(disable_gc_events) \
 	_(dispatch_stats) \
@@ -120,6 +122,7 @@ namespace factor
 	_(size) \
 	_(sleep) \
 	_(special_object) \
+	_(start_context) \
 	_(string) \
 	_(string_nth) \
 	_(strip_stack_traces) \

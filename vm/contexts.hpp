@@ -33,8 +33,6 @@ struct context {
 	segment *retainstack_seg;
 	segment *callstack_seg;
 
-	context *next;
-
 	context(cell datastack_size, cell retainstack_size, cell callstack_size);
 	~context();
 

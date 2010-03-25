@@ -22,17 +22,23 @@ struct factor_vm
 	set-special-object primitives */
 	cell special_objects[special_object_count];
 
-	/* Stack of callback IDs */
-	std::vector<int> callback_ids;
-
-	/* Current callback ID */
-	int callback_id;
-
 	/* Data stack and retain stack sizes */
 	cell datastack_size, retainstack_size, callstack_size;
 
+	/* Stack of callback IDs */
+	std::vector<int> callback_ids;
+
+	/* Next callback ID */
+	int callback_id;
+
 	/* Pooling unused contexts to make context allocation cheaper */
-	context *unused_contexts;
+	std::vector<context *> unused_contexts;
+
+	/* Nested contexts, for callbacks */
+	std::vector<context *> nested_contexts;
+
+	/* Active contexts, for tracing by the GC */
+	std::set<context *> active_contexts;
 
 	/* Canonical truth value. In Factor, 't' */
 	cell true_object;
@@ -102,8 +108,8 @@ struct factor_vm
 	u64 last_nano_count;
 
 	// contexts
-	context *alloc_context();
-	void dealloc_context(context *old_context);
+	context *new_context();
+	void delete_context(context *old_context);
 	void nest_context();
 	void unnest_context();
 	void init_contexts(cell datastack_size_, cell retainstack_size_, cell callstack_size_);
@@ -119,16 +125,15 @@ struct factor_vm
 	void primitive_set_retainstack();
 	void primitive_check_datastack();
 	void primitive_load_locals();
+	void primitive_current_context();
+	void primitive_start_context();
+	void primitive_delete_context();
 
-	template<typename Iterator> void iterate_active_frames(Iterator &iter)
+	template<typename Iterator> void iterate_active_callstacks(Iterator &iter)
 	{
-		context *ctx = this->ctx;
-
-		while(ctx)
-		{
-			iterate_callstack(ctx,iter);
-			ctx = ctx->next;
-		}
+		std::set<context *>::const_iterator begin = active_contexts.begin();
+		std::set<context *>::const_iterator end = active_contexts.end();
+		while(begin != end) iterate_callstack(*begin++,iter);
 	}
 
 	// run

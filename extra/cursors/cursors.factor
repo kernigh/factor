@@ -305,10 +305,10 @@ M: map-cursor set-cursor-value-unsafe to>> set-cursor-value-unsafe ; inline
 M: map-cursor set-cursor-value        to>> set-cursor-value        ; inline
 
 : -map- ( begin end quot to -- begin' end' quot' )
-    swap [ '[ _ <map-cursor> ] bi@ ] dip '[ from>> @ ] ; inline
+    swap [ '[ _ <map-cursor> ] bi@ ] dip '[ from>> @ ] -out- ; inline
 
 : -map ( begin end quot to -- begin' end' quot' )
-    -map- -out ; inline
+    -map- -each ; inline
 
 !
 ! pusher cursor
@@ -341,7 +341,7 @@ M: forward-cursor new-sequence-cursor
     [ 2over ] dip new-sequence-cursor ; inline
 
 : -into-growable- ( begin end quot exemplar -- begin' end' quot' cursor result )
-    [ 2over ] dip new-sequence-cursor ; inline
+    [ 2over ] dip new-growable-cursor ; inline
 
 !
 ! map combinators

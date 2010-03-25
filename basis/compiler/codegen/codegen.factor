@@ -458,7 +458,7 @@ M: ##alien-indirect generate-insn
     ! Generate code for boxing input parameters in a callback.
     [
         dup \ %save-param-reg move-parameters
-        %nest-stacks
+        %nest-context
         box-parameters
     ] with-param-regs ;
 
@@ -481,6 +481,13 @@ M: ##alien-indirect generate-insn
 M: ##alien-callback generate-insn
     params>>
     [ registers>objects ]
-    [ wrap-callback-quot %alien-callback ]
-    [ alien-return [ %unnest-stacks ] [ %callback-value ] if-void ]
-    tri ;
+    [
+        %factor-callstack
+        wrap-callback-quot %alien-callback
+        %c-callstack
+    ]
+    [
+        alien-return
+        [ %unnest-context ]
+        [ %callback-value ] if-void
+    ] tri ;

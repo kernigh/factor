@@ -582,13 +582,17 @@ HOOK: %prepare-alien-indirect cpu ( -- )
 
 HOOK: %alien-indirect cpu ( -- )
 
+HOOK: %nest-context cpu ( -- )
+
+HOOK: %factor-callstack cpu ( -- )
+
 HOOK: %alien-callback cpu ( quot -- )
 
-HOOK: %callback-value cpu ( ctype -- )
+HOOK: %c-callstack cpu ( -- )
 
-HOOK: %nest-stacks cpu ( -- )
+HOOK: %unnest-context cpu ( -- )
 
-HOOK: %unnest-stacks cpu ( -- )
+HOOK: %callback-value cpu ( c-type -- )
 
 HOOK: callback-return-rewind cpu ( params -- n )
 

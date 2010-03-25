@@ -97,24 +97,30 @@ void factor_vm::dealloc_context(context *old_context)
 	unused_contexts = old_context;
 }
 
-void factor_vm::nest_callback()
+void factor_vm::nest_context()
 {
+	context *new_ctx = alloc_context();
+	new_ctx->next = ctx;
+	ctx = new_ctx;
 	callback_ids.push_back(callback_id++);
 }
 
-void nest_callback(factor_vm *parent)
+void nest_context(factor_vm *parent)
 {
-	return parent->nest_callback();
+	return parent->nest_context();
 }
 
-void factor_vm::unnest_callback()
+void factor_vm::unnest_context()
 {
 	callback_ids.pop_back();
+	context *old_ctx = ctx;
+	ctx = old_ctx->next;
+	dealloc_context(old_ctx);
 }
 
-void unnest_callback(factor_vm *parent)
+void unnest_context(factor_vm *parent)
 {
-	return parent->unnest_callback();
+	return parent->unnest_context();
 }
 
 void factor_vm::primitive_current_callback()

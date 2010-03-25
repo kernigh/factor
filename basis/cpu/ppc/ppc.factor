@@ -757,11 +757,11 @@ M: ppc %box-small-struct ( c-type -- )
     4 3 4 LWZ
     3 3 0 LWZ ;
 
-M: ppc %nest-stacks ( -- )
+M: ppc %nest-context ( -- )
     3 %load-vm-addr
     "nest_context" f %alien-invoke ;
 
-M: ppc %unnest-stacks ( -- )
+M: ppc %unnest-context ( -- )
     3 %load-vm-addr
     "unnest_context" f %alien-invoke ;
 

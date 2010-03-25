@@ -16,8 +16,8 @@ IN: bootstrap.x86
 : temp2 ( -- reg ) RDX ;
 : temp3 ( -- reg ) RBX ;
 : return-reg ( -- reg ) RAX ;
-: safe-reg-1 ( -- reg ) RAX ;
-: safe-reg-2 ( -- reg ) R11 ;
+: safe-reg ( -- reg ) RAX ;
+: nv-reg ( -- reg ) nv-regs first ;
 : stack-reg ( -- reg ) RSP ;
 : frame-reg ( -- reg ) RBP ;
 : ctx-reg ( -- reg ) R12 ;
@@ -27,13 +27,17 @@ IN: bootstrap.x86
 : fixnum>slot@ ( -- ) temp0 1 SAR ;
 : rex-length ( -- n ) 1 ;
 
+: jit-call ( name -- )
+    safe-reg 0 MOV rc-absolute-cell jit-dlsym
+    safe-reg CALL ;
+
 [
     ! load entry point
-    safe-reg-1 0 MOV rc-absolute-cell rt-this jit-rel
+    safe-reg 0 MOV rc-absolute-cell rt-this jit-rel
     ! save stack frame size
     stack-frame-size PUSH
     ! push entry point
-    safe-reg-1 PUSH
+    safe-reg PUSH
     ! alignment
     RSP stack-frame-size 3 bootstrap-cells - SUB
 ] jit-prolog jit-define
@@ -48,8 +52,8 @@ IN: bootstrap.x86
 
 : jit-save-context ( -- )
     jit-load-context
-    safe-reg-1 RSP -8 [+] LEA
-    ctx-reg context-callstack-top-offset [+] safe-reg-1 MOV
+    safe-reg RSP -8 [+] LEA
+    ctx-reg context-callstack-top-offset [+] safe-reg MOV
     ctx-reg context-datastack-offset [+] ds-reg MOV
     ctx-reg context-retainstack-offset [+] rs-reg MOV ;
 
@@ -68,10 +72,31 @@ IN: bootstrap.x86
 ] jit-primitive jit-define
 
 [
+    nv-reg arg1 MOV
+
+    arg1 vm-reg MOV
+    "nest_context" jit-call
+
     jit-restore-context
+
+    ! save C callstack pointer
+    ctx-reg context-callstack-save-offset [+] stack-reg MOV
+
+    ! load Factor callstack pointer
+    stack-reg ctx-reg context-callstack-bottom-offset [+] MOV
+    stack-reg 8 ADD
+
     ! call the quotation
+    arg1 nv-reg MOV
     arg1 quot-entry-point-offset [+] CALL
+
     jit-save-context
+
+    ! load C callstack pointer
+    stack-reg ctx-reg context-callstack-save-offset [+] MOV
+
+    arg1 vm-reg MOV
+    "unnest_context" jit-call
 ] \ c-to-factor define-sub-primitive
 
 [
@@ -122,8 +147,7 @@ IN: bootstrap.x86
     ! Call memcpy; arguments are now in the correct registers
     ! Create register shadow area for Win64
     RSP 32 SUB
-    safe-reg-1 0 MOV "factor_memcpy" f rc-absolute-cell jit-dlsym
-    safe-reg-1 CALL
+    "factor_memcpy" jit-call
     ! Tear down register shadow area
     RSP 32 ADD
     ! Return with new callstack
@@ -133,8 +157,7 @@ IN: bootstrap.x86
 [
     jit-save-context
     arg2 vm-reg MOV
-    safe-reg-1 0 MOV "lazy_jit_compile" f rc-absolute-cell jit-dlsym
-    safe-reg-1 CALL
+    "lazy_jit_compile" jit-call
 ]
 [ return-reg quot-entry-point-offset [+] CALL ]
 [ return-reg quot-entry-point-offset [+] JMP ]
@@ -150,8 +173,7 @@ IN: bootstrap.x86
     jit-save-context
     arg1 RBX MOV
     arg2 vm-reg MOV
-    RAX 0 MOV "inline_cache_miss" f rc-absolute-cell jit-dlsym
-    RAX CALL
+    "inline_cache_miss" jit-call
     jit-restore-context ;
 
 [ jit-load-return-address jit-inline-cache-miss ]
@@ -174,11 +196,7 @@ IN: bootstrap.x86
     [ [ arg3 arg2 ] dip call ] dip
     ds-reg [] arg3 MOV
     [ JNO ]
-    [
-        arg3 vm-reg MOV
-        RAX 0 MOV f rc-absolute-cell jit-dlsym
-        RAX CALL
-    ]
+    [ arg3 vm-reg MOV jit-call ]
     jit-conditional ; inline
 
 [ [ ADD ] "overflow_fixnum_add" jit-overflow ] \ fixnum+ define-sub-primitive
@@ -200,8 +218,7 @@ IN: bootstrap.x86
         arg1 tag-bits get SAR
         arg2 RBX MOV
         arg3 vm-reg MOV
-        RAX 0 MOV "overflow_fixnum_multiply" f rc-absolute-cell jit-dlsym
-        RAX CALL
+        "overflow_fixnum_multiply" jit-call
     ]
     jit-conditional
 ] \ fixnum* define-sub-primitive

@@ -13,16 +13,7 @@ context::context(cell datastack_size, cell retainstack_size, cell callstack_size
 	retainstack_seg(new segment(retainstack_size,false)),
 	callstack_seg(new segment(callstack_size,false))
 {
-	reset_datastack();
-	reset_retainstack();
-	reset_context_objects();
-}
-
-context::~context()
-{
-	delete datastack_seg;
-	delete retainstack_seg;
-	delete callstack_seg;
+	reset();
 }
 
 void context::reset_datastack()
@@ -45,13 +36,30 @@ void context::reset_context_objects()
 	memset_cell(context_objects,false_object,context_object_count * sizeof(cell));
 }
 
+void context::reset()
+{
+	reset_datastack();
+	reset_retainstack();
+	reset_callstack();
+	reset_context_objects();
+}
+
+context::~context()
+{
+	delete datastack_seg;
+	delete retainstack_seg;
+	delete callstack_seg;
+}
+
 /* called on startup */
 void factor_vm::init_contexts(cell datastack_size_, cell retainstack_size_, cell callstack_size_)
 {
 	datastack_size = datastack_size_;
 	retainstack_size = retainstack_size_;
 	callstack_size = callstack_size_;
+
 	ctx = NULL;
+	spare_ctx = new_context();
 }
 
 void factor_vm::delete_contexts()
@@ -82,10 +90,7 @@ context *factor_vm::new_context()
 		unused_contexts.pop_back();
 	}
 
-	new_context->reset_datastack();
-	new_context->reset_retainstack();
-	new_context->reset_callstack();
-	new_context->reset_context_objects();
+	new_context->reset();
 
 	active_contexts.insert(new_context);
 
@@ -98,34 +103,27 @@ void factor_vm::delete_context(context *old_context)
 	active_contexts.erase(old_context);
 }
 
-void factor_vm::nest_context()
+void factor_vm::begin_callback()
 {
-	ctx = new_context();
-
-	nested_contexts.push_back(ctx);
+	ctx->reset();
+	spare_ctx = new_context();
 	callback_ids.push_back(callback_id++);
 }
 
-void nest_context(factor_vm *parent)
+void begin_callback(factor_vm *parent)
 {
-	parent->nest_context();
+	parent->begin_callback();
 }
 
-void factor_vm::unnest_context()
+void factor_vm::end_callback()
 {
-	assert(ctx == nested_contexts.back());
-
-	delete_context(ctx);
-
-	nested_contexts.pop_back();
 	callback_ids.pop_back();
-
-	ctx = nested_contexts.back();
+	delete_context(ctx);
 }
 
-void unnest_context(factor_vm *parent)
+void end_callback(factor_vm *parent)
 {
-	parent->unnest_context();
+	parent->end_callback();
 }
 
 void factor_vm::primitive_current_callback()

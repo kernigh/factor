@@ -226,23 +226,9 @@ M: x86.64 %prepare-alien-indirect ( -- )
 M: x86.64 %alien-indirect ( -- )
     nv-reg CALL ;
 
-M: x86.64 %nest-context ( -- )
+M: x86.64 %begin-callback ( -- )
     param-reg-0 %mov-vm-ptr
-    "nest_context" f %alien-invoke ;
-
-M: x86.64 %unnest-context ( -- )
-    param-reg-0 %mov-vm-ptr
-    "unnest_context" f %alien-invoke ;
-
-M: x86.64 %factor-callstack ( -- )
-    param-reg-0 "ctx" %vm-field
-    param-reg-0 "callstack-save" context-field-offset [+] stack-reg MOV
-    stack-reg param-reg-0 "callstack-bottom" context-field-offset [+] MOV
-    stack-reg cell ADD ;
-
-M: x86.64 %c-callstack ( -- )
-    param-reg-0 "ctx" %vm-field
-    stack-reg param-reg-0 "callstack-save" context-field-offset [+] MOV ;
+    "begin_callback" f %alien-invoke ;
 
 M: x86.64 %alien-callback ( quot -- )
     param-reg-0 param-reg-1 %restore-context
@@ -250,10 +236,14 @@ M: x86.64 %alien-callback ( quot -- )
     param-reg-0 quot-entry-point-offset [+] CALL
     param-reg-0 param-reg-1 %save-context ;
 
-M: x86.64 %callback-value ( ctype -- )
+M: x86.64 %end-callback ( -- )
+    param-reg-0 %mov-vm-ptr
+    "end-callback" f %alien-invoke ;
+
+M: x86.64 %end-callback-value ( ctype -- )
     %pop-context-stack
     nv-reg param-reg-0 MOV
-    %unnest-context
+    %end-callback
     param-reg-0 nv-reg MOV
     ! Unbox former top of data stack to return registers
     unbox-return ;

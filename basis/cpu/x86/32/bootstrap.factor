@@ -16,12 +16,12 @@ IN: bootstrap.x86
 : temp1 ( -- reg ) EDX ;
 : temp2 ( -- reg ) ECX ;
 : temp3 ( -- reg ) EBX ;
-: safe-reg ( -- reg ) EAX ;
 : stack-reg ( -- reg ) ESP ;
 : frame-reg ( -- reg ) EBP ;
 : vm-reg ( -- reg ) ECX ;
 : ctx-reg ( -- reg ) EBP ;
 : nv-regs ( -- seq ) { ESI EDI EBX } ;
+: nv-reg ( -- reg ) nv-regs first ;
 : ds-reg ( -- reg ) ESI ;
 : rs-reg ( -- reg ) EDI ;
 : fixnum>slot@ ( -- ) temp0 2 SAR ;
@@ -75,7 +75,7 @@ IN: bootstrap.x86
 [
     jit-load-vm
     ESP [] vm-reg MOV
-    "nest_context" jit-call
+    "begin_callback" jit-call
 
     ! load quotation - EBP is ctx-reg so it will get clobbered
     ! later on
@@ -103,7 +103,7 @@ IN: bootstrap.x86
     ESP ctx-reg context-callstack-save-offset [+] MOV
 
     ESP [] vm-reg MOV
-    "unnest_context" jit-call
+    "end_callback" jit-call
 ] \ c-to-factor define-sub-primitive
 
 [

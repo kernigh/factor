@@ -11,6 +11,9 @@ struct factor_vm
 	/* Current context */
 	context *ctx;
 
+	/* Spare context -- for callbacks */
+	context *spare_ctx;
+
 	/* New objects are allocated here */
 	nursery_space nursery;
 
@@ -33,9 +36,6 @@ struct factor_vm
 
 	/* Pooling unused contexts to make context allocation cheaper */
 	std::vector<context *> unused_contexts;
-
-	/* Nested contexts, for callbacks */
-	std::vector<context *> nested_contexts;
 
 	/* Active contexts, for tracing by the GC */
 	std::set<context *> active_contexts;
@@ -110,10 +110,10 @@ struct factor_vm
 	// contexts
 	context *new_context();
 	void delete_context(context *old_context);
-	void nest_context();
-	void unnest_context();
 	void init_contexts(cell datastack_size_, cell retainstack_size_, cell callstack_size_);
 	void delete_contexts();
+	void begin_callback();
+	void end_callback();
 	void primitive_current_callback();
 	void primitive_context_object();
 	void primitive_set_context_object();

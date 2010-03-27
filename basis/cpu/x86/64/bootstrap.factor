@@ -16,7 +16,6 @@ IN: bootstrap.x86
 : temp2 ( -- reg ) RDX ;
 : temp3 ( -- reg ) RBX ;
 : return-reg ( -- reg ) RAX ;
-: safe-reg ( -- reg ) RAX ;
 : nv-reg ( -- reg ) nv-regs first ;
 : stack-reg ( -- reg ) RSP ;
 : frame-reg ( -- reg ) RBP ;
@@ -28,16 +27,16 @@ IN: bootstrap.x86
 : rex-length ( -- n ) 1 ;
 
 : jit-call ( name -- )
-    safe-reg 0 MOV rc-absolute-cell jit-dlsym
-    safe-reg CALL ;
+    RAX 0 MOV rc-absolute-cell jit-dlsym
+    RAX CALL ;
 
 [
     ! load entry point
-    safe-reg 0 MOV rc-absolute-cell rt-this jit-rel
+    RAX 0 MOV rc-absolute-cell rt-this jit-rel
     ! save stack frame size
     stack-frame-size PUSH
     ! push entry point
-    safe-reg PUSH
+    RAX PUSH
     ! alignment
     RSP stack-frame-size 3 bootstrap-cells - SUB
 ] jit-prolog jit-define
@@ -52,8 +51,8 @@ IN: bootstrap.x86
 
 : jit-save-context ( -- )
     jit-load-context
-    safe-reg RSP -8 [+] LEA
-    ctx-reg context-callstack-top-offset [+] safe-reg MOV
+    RAX RSP -8 [+] LEA
+    ctx-reg context-callstack-top-offset [+] RAX MOV
     ctx-reg context-datastack-offset [+] ds-reg MOV
     ctx-reg context-retainstack-offset [+] rs-reg MOV ;
 
@@ -75,7 +74,7 @@ IN: bootstrap.x86
     nv-reg arg1 MOV
 
     arg1 vm-reg MOV
-    "nest_context" jit-call
+    "begin_callback" jit-call
 
     jit-restore-context
 
@@ -96,7 +95,7 @@ IN: bootstrap.x86
     stack-reg ctx-reg context-callstack-save-offset [+] MOV
 
     arg1 vm-reg MOV
-    "unnest_context" jit-call
+    "end_callback" jit-call
 ] \ c-to-factor define-sub-primitive
 
 [

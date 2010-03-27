@@ -239,23 +239,9 @@ M: x86.32 %prepare-alien-indirect ( -- )
 M: x86.32 %alien-indirect ( -- )
     EBP CALL ;
 
-M: x86.32 %nest-context ( -- )
+M: x86.32 %begin-callback ( -- )
     0 save-vm-ptr
-    "nest_context" f %alien-invoke ;
-
-M: x86.32 %unnest-context ( -- )
-    0 save-vm-ptr
-    "unnest_context" f %alien-invoke ;
-
-M: x86.32 %factor-callstack ( -- )
-    EAX "ctx" %vm-field
-    EAX "callstack-save" context-field-offset [+] ESP MOV
-    ESP EAX "callstack-bottom" context-field-offset [+] MOV
-    ESP 4 ADD ;
-
-M: x86.32 %c-callstack ( -- )
-    EAX "ctx" %vm-field
-    ESP EAX "callstack-save" context-field-offset [+] MOV ;
+    "begin_callback" f %alien-invoke ;
 
 M: x86.32 %alien-callback ( quot -- )
     EAX EDX %restore-context
@@ -263,10 +249,14 @@ M: x86.32 %alien-callback ( quot -- )
     EAX quot-entry-point-offset [+] CALL
     EAX EDX %save-context ;
 
-M: x86.32 %callback-value ( ctype -- )
+M: x86.32 %end-callback ( -- )
+    0 save-vm-ptr
+    "end_callback" f %alien-invoke ;
+
+M: x86.32 %end-callback-value ( ctype -- )
     %pop-context-stack
     4 stack@ EAX MOV
-    %unnest-context
+    %end-callback
     ! Place former top of data stack back in EAX
     EAX 4 stack@ MOV
     ! Unbox EAX

@@ -40,6 +40,7 @@ struct context {
 	void reset_retainstack();
 	void reset_callstack();
 	void reset_context_objects();
+	void reset();
 
 	cell peek()
 	{
@@ -78,7 +79,7 @@ struct context {
 	}
 };
 
-VM_C_API void nest_context(factor_vm *vm);
-VM_C_API void unnest_context(factor_vm *vm);
+VM_C_API void begin_callback(factor_vm *vm);
+VM_C_API void end_callback(factor_vm *vm);
 
 }

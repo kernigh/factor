@@ -26,6 +26,7 @@ STRUCT: zone
 
 STRUCT: vm
 { ctx context* }
+{ spare-ctx context* }
 { nursery zone }
 { cards-offset cell }
 { decks-offset cell }

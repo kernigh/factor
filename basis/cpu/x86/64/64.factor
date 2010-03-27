@@ -238,7 +238,7 @@ M: x86.64 %alien-callback ( quot -- )
 
 M: x86.64 %end-callback ( -- )
     param-reg-0 %mov-vm-ptr
-    "end-callback" f %alien-invoke ;
+    "end_callback" f %alien-invoke ;
 
 M: x86.64 %end-callback-value ( ctype -- )
     %pop-context-stack

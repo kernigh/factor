@@ -48,11 +48,8 @@ void sleep_nanos(u64 nsec)
 	Sleep((DWORD)(nsec/1000000));
 }
 
-LONG factor_vm::exception_handler(PEXCEPTION_POINTERS pe)
+void factor_vm::exception_handler(PEXCEPTION_RECORD e, void *frame, PCONTEXT c, void *dispatch)
 {
-	PEXCEPTION_RECORD e = (PEXCEPTION_RECORD)pe->ExceptionRecord;
-	CONTEXT *c = (CONTEXT*)pe->ContextRecord;
-
 	c->ESP = (cell)fix_callstack_top((stack_frame *)c->ESP);
 	signal_callstack_top = (stack_frame *)c->ESP;
 
@@ -62,7 +59,6 @@ LONG factor_vm::exception_handler(PEXCEPTION_POINTERS pe)
 		signal_fault_addr = e->ExceptionInformation[1];
 		c->EIP = (cell)factor::memory_signal_handler_impl;
 		break;
-
 	case STATUS_FLOAT_DENORMAL_OPERAND:
 	case STATUS_FLOAT_DIVIDE_BY_ZERO:
 	case STATUS_FLOAT_INEXACT_RESULT:
@@ -81,35 +77,23 @@ LONG factor_vm::exception_handler(PEXCEPTION_POINTERS pe)
 		MXCSR(c) &= 0xffffffc0;
 		c->EIP = (cell)factor::fp_signal_handler_impl;
 		break;
-	case 0x40010006:
-		/* If the Widcomm bluetooth stack is installed, the BTTray.exe
-		process injects code into running programs. For some reason this
-		results in random SEH exceptions with this (undocumented)
-		exception code being raised. The workaround seems to be ignoring
-		this altogether, since that is what happens if SEH is not
-		enabled. Don't really have any idea what this exception means. */
-		break;
 	default:
 		signal_number = e->ExceptionCode;
 		c->EIP = (cell)factor::misc_signal_handler_impl;
 		break;
 	}
-	return EXCEPTION_CONTINUE_EXECUTION;
+
+	RtlRestoreContext(c,NULL);
 }
 
-FACTOR_STDCALL(LONG) exception_handler(PEXCEPTION_POINTERS pe)
+VM_C_API void exception_handler(PEXCEPTION_RECORD e, void *frame, PCONTEXT c, void *dispatch)
 {
-	return current_vm()->exception_handler(pe);
+	current_vm()->exception_handler(e,frame,c,dispatch);
 }
 
 void factor_vm::c_to_factor_toplevel(cell quot)
 {
-	if(!AddVectoredExceptionHandler(0, (PVECTORED_EXCEPTION_HANDLER)factor::exception_handler))
-		fatal_error("AddVectoredExceptionHandler failed", 0);
-
 	c_to_factor(quot);
-
- 	RemoveVectoredExceptionHandler((void *)factor::exception_handler);
 }
 
 void factor_vm::open_console()

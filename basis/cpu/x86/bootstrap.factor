@@ -17,6 +17,9 @@ big-endian off
     frame-reg PUSH
     frame-reg stack-reg MOV
 
+    ! Set up structured exception handling on 32-bit Windows
+    jit-pre-callback-stub
+
     ! Save all non-volatile registers
     nv-regs [ PUSH ] each
 
@@ -56,6 +59,9 @@ big-endian off
 
     ! Restore non-volatile registers
     nv-regs <reversed> [ POP ] each
+
+    ! Tear down structured exception handling on 32-bit Windows
+    jit-post-callback-stub
 
     frame-reg POP
 

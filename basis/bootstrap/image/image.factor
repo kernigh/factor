@@ -15,10 +15,11 @@ generalizations ;
 IN: bootstrap.image
 
 : arch ( os cpu -- arch )
+    [ dup "winnt" = "winnt" "unix" ? ] dip
     {
-        { "ppc" [ "-ppc" append ] }
-        { "x86.64" [ "winnt" = "winnt" "unix" ? "-x86.64" append ] }
-        [ nip ]
+        { "x86.64" [ nip "-x86.64" append ] }
+        { "x86.32" [ nip "-x86.32" append ] }
+        { "ppc" [ drop "-ppc" append ] }
     } case ;
 
 : my-arch ( -- arch )
@@ -32,9 +33,9 @@ IN: bootstrap.image
 
 : images ( -- seq )
     {
-        "x86.32"
+        "winnt-x86.32" "unix-x86.32"
         "winnt-x86.64" "unix-x86.64"
-        "linux-ppc" "macosx-ppc"
+        "linux-ppc"    "macosx-ppc"
     } ;
 
 <PRIVATE

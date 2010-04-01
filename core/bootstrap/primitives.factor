@@ -18,12 +18,12 @@ H{ } clone sub-primitives set
 "vocab:bootstrap/syntax.factor" parse-file
 
 architecture get {
-    { "x86.32" "x86/32" }
+    { "winnt-x86.32" "x86/32/winnt" }
+    { "unix-x86.32" "x86/32/unix" }
     { "winnt-x86.64" "x86/64/winnt" }
     { "unix-x86.64" "x86/64/unix" }
     { "linux-ppc" "ppc/linux" }
     { "macosx-ppc" "ppc/macosx" }
-    { "arm" "arm" }
 } ?at [ "Bad architecture: " prepend throw ] unless
 "vocab:cpu/" "/bootstrap.factor" surround parse-file
 

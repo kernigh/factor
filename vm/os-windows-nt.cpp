@@ -8,27 +8,6 @@ THREADHANDLE start_thread(void *(*start_routine)(void *), void *args)
 	return (void *)CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)start_routine, args, 0, 0);
 }
 
-DWORD dwTlsIndex; 
-
-void init_platform_globals()
-{
-	if ((dwTlsIndex = TlsAlloc()) == TLS_OUT_OF_INDEXES)
-		fatal_error("TlsAlloc failed - out of indexes",0);
-}
-
-void register_vm_with_thread(factor_vm *vm)
-{
-	if (! TlsSetValue(dwTlsIndex, vm))
-		fatal_error("TlsSetValue failed",0);
-}
-
-factor_vm *tls_vm()
-{
-	factor_vm *vm = (factor_vm*)TlsGetValue(dwTlsIndex);
-	assert(vm != NULL);
-	return vm;
-}
-
 u64 system_micros()
 {
 	FILETIME t;
@@ -74,10 +53,8 @@ LONG factor_vm::exception_handler(PEXCEPTION_POINTERS pe)
 	PEXCEPTION_RECORD e = (PEXCEPTION_RECORD)pe->ExceptionRecord;
 	CONTEXT *c = (CONTEXT*)pe->ContextRecord;
 
-	if(in_code_heap_p(c->EIP))
-		signal_callstack_top = (stack_frame *)c->ESP;
-	else
-		signal_callstack_top = NULL;
+	c->ESP = (cell)fix_callstack_top((stack_frame *)c->ESP);
+	signal_callstack_top = (stack_frame *)c->ESP;
 
 	switch (e->ExceptionCode)
 	{
@@ -122,7 +99,7 @@ LONG factor_vm::exception_handler(PEXCEPTION_POINTERS pe)
 
 FACTOR_STDCALL(LONG) exception_handler(PEXCEPTION_POINTERS pe)
 {
-	return tls_vm()->exception_handler(pe);
+	return current_vm()->exception_handler(pe);
 }
 
 void factor_vm::c_to_factor_toplevel(cell quot)

@@ -6,7 +6,7 @@ sequences ;
 IN: bootstrap.x86
 
 : jit-pre-callback-stub ( -- )
-    0 PUSH ! "exception_handler" rc-absolute-cell jit-dlsym ;
+    0 PUSH rc-absolute-cell rt-exception-handler jit-rel
     0 [] FS PUSH
     0 [] FS ESP MOV ;
 

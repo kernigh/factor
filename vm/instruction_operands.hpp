@@ -26,6 +26,8 @@ enum relocation_type {
 	RT_CARDS_OFFSET,
 	/* value of vm->decks_offset */
 	RT_DECKS_OFFSET,
+	/* address of factor::exception_handler (see os-windows-nt.cpp) */
+	RT_EXCEPTION_HANDLER,
 };
 
 enum relocation_class {
@@ -105,6 +107,7 @@ struct relocation_entry {
 		case RT_MEGAMORPHIC_CACHE_HITS:
 		case RT_CARDS_OFFSET:
 		case RT_DECKS_OFFSET:
+		case RT_EXCEPTION_HANDLER:
 			return 0;
 		default:
 			critical_error("Bad rel type",rel_type());

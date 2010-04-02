@@ -253,6 +253,9 @@ IN: bootstrap.x86
     ! Load new stack pointer
     ESP ctx-reg context-callstack-top-offset [+] MOV
 
+    ! Do Windows-specific setup
+    ctx-reg jit-update-tib
+
     ! Load new ds, rs registers
     jit-restore-context ;
 

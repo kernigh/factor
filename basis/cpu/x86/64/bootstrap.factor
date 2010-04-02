@@ -26,6 +26,10 @@ IN: bootstrap.x86
 : fixnum>slot@ ( -- ) temp0 1 SAR ;
 : rex-length ( -- n ) 1 ;
 
+: jit-save-tib ( -- ) ;
+: jit-restore-tib ( -- ) ;
+: jit-update-tib ( -- ) ;
+
 : jit-call ( name -- )
     RAX 0 MOV rc-absolute-cell jit-dlsym
     RAX CALL ;

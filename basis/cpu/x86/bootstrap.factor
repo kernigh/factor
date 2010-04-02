@@ -20,6 +20,8 @@ big-endian off
     ! Save all non-volatile registers
     nv-regs [ PUSH ] each
 
+    jit-save-tib
+
     ! Load VM into vm-reg
     vm-reg 0 MOV rc-absolute-cell rt-vm jit-rel
 
@@ -38,6 +40,8 @@ big-endian off
     stack-reg nv-reg context-callstack-bottom-offset [+] MOV
     stack-reg bootstrap-cell ADD
 
+    nv-reg jit-update-tib
+
     ! Call into Factor code
     nv-reg 0 MOV rc-absolute-cell rt-entry-point jit-rel
     nv-reg CALL
@@ -55,6 +59,8 @@ big-endian off
     vm-reg vm-context-offset [+] nv-reg MOV
 
     ! Restore non-volatile registers
+    jit-restore-tib
+
     nv-regs <reversed> [ POP ] each
 
     frame-reg POP

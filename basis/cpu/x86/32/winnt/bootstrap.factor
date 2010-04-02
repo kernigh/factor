@@ -10,14 +10,19 @@ IN: bootstrap.x86
 : tib-stack-limit-offset ( -- n ) 2 bootstrap-cells ;
 
 : jit-save-tib ( -- )
-    tib-exception-list-offset [] FS PUSH
     tib-stack-base-offset [] FS PUSH
-    tib-stack-limit-offset [] FS PUSH ;
+    tib-stack-limit-offset [] FS PUSH
+    ! Create an exception handler
+    0 PUSH rc-absolute-cell rt-dlsym jit-rel
+    tib-exception-list-offset [] FS PUSH
+    tib-exception-list-offset [] ESP FS MOV ;
 
 : jit-restore-tib ( -- )
+    tib-exception-list-offset [] FS POP
+    ! Discard handler address
+    ESP 4 ADD
     tib-stack-limit-offset [] FS POP
-    tib-stack-base-offset [] FS POP
-    tib-exception-list-offset [] FS POP ;
+    tib-stack-base-offset [] FS POP ;
 
 :: jit-update-tib ( ctx-reg -- )
     ! There's a redundant load here because we're not allowed

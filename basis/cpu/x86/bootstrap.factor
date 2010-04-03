@@ -38,9 +38,9 @@ big-endian off
 
     ! Load Factor callstack pointer
     stack-reg nv-reg context-callstack-bottom-offset [+] MOV
-    stack-reg bootstrap-cell ADD
 
     nv-reg jit-update-tib
+    jit-install-seh
 
     ! Call into Factor code
     nv-reg 0 MOV rc-absolute-cell rt-entry-point jit-rel

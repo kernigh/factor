@@ -255,6 +255,7 @@ IN: bootstrap.x86
 
     ! Do Windows-specific setup
     ctx-reg jit-update-tib
+    ctx-reg jit-update-seh
 
     ! Load new ds, rs registers
     jit-restore-context ;

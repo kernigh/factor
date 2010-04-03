@@ -28,7 +28,8 @@ IN: bootstrap.x86
 
 : jit-save-tib ( -- ) ;
 : jit-restore-tib ( -- ) ;
-: jit-update-tib ( -- ) ;
+: jit-update-tib ( ctx-reg -- ) drop ;
+: jit-install-seh ( -- ) ESP bootstrap-cell ADD ;
 
 : jit-call ( name -- )
     RAX 0 MOV rc-absolute-cell jit-dlsym

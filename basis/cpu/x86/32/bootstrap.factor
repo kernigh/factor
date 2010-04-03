@@ -299,6 +299,11 @@ IN: bootstrap.x86
     ds-reg 4 ADD
     ds-reg [] EAX MOV
 
+    jit-install-seh
+
+    ! Push a fake return address
+    0 PUSH
+
     ! Jump to initial quotation
     EAX EBX [] MOV
     jit-jump-quot ;

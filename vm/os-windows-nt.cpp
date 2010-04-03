@@ -83,10 +83,11 @@ LONG factor_vm::exception_handler(PEXCEPTION_RECORD e, void *frame, PCONTEXT c, 
 		c->EIP = (cell)factor::misc_signal_handler_impl;
 		break;
 	}
-	return EXCEPTION_CONTINUE_EXECUTION;
+
+	return ExceptionContinueExecution;
 }
 
-FACTOR_STDCALL(LONG) exception_handler(PEXCEPTION_RECORD e, void *frame, PCONTEXT c, void *dispatch)
+LONG exception_handler(PEXCEPTION_RECORD e, void *frame, PCONTEXT c, void *dispatch)
 {
 	return current_vm()->exception_handler(e,frame,c,dispatch);
 }

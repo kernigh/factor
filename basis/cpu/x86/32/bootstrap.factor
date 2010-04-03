@@ -255,9 +255,8 @@ IN: bootstrap.x86
     ! Load new stack pointer
     ESP ctx-reg context-callstack-top-offset [+] MOV
 
-    ! Do Windows-specific setup
+    ! Windows-specific setup
     ctx-reg jit-update-tib
-    ctx-reg jit-update-seh
 
     ! Load new ds, rs registers
     jit-restore-context ;
@@ -271,6 +270,9 @@ IN: bootstrap.x86
 
     ! Make the new context active
     EAX jit-switch-context
+
+    ! Windows-specific setup
+    ctx-reg jit-update-seh
 
     ! Twiddle stack for return
     ESP 4 ADD
@@ -299,6 +301,7 @@ IN: bootstrap.x86
     ds-reg 4 ADD
     ds-reg [] EAX MOV
 
+    ! Windows-specific setup
     jit-install-seh
 
     ! Push a fake return address

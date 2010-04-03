@@ -65,6 +65,7 @@ CONSTANT: rt-megamorphic-cache-hits 8
 CONSTANT: rt-vm 9
 CONSTANT: rt-cards-offset 10
 CONSTANT: rt-decks-offset 11
+CONSTANT: rt-exception-handler 12
 
 : rc-absolute? ( n -- ? )
     ${ rc-absolute-ppc-2/2 rc-absolute-cell rc-absolute } member? ;

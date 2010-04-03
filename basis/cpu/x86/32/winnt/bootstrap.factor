@@ -36,7 +36,7 @@ IN: bootstrap.x86
     ! Align stack
     ESP 3 bootstrap-cells ADD
     ! Exception handler address filled in by callback.cpp
-    0 PUSH rc-absolute-cell rt-dlsym jit-rel
+    0 PUSH rc-absolute-cell rt-exception-handler jit-rel
     ! No next handler
     0 PUSH
     ! This is the new exception handler

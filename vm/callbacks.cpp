@@ -67,15 +67,17 @@ code_block *callback_heap::add(cell owner, cell return_rewind)
 
 	memcpy(stub->entry_point(),insns->data<void>(),size);
 
+	/* Store VM pointer */
+	store_callback_operand(stub,0,(cell)parent);
+
 #ifdef WIN32
-	store_callback_operand(stub,0,(cell)&exception_handler);
+	store_callback_operand(stub,1,(cell)&exception_handler);
 	cell index = 1;
 #else
 	cell index = 0;
 #endif
 
 	/* Store VM pointer */
-	store_callback_operand(stub,index + 0,(cell)parent);
 	store_callback_operand(stub,index + 2,(cell)parent);
 
 	/* On x86, the RET instruction takes an argument which depends on

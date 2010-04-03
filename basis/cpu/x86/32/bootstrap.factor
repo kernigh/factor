@@ -108,6 +108,13 @@ IN: bootstrap.x86
 \ (call) define-combinator-primitive
 
 [
+    ! Load ds and rs registers
+    jit-load-vm
+    jit-load-context
+    jit-restore-context
+
+    ctx-reg jit-update-seh
+
     ! Clear x87 stack, but preserve rounding mode and exception flags
     ESP 2 SUB
     ESP [] FNSTCW
@@ -121,11 +128,6 @@ IN: bootstrap.x86
 
     ! Unwind stack frames
     ESP EDX MOV
-
-    ! Load ds and rs registers
-    jit-load-vm
-    jit-load-context
-    jit-restore-context
 
     jit-jump-quot
 ] \ unwind-native-frames define-sub-primitive

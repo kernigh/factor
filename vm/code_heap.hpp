@@ -1,9 +1,14 @@
 namespace factor
 {
 
+const seh_area_size = 1024;
+
 struct code_heap {
 	/* The actual memory area */
 	segment *seg;
+
+	/* Memory area reserved for SEH. Only used on Windows */
+	char *seh_area;
 
 	/* Memory allocator */
 	free_list_allocator<code_block> *allocator;

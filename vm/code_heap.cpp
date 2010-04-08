@@ -10,9 +10,8 @@ code_heap::code_heap(cell size)
 	if(!seg) fatal_error("Out of memory in code_heap constructor",size);
 
 	cell start = seg->start + seh_area_size;
-	cell size = seg->end - start;
 
-	allocator = new free_list_allocator<code_block>(size,start);
+	allocator = new free_list_allocator<code_block>(seg->end - start,start);
 	seh_area = (char *)seg->start;
 }
 

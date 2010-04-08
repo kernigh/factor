@@ -1,7 +1,7 @@
 namespace factor
 {
 
-const seh_area_size = 1024;
+const cell seh_area_size = 1024;
 
 struct code_heap {
 	/* The actual memory area */

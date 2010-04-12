@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs db.tuples furnace.actions
 furnace.utilities http.server.responses kernel locals
-mason.server mason.server.release sequences splitting urls
+mason.server mason.version.data sequences splitting urls
 webapps.mason.utils xml.syntax xml.writer ;
 IN: webapps.mason.grids
 

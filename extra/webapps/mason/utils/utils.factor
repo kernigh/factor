@@ -1,7 +1,7 @@
 ! Copyright (C) 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs db.tuples furnace.actions
-html.forms kernel mason.server mason.server.release sequences
+html.forms kernel mason.server mason.version.data sequences
 validators xml.syntax ;
 IN: webapps.mason.utils
 

@@ -31,7 +31,7 @@ M: x86.64 reserved-stack-space 0 ;
     ] map ;
 
 : flatten-large-struct ( c-type -- seq )
-    (flatten-stack-type) ;
+    stack-params (flatten-c-type) ;
 
 M: x86.64 flatten-struct-type ( c-type -- seq )
     dup heap-size 16 >

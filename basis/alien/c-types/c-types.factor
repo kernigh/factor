@@ -1,4 +1,4 @@
-! Copyright (C) 2004, 2009 Slava Pestov.
+! Copyright (C) 2004, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: byte-arrays arrays assocs delegate kernel kernel.private math
 math.order math.parser namespaces make parser sequences strings
@@ -17,7 +17,8 @@ SYMBOLS:
     long ulong
     longlong ulonglong
     float double
-    void* bool ;
+    void* bool
+    (stack-value) ;
 
 SINGLETON: void
 
@@ -501,6 +502,9 @@ M: pointer c-type
         [ c-bool> ] >>boxer-quot
         object >>boxed-class
     \ bool define-primitive-type
+
+    \ void* c-type clone stack-params >>rep
+    \ (stack-value) define-primitive-type
 
 ] with-compilation-unit
 

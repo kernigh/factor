@@ -18,7 +18,7 @@ IN: compiler.cfg.optimizer
     delete-useless-conditionals
     split-branches
     join-blocks
-    normalize-height
+    ! normalize-height
     construct-ssa
     alias-analysis
     value-numbering

@@ -303,4 +303,5 @@ CODEGEN: ##begin-callback %begin-callback
 CODEGEN: ##alien-callback %alien-callback
 CODEGEN: ##end-callback %end-callback
 
-M: ##alien-assembly generate-insn quot>> call( -- ) ;
+M: ##alien-assembly generate-insn
+    [ gc-map>> gc-map set ] [ quot>> call( -- ) ] bi ;

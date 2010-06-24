@@ -112,7 +112,7 @@ M: #alien-indirect emit-node ( node -- )
 M: #alien-assembly emit-node
     params>> {
         [ caller-parameters ]
-        [ quot>> ##alien-assembly ]
+        [ quot>> <gc-map> ##alien-assembly ]
         [ emit-stack-frame ]
         [ box-return* ]
     } cleave ;

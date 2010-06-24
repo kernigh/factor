@@ -812,9 +812,6 @@ literal: cc ;
 INSN: ##save-context
 temp: temp1/int-rep temp2/int-rep ;
 
-INSN: ##restore-context
-temp: temp1/int-rep temp2/int-rep ;
-
 ! GC checks
 INSN: ##check-nursery-branch
 literal: size cc

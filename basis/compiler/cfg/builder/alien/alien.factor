@@ -138,13 +138,7 @@ M: #alien-assembly emit-node
     bi ;
 
 : box-parameters ( vregs reps params -- )
-    ##begin-callback
-    next-vreg next-vreg ##restore-context
-    [
-        next-vreg next-vreg ##save-context
-        box-parameter
-        ds-push
-    ] 3each ;
+    ##begin-callback [ box-parameter ds-push ] 3each ;
 
 : callee-parameters ( params -- stack-size )
     [ abi>> ] [ return>> ] [ parameters>> ] tri

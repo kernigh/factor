@@ -1,8 +1,8 @@
 ! Copyright (C) 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien.c-types arrays assocs classes.struct fry
-kernel layouts locals math namespaces sequences
-sequences.generalizations system
+USING: accessors alien.c-types arrays assocs combinators
+classes.struct fry kernel layouts locals math namespaces
+sequences sequences.generalizations system
 compiler.cfg.builder.alien.params compiler.cfg.hats
 compiler.cfg.instructions cpu.architecture ;
 IN: compiler.cfg.builder.alien.boxing
@@ -45,8 +45,16 @@ M: struct-c-type flatten-c-type
 GENERIC: unbox ( src c-type -- vregs reps )
 
 M: c-type unbox
-    [ unboxer>> ] [ rep>> ] bi
-    [ ^^unbox 1array ] [ nip f 2array 1array ] 2bi ;
+    [ rep>> ] [ unboxer>> ] bi
+    [
+        {
+            ! { "to_float" [ drop ] }
+            ! { "to_double" [ drop ] }
+            ! { "alien_offset" [ drop ^^unbox-any-c-ptr ] }
+            [ swap ^^unbox ]
+        } case 1array
+    ]
+    [ drop f 2array 1array ] 2bi ;
 
 M: long-long-type unbox
     [ 8 cell f ^^local-allot ] dip '[ _ unboxer>> ##unbox-long-long ] keep
@@ -105,7 +113,13 @@ M: struct-c-type flatten-parameter-type frob-struct flatten-c-type ;
 GENERIC: box ( vregs reps c-type -- dst )
 
 M: c-type box
-    [ first ] [ drop ] [ [ boxer>> ] [ rep>> ] bi ] tri* <gc-map> ^^box ;
+    [ first ] [ drop ] [ [ rep>> ] [ boxer>> ] bi ] tri*
+    {
+        ! { "from_float" [ drop ] }
+        ! { "from_double" [ drop ] }
+        ! { "allot_alien" [ drop ^^box-alien ] }
+        [ swap <gc-map> ^^box ]
+    } case ;
 
 M: long-long-type box
     [ first2 ] [ drop ] [ boxer>> ] tri* <gc-map> ^^box-long-long ;

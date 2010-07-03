@@ -122,7 +122,7 @@ M: insn compute-live-intervals* drop ;
 
 M: vreg-insn compute-live-intervals* ( insn -- )
     dup insn#>>
-    [ [ defs-vreg ] dip '[ _ record-def ] when* ]
+    [ [ defs-vregs ] dip '[ _ record-def ] each ]
     [ [ uses-vregs ] dip '[ _ record-use ] each ]
     [ [ temp-vregs ] dip '[ _ record-temp ] each ]
     2tri ;

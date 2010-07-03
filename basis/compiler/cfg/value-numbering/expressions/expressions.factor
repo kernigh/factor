@@ -49,7 +49,7 @@ GENERIC: >expr ( insn -- expr )
     [ drop \ >expr create-method-in ] [ >expr-quot ] 2bi define ;
 
 insn-classes get
-[ pure-insn class<= ] filter
+[ foldable-insn class<= ] filter
 [
     dup "insn-slots" word-prop input-values
     define->expr-method

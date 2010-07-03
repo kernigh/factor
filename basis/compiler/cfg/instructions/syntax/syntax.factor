@@ -36,11 +36,8 @@ TUPLE: insn-slot-spec type name rep ;
         ] reduce drop
     ] { } make ;
 
-: find-def-slot ( slots -- slot/f )
-    [ type>> def eq? ] find nip ;
-
-: insn-def-slot ( class -- slot/f )
-    "insn-slots" word-prop find-def-slot ;
+: insn-def-slots ( class -- slot/f )
+    "insn-slots" word-prop [ type>> def eq? ] filter ;
 
 : insn-use-slots ( class -- slots )
     "insn-slots" word-prop [ type>> use eq? ] filter ;
@@ -59,8 +56,11 @@ TUPLE: insn-slot-spec type name rep ;
 : vreg-insn-word ( -- word )
     "vreg-insn" "compiler.cfg.instructions" lookup ;
 
-: pure-insn-word ( -- word )
-    "pure-insn" "compiler.cfg.instructions" lookup ;
+: flushable-insn-word ( -- word )
+    "flushable-insn" "compiler.cfg.instructions" lookup ;
+
+: foldable-insn-word ( -- word )
+    "foldable-insn" "compiler.cfg.instructions" lookup ;
 
 : insn-effect ( word -- effect )
     boa-effect in>> but-last { } <effect> ;
@@ -68,10 +68,10 @@ TUPLE: insn-slot-spec type name rep ;
 : uses-vregs? ( specs -- ? )
     [ type>> { def use temp } member-eq? ] any? ;
 
-: insn-superclass ( pure? specs -- superclass )
-    pure-insn-word swap uses-vregs? vreg-insn-word insn-word ? ? ;
+: insn-superclass ( superclass specs -- superclass )
+    uses-vregs? [ drop insn-word ] unless ;
 
-: define-insn-tuple ( class pure? specs -- )
+: define-insn-tuple ( class superclass specs -- )
     [ insn-superclass ] keep
     [ name>> ] map "insn#" suffix define-tuple-class ;
 
@@ -79,7 +79,7 @@ TUPLE: insn-slot-spec type name rep ;
     [ dup '[ _ ] [ f ] [ boa , ] surround ] dip
     [ name>> ] map { } <effect> define-declared ;
 
-: define-insn ( class pure? specs -- )
+: define-insn ( class superclass specs -- )
     parse-insn-slot-specs
     {
         [ nip "insn-slots" set-word-prop ]
@@ -89,6 +89,11 @@ TUPLE: insn-slot-spec type name rep ;
         [ nip define-insn-ctor ]
     } 3cleave ;
 
-SYNTAX: INSN: CREATE-CLASS f ";" parse-tokens define-insn ;
+SYNTAX: INSN:
+    CREATE-CLASS vreg-insn-word ";" parse-tokens define-insn ;
 
-SYNTAX: PURE-INSN: CREATE-CLASS t ";" parse-tokens define-insn ;
+SYNTAX: FLUSHABLE-INSN:
+    CREATE-CLASS flushable-insn-word ";" parse-tokens define-insn ;
+
+SYNTAX: FOLDABLE-INSN:
+    CREATE-CLASS foldable-insn-word ";" parse-tokens define-insn ;

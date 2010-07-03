@@ -22,9 +22,9 @@ GENERIC: rename-insn-defs ( insn -- )
 
 M: insn rename-insn-defs drop ;
 
-insn-classes get [ insn-def-slot ] filter [
+insn-classes get [ insn-def-slots empty? not ] filter [
     [ \ rename-insn-defs create-method-in ]
-    [ insn-def-slot name>> 1array DEF-QUOT slot-change-quot ] bi
+    [ insn-def-slots [ name>> ] map DEF-QUOT slot-change-quot ] bi
     define
 ] each
 

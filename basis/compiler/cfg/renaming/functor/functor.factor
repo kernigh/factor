@@ -1,4 +1,4 @@
-! Copyright (C) 2009 Slava Pestov.
+! Copyright (C) 2009, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs fry functors generic.parser
 kernel lexer namespaces parser sequences slots words sets
@@ -22,21 +22,39 @@ GENERIC: rename-insn-defs ( insn -- )
 
 M: insn rename-insn-defs drop ;
 
-insn-classes get [ insn-def-slots empty? not ] filter [
+insn-classes get special-vreg-insns diff [ insn-def-slots empty? not ] filter [
     [ \ rename-insn-defs create-method-in ]
     [ insn-def-slots [ name>> ] map DEF-QUOT slot-change-quot ] bi
     define
 ] each
 
+M: ##phi rename-insn-defs DST-QUOT change-dst drop ;
+
+M: alien-call-insn rename-insn-defs
+    [ [ first3 USE-QUOT 2dip 3array ] map ] change-reg-outputs drop ;
+
+M: ##callback-inputs rename-insn-defs
+    [ [ first3 USE-QUOT 2dip 3array ] map ] change-reg-outputs
+    [ [ first3 USE-QUOT 2dip 3array ] map ] change-stack-outputs
+    drop ;
+
 GENERIC: rename-insn-uses ( insn -- )
 
 M: insn rename-insn-uses drop ;
 
-insn-classes get { ##phi } diff [ insn-use-slots empty? not ] filter [
+insn-classes get special-vreg-insns diff [ insn-use-slots empty? not ] filter [
     [ \ rename-insn-uses create-method-in ]
     [ insn-use-slots [ name>> ] map USE-QUOT slot-change-quot ] bi
     define
 ] each
+
+M: alien-call-insn rename-insn-uses
+    [ [ first3 DEF-QUOT 2dip 3array ] map ] change-reg-inputs
+    [ [ first3 DEF-QUOT 2dip 3array ] map ] change-stack-inputs
+    drop ;
+
+M: ##callback-outputs rename-insn-uses
+    [ [ first3 DEF-QUOT 2dip 3array ] map ] change-reg-outputs drop ;
 
 M: ##phi rename-insn-uses
     [ USE-QUOT assoc-map ] change-inputs drop ;

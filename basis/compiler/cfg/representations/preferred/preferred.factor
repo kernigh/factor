@@ -57,10 +57,27 @@ M: insn uses-vreg-reps drop { } ;
 
 PRIVATE>
 
+M: alien-call-insn defs-vreg-reps
+    reg-outputs>> [ second ] map ;
+
+M: ##callback-inputs defs-vreg-reps
+    [ regs-outputs>> ] [ stack-outputs>> ] bi append [ second ] map ;
+
+M: ##callback-outputs defs-vreg-reps drop { } ;
+
+M: alien-call-insn uses-vreg-reps
+    [ reg-inputs>> ] [ stack-inputs>> ] bi append [ second ] map ;
+
+M: ##callback-inputs uses-vreg-reps
+    drop { } ;
+
+M: ##callback-outputs uses-vreg-reps
+    reg-inputs>> [ second ] map ;
+
 [
     insn-classes get
-    [ [ define-defs-vreg-reps-method ] each ]
-    [ { ##phi } diff [ define-uses-vreg-reps-method ] each ]
+    [ special-vreg-insns [ define-defs-vreg-reps-method ] each ]
+    [ special-vreg-insns [ define-uses-vreg-reps-method ] each ]
     [ [ define-temp-vreg-reps-method ] each ]
     tri
 ] with-compilation-unit

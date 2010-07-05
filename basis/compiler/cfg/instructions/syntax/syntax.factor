@@ -68,11 +68,7 @@ TUPLE: insn-slot-spec type name rep ;
 : uses-vregs? ( specs -- ? )
     [ type>> { def use temp } member-eq? ] any? ;
 
-: insn-superclass ( superclass specs -- superclass )
-    uses-vregs? [ drop insn-word ] unless ;
-
 : define-insn-tuple ( class superclass specs -- )
-    [ insn-superclass ] keep
     [ name>> ] map "insn#" suffix define-tuple-class ;
 
 : define-insn-ctor ( class specs -- )
@@ -90,6 +86,9 @@ TUPLE: insn-slot-spec type name rep ;
     } 3cleave ;
 
 SYNTAX: INSN:
+    CREATE-CLASS insn-word ";" parse-tokens define-insn ;
+
+SYNTAX: VREG-INSN:
     CREATE-CLASS vreg-insn-word ";" parse-tokens define-insn ;
 
 SYNTAX: FLUSHABLE-INSN:

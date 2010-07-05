@@ -58,7 +58,7 @@ FLUSHABLE-INSN: ##peek
 def: dst/tagged-rep
 literal: loc ;
 
-INSN: ##replace
+VREG-INSN: ##replace
 use: src/tagged-rep
 literal: loc ;
 
@@ -88,7 +88,7 @@ INSN: ##return ;
 INSN: ##no-tco ;
 
 ! Jump tables
-INSN: ##dispatch
+VREG-INSN: ##dispatch
 use: src/int-rep
 temp: temp/int-rep ;
 
@@ -103,11 +103,11 @@ def: dst/tagged-rep
 use: obj/tagged-rep
 literal: slot tag ;
 
-INSN: ##set-slot
+VREG-INSN: ##set-slot
 use: src/tagged-rep obj/tagged-rep slot/int-rep
 literal: scale tag ;
 
-INSN: ##set-slot-imm
+VREG-INSN: ##set-slot-imm
 use: src/tagged-rep obj/tagged-rep
 literal: slot tag ;
 
@@ -395,7 +395,7 @@ use: src1
 temp: temp/int-rep
 literal: rep vcc ;
 
-INSN: ##test-vector-branch
+VREG-INSN: ##test-vector-branch
 use: src1
 temp: temp/int-rep
 literal: rep vcc ;
@@ -602,11 +602,11 @@ def: dst
 use: base/int-rep
 literal: offset rep c-type ;
 
-INSN: ##store-memory
+VREG-INSN: ##store-memory
 use: src base/int-rep displacement/int-rep
 literal: scale offset rep c-type ;
 
-INSN: ##store-memory-imm
+VREG-INSN: ##store-memory-imm
 use: src base/int-rep
 literal: offset rep c-type ;
 
@@ -616,12 +616,12 @@ def: dst/tagged-rep
 literal: size class
 temp: temp/int-rep ;
 
-INSN: ##write-barrier
+VREG-INSN: ##write-barrier
 use: src/tagged-rep slot/int-rep
 literal: scale tag
 temp: temp1/int-rep temp2/int-rep ;
 
-INSN: ##write-barrier-imm
+VREG-INSN: ##write-barrier-imm
 use: src/tagged-rep
 literal: slot tag
 temp: temp1/int-rep temp2/int-rep ;
@@ -634,7 +634,7 @@ FLUSHABLE-INSN: ##vm-field
 def: dst/tagged-rep
 literal: offset ;
 
-INSN: ##set-vm-field
+VREG-INSN: ##set-vm-field
 use: src/tagged-rep
 literal: offset ;
 
@@ -650,22 +650,6 @@ literal: unboxer rep ;
 FOLDABLE-INSN: ##unbox-long-long
 use: src/tagged-rep out/int-rep
 literal: unboxer ;
-
-INSN: ##store-reg-param
-use: src
-literal: reg rep ;
-
-INSN: ##store-stack-param
-use: src
-literal: n rep ;
-
-FLUSHABLE-INSN: ##load-reg-param
-def: dst
-literal: reg rep ;
-
-FLUSHABLE-INSN: ##load-stack-param
-def: dst
-literal: n rep ;
 
 FLUSHABLE-INSN: ##local-allot
 def: dst/int-rep
@@ -685,25 +669,29 @@ FLUSHABLE-INSN: ##allot-byte-array
 def: dst/tagged-rep
 literal: size gc-map ;
 
-INSN: ##prepare-var-args ;
+! Alien call inputs and outputs are arrays of triples with shape
+! { vreg rep stack#/reg }
 
-INSN: ##alien-invoke
-literal: symbols dll gc-map ;
+VREG-INSN: ##alien-invoke
+literal: reg-inputs stack-inputs reg-outputs stack-frame cleanup symbols dll gc-map ;
 
-INSN: ##cleanup
-literal: n ;
-
-INSN: ##alien-indirect
+VREG-INSN: ##alien-indirect
 use: src/int-rep
-literal: gc-map ;
+literal: reg-inputs stack-inputs reg-outputs stack-frame cleanup gc-map ;
 
-INSN: ##alien-assembly
-literal: quot gc-map ;
+VREG-INSN: ##alien-assembly
+literal: reg-inputs stack-inputs reg-outputs stack-frame cleanup quot gc-map ;
 
 INSN: ##begin-callback ;
 
+FLUSHABLE-INSN: ##callback-inputs
+literal: reg-outputs stack-outputs ;
+
 INSN: ##alien-callback
 literal: quot ;
+
+FLUSHABLE-INSN: ##callback-outputs
+literal: reg-inputs ;
 
 INSN: ##end-callback ;
 
@@ -715,11 +703,11 @@ literal: inputs ;
 INSN: ##branch ;
 
 ! Tagged conditionals
-INSN: ##compare-branch
+VREG-INSN: ##compare-branch
 use: src1/tagged-rep src2/tagged-rep
 literal: cc ;
 
-INSN: ##compare-imm-branch
+VREG-INSN: ##compare-imm-branch
 use: src1/tagged-rep
 literal: src2 cc ;
 
@@ -736,19 +724,19 @@ literal: src2 cc
 temp: temp/int-rep ;
 
 ! Integer conditionals
-INSN: ##compare-integer-branch
+VREG-INSN: ##compare-integer-branch
 use: src1/int-rep src2/int-rep
 literal: cc ;
 
-INSN: ##compare-integer-imm-branch
+VREG-INSN: ##compare-integer-imm-branch
 use: src1/int-rep
 literal: src2 cc ;
 
-INSN: ##test-branch
+VREG-INSN: ##test-branch
 use: src1/int-rep src2/int-rep
 literal: cc ;
 
-INSN: ##test-imm-branch
+VREG-INSN: ##test-imm-branch
 use: src1/int-rep
 literal: src2 cc ;
 
@@ -777,11 +765,11 @@ literal: src2 cc
 temp: temp/int-rep ;
 
 ! Float conditionals
-INSN: ##compare-float-ordered-branch
+VREG-INSN: ##compare-float-ordered-branch
 use: src1/double-rep src2/double-rep
 literal: cc ;
 
-INSN: ##compare-float-unordered-branch
+VREG-INSN: ##compare-float-unordered-branch
 use: src1/double-rep src2/double-rep
 literal: cc ;
 
@@ -798,40 +786,41 @@ literal: cc
 temp: temp/int-rep ;
 
 ! Overflowing arithmetic
-INSN: ##fixnum-add
+VREG-INSN: ##fixnum-add
 def: dst/tagged-rep
 use: src1/tagged-rep src2/tagged-rep
 literal: cc ;
 
-INSN: ##fixnum-sub
+VREG-INSN: ##fixnum-sub
 def: dst/tagged-rep
 use: src1/tagged-rep src2/tagged-rep
 literal: cc ;
 
-INSN: ##fixnum-mul
+VREG-INSN: ##fixnum-mul
 def: dst/tagged-rep
 use: src1/tagged-rep src2/int-rep
 literal: cc ;
 
-INSN: ##save-context
+VREG-INSN: ##save-context
 temp: temp1/int-rep temp2/int-rep ;
 
 ! GC checks
-INSN: ##check-nursery-branch
+VREG-INSN: ##check-nursery-branch
 literal: size cc
 temp: temp1/int-rep temp2/int-rep ;
 
-INSN: ##call-gc literal: gc-map ;
+INSN: ##call-gc
+literal: gc-map ;
 
 ! Spills and reloads, inserted by register allocator
 TUPLE: spill-slot { n integer } ;
 C: <spill-slot> spill-slot
 
-INSN: ##spill
+VREG-INSN: ##spill
 use: src
 literal: rep dst ;
 
-INSN: ##reload
+VREG-INSN: ##reload
 def: dst
 literal: rep src ;
 
@@ -882,15 +871,16 @@ TUPLE: gc-map scrub-d scrub-r gc-roots ;
 
 : <gc-map> ( -- gc-map ) gc-map new ;
 
+UNION: alien-call-insn
+##alien-invoke
+##alien-indirect
+##alien-assembly ;
+
 ! Instructions that clobber registers. They receive inputs and
 ! produce outputs in spill slots.
 UNION: hairy-clobber-insn
-##load-reg-param
-##store-reg-param
 ##call-gc
-##alien-invoke
-##alien-indirect
-##alien-assembly
+alien-call-insn
 ##begin-callback
 ##end-callback ;
 

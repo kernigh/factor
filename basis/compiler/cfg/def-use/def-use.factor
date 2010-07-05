@@ -17,8 +17,6 @@ M: insn defs-vregs drop { } ;
 M: insn temp-vregs drop { } ;
 M: insn uses-vregs drop { } ;
 
-M: ##phi uses-vregs inputs>> values ;
-
 <PRIVATE
 
 : slot-array-quot ( slots -- quot )
@@ -47,10 +45,34 @@ M: ##phi uses-vregs inputs>> values ;
 
 PRIVATE>
 
+CONSTANT: special-vreg-insns
+{ ##phi ##alien-invoke ##alien-indirect ##alien-assembly ##callback-inputs ##callback-outputs }
+
+M: ##phi defs-vregs dst>> 1array ;
+
+M: alien-call-insn defs-vregs
+    reg-outputs>> [ first ] map ;
+
+M: ##callback-inputs defs-vregs
+    [ regs-outputs>> ] [ stack-outputs>> ] bi append [ first ] map ;
+
+M: ##callback-outputs defs-vregs drop { } ;
+
+M: ##phi uses-vregs inputs>> values ;
+
+M: alien-call-insn uses-vregs
+    [ reg-inputs>> ] [ stack-inputs>> ] bi append [ first ] map ;
+
+M: ##callback-inputs uses-vregs
+    drop { } ;
+
+M: ##callback-outputs uses-vregs
+    reg-inputs>> [ first ] map ;
+
 [
     insn-classes get
-    [ [ define-defs-vregs-method ] each ]
-    [ { ##phi } diff [ define-uses-vregs-method ] each ]
+    [ special-vreg-insns diff [ define-defs-vregs-method ] each ]
+    [ special-vreg-insns diff [ define-uses-vregs-method ] each ]
     [ [ define-temp-vregs-method ] each ]
     tri
 ] with-compilation-unit

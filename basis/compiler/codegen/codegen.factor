@@ -287,10 +287,6 @@ CONDITIONAL: ##fixnum-mul %fixnum-mul
 ! FFI
 CODEGEN: ##unbox %unbox
 CODEGEN: ##unbox-long-long %unbox-long-long
-CODEGEN: ##store-reg-param %store-reg-param
-CODEGEN: ##store-stack-param %store-stack-param
-CODEGEN: ##load-reg-param %load-reg-param
-CODEGEN: ##load-stack-param %load-stack-param
 CODEGEN: ##local-allot %local-allot
 CODEGEN: ##box %box
 CODEGEN: ##box-long-long %box-long-long
@@ -300,7 +296,9 @@ CODEGEN: ##alien-invoke %alien-invoke
 CODEGEN: ##cleanup %cleanup
 CODEGEN: ##alien-indirect %alien-indirect
 CODEGEN: ##begin-callback %begin-callback
+CODEGEN: ##callback-inputs %callback-inputs
 CODEGEN: ##alien-callback %alien-callback
+CODEGEN: ##callback-outputs %callback-outputs
 CODEGEN: ##end-callback %end-callback
 
 M: ##alien-assembly generate-insn

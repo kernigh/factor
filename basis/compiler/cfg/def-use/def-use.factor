@@ -54,7 +54,7 @@ M: alien-call-insn defs-vregs
     reg-outputs>> [ first ] map ;
 
 M: ##callback-inputs defs-vregs
-    [ regs-outputs>> ] [ stack-outputs>> ] bi append [ first ] map ;
+    [ reg-outputs>> ] [ stack-outputs>> ] bi append [ first ] map ;
 
 M: ##callback-outputs defs-vregs drop { } ;
 
@@ -62,6 +62,9 @@ M: ##phi uses-vregs inputs>> values ;
 
 M: alien-call-insn uses-vregs
     [ reg-inputs>> ] [ stack-inputs>> ] bi append [ first ] map ;
+
+M: ##alien-indirect uses-vregs
+    [ call-next-method ] [ src>> ] bi prefix ;
 
 M: ##callback-inputs uses-vregs
     drop { } ;

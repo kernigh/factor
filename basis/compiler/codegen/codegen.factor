@@ -291,15 +291,9 @@ CODEGEN: ##local-allot %local-allot
 CODEGEN: ##box %box
 CODEGEN: ##box-long-long %box-long-long
 CODEGEN: ##allot-byte-array %allot-byte-array
-CODEGEN: ##prepare-var-args %prepare-var-args
 CODEGEN: ##alien-invoke %alien-invoke
-CODEGEN: ##cleanup %cleanup
 CODEGEN: ##alien-indirect %alien-indirect
-CODEGEN: ##begin-callback %begin-callback
+CODEGEN: ##alien-assembly %alien-assembly
 CODEGEN: ##callback-inputs %callback-inputs
 CODEGEN: ##alien-callback %alien-callback
 CODEGEN: ##callback-outputs %callback-outputs
-CODEGEN: ##end-callback %end-callback
-
-M: ##alien-assembly generate-insn
-    [ gc-map>> gc-map set ] [ quot>> call( -- ) ] bi ;

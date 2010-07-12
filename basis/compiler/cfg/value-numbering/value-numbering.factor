@@ -38,7 +38,7 @@ GENERIC: process-instruction ( insn -- insn' )
 M: insn process-instruction
     dup rewrite [ process-instruction ] [ ] ?if ;
 
-M: vreg-insn process-instruction
+M: foldable-insn process-instruction
     dup rewrite
     [ process-instruction ]
     [ dup defs-vregs length 1 = [ check-redundancy ] when ] ?if ;

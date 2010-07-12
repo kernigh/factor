@@ -33,8 +33,8 @@ M: ##call-gc compute-stack-frame* drop vm-frame-required ;
 M: ##box compute-stack-frame* drop vm-frame-required ;
 M: ##unbox compute-stack-frame* drop vm-frame-required ;
 M: ##box-long-long compute-stack-frame* drop vm-frame-required ;
-M: ##begin-callback compute-stack-frame* drop vm-frame-required ;
-M: ##end-callback compute-stack-frame* drop vm-frame-required ;
+M: ##callback-inputs compute-stack-frame* drop vm-frame-required ;
+M: ##callback-outputs compute-stack-frame* drop vm-frame-required ;
 M: ##unary-float-function compute-stack-frame* drop vm-frame-required ;
 M: ##binary-float-function compute-stack-frame* drop vm-frame-required ;
 

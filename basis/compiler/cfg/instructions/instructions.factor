@@ -673,27 +673,23 @@ literal: size gc-map ;
 ! { vreg rep stack#/reg }
 
 VREG-INSN: ##alien-invoke
-literal: reg-inputs stack-inputs reg-outputs stack-frame cleanup symbols dll gc-map ;
+literal: reg-inputs stack-inputs reg-outputs cleanup stack-size symbols dll gc-map ;
 
 VREG-INSN: ##alien-indirect
 use: src/int-rep
-literal: reg-inputs stack-inputs reg-outputs stack-frame cleanup gc-map ;
+literal: reg-inputs stack-inputs reg-outputs cleanup stack-size gc-map ;
 
 VREG-INSN: ##alien-assembly
-literal: reg-inputs stack-inputs reg-outputs stack-frame cleanup quot gc-map ;
+literal: reg-inputs stack-inputs reg-outputs cleanup stack-size quot gc-map ;
 
-INSN: ##begin-callback ;
-
-FLUSHABLE-INSN: ##callback-inputs
+VREG-INSN: ##callback-inputs
 literal: reg-outputs stack-outputs ;
 
 INSN: ##alien-callback
 literal: quot ;
 
-FLUSHABLE-INSN: ##callback-outputs
+VREG-INSN: ##callback-outputs
 literal: reg-inputs ;
-
-INSN: ##end-callback ;
 
 ! Control flow
 FLUSHABLE-INSN: ##phi
@@ -881,8 +877,8 @@ UNION: alien-call-insn
 UNION: hairy-clobber-insn
 ##call-gc
 alien-call-insn
-##begin-callback
-##end-callback ;
+##callback-inputs
+##callback-outputs ;
 
 ! Instructions that clobber registers but are allowed to produce
 ! outputs in registers. Inputs are in spill slots, except for

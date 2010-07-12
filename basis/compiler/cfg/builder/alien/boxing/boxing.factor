@@ -4,7 +4,7 @@ USING: accessors alien.c-types arrays assocs combinators
 classes.struct fry kernel layouts locals math namespaces
 sequences sequences.generalizations system
 compiler.cfg.builder.alien.params compiler.cfg.hats
-compiler.cfg.instructions cpu.architecture ;
+compiler.cfg.registers compiler.cfg.instructions cpu.architecture ;
 IN: compiler.cfg.builder.alien.boxing
 
 SYMBOL: struct-return-area
@@ -61,7 +61,7 @@ M: long-long-type unbox
     0 cell [ int-rep f ^^load-memory-imm ] bi-curry@ bi 2array
     int-rep long-long-on-stack? 2array dup 2array ;
 
-M: struct-c-type unbox ( src c-type -- vregs )
+M: struct-c-type unbox ( src c-type -- vregs reps )
     [ ^^unbox-any-c-ptr ] dip explode-struct ;
 
 : frob-struct ( c-type -- c-type )
@@ -81,39 +81,31 @@ M: struct-c-type unbox-parameter
         1array { { int-rep f } }
     ] if ;
 
-GENERIC: unbox-return ( src c-type -- )
+: store-return ( vregs reps -- triples )
+    [ [ dup next-return-reg 3array ] 2map ] with-return-regs ;
 
-: store-return ( vregs reps -- )
-    [
-        [ [ next-return-reg ] keep ##store-reg-param ] 2each
-    ] with-return-regs ;
+GENERIC: unbox-return ( src c-type -- vregs reps )
 
-: (unbox-return) ( src c-type -- vregs reps )
+M: abstract-c-type unbox-return
     ! Don't care about on-stack? flag when looking at return
     ! values.
     unbox keys ;
 
-M: c-type unbox-return (unbox-return) store-return ;
-
-M: long-long-type unbox-return (unbox-return) store-return ;
-
 M: struct-c-type unbox-return
     dup return-struct-in-registers?
-    [ (unbox-return) store-return ]
-    [ [ struct-return-area get ] 2dip (unbox-return) implode-struct ] if ;
+    [ call-next-method ]
+    [ [ struct-return-area get ] 2dip unbox keys implode-struct { } { } ] if ;
 
 GENERIC: flatten-parameter-type ( c-type -- reps )
 
-M: c-type flatten-parameter-type flatten-c-type ;
-
-M: long-long-type flatten-parameter-type flatten-c-type ;
+M: abstract-c-type flatten-parameter-type flatten-c-type ;
 
 M: struct-c-type flatten-parameter-type frob-struct flatten-c-type ;
 
 GENERIC: box ( vregs reps c-type -- dst )
 
 M: c-type box
-    [ first ] [ drop ] [ [ rep>> ] [ boxer>> ] bi ] tri*
+    [ [ first ] bi@ ] [ boxer>> ] bi*
     {
         ! { "from_float" [ drop ] }
         ! { "from_double" [ drop ] }
@@ -122,7 +114,8 @@ M: c-type box
     } case ;
 
 M: long-long-type box
-    [ first2 ] [ drop ] [ boxer>> ] tri* <gc-map> ^^box-long-long ;
+    [ first2 ] [ drop ] [ boxer>> ] tri*
+    <gc-map> ^^box-long-long ;
 
 M: struct-c-type box
     '[ _ heap-size <gc-map> ^^allot-byte-array dup ^^unbox-byte-array ] 2dip
@@ -130,30 +123,35 @@ M: struct-c-type box
 
 GENERIC: box-parameter ( vregs reps c-type -- dst )
 
-M: c-type box-parameter box ;
-
-M: long-long-type box-parameter box ;
+M: abstract-c-type box-parameter box ;
 
 M: struct-c-type box-parameter
     dup value-struct?
     [ [ [ drop first ] dip explode-struct keys ] keep ] unless
     box ;
 
-GENERIC: box-return ( c-type -- dst )
+GENERIC: load-return ( c-type -- triples )
 
-: load-return ( c-type -- vregs reps )
+M: abstract-c-type load-return
     [
         flatten-c-type keys
-        [ [ [ next-return-reg ] keep ^^load-reg-param ] map ] keep
+        [ [ next-vreg ] dip dup next-return-reg 3array ] map
     ] with-return-regs ;
 
-M: c-type box-return [ load-return ] keep box ;
+M: struct-c-type load-return
+    dup return-struct-in-registers?
+    [ call-next-method ] [ drop { } ] if ;
 
-M: long-long-type box-return [ load-return ] keep box ;
+GENERIC: box-return ( vregs reps c-type -- dst )
+
+M: abstract-c-type box-return box ;
 
 M: struct-c-type box-return
+    dup return-struct-in-registers?
+    [ call-next-method ]
     [
-        dup return-struct-in-registers?
-        [ load-return ]
-        [ [ struct-return-area get ] dip explode-struct keys ] if
-    ] keep box ;
+        [
+            [ [ { } assert-sequence= ] bi@ struct-return-area get ] dip
+            explode-struct keys
+        ] keep box
+    ] if ;

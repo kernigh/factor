@@ -28,11 +28,11 @@ SYMBOL: allocations
 
 GENERIC: build-liveness-graph ( insn -- )
 
-: add-edges ( insn register -- )
-    [ uses-vregs ] dip liveness-graph get [ union ] change-at ;
+: add-edges ( uses def -- )
+    liveness-graph get [ union ] change-at ;
 
 : setter-liveness-graph ( insn vreg -- )
-    dup allocation? [ add-edges ] [ 2drop ] if ;
+    dup allocation? [ [ uses-vregs ] dip add-edges ] [ 2drop ] if ;
 
 M: ##set-slot build-liveness-graph
     dup obj>> setter-liveness-graph ;
@@ -50,7 +50,7 @@ M: ##allot build-liveness-graph
     [ dst>> allocations get adjoin ] [ call-next-method ] bi ;
 
 M: vreg-insn build-liveness-graph
-    dup defs-vregs [ add-edges ] with each ;
+    [ uses-vregs ] [ defs-vregs ] bi [ add-edges ] with each ;
 
 M: insn build-liveness-graph drop ;
 

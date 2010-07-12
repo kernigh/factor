@@ -47,7 +47,7 @@ SYMBOL: class-element-map
 SYMBOL: copies
 
 : value-of ( vreg -- value )
-    insn-of dup ##tagged>integer? [ src>> ] [ dst>> ] if ;
+    dup insn-of dup ##tagged>integer? [ nip src>> ] [ drop ] if ;
 
 : init-coalescing ( -- )
     defs get

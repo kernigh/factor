@@ -28,15 +28,15 @@ TUPLE: flushable-insn < vreg-insn ;
 TUPLE: foldable-insn < flushable-insn ;
 
 ! Constants
-FLUSHABLE-INSN: ##load-integer
+FOLDABLE-INSN: ##load-integer
 def: dst/int-rep
 literal: val ;
 
-FLUSHABLE-INSN: ##load-reference
+FOLDABLE-INSN: ##load-reference
 def: dst/tagged-rep
 literal: obj ;
 
-! These three are inserted by representation selection
+! These four are inserted by representation selection
 FLUSHABLE-INSN: ##load-tagged
 def: dst/tagged-rep
 literal: val ;
@@ -112,7 +112,7 @@ use: src/tagged-rep obj/tagged-rep
 literal: slot tag ;
 
 ! Register transfers
-FLUSHABLE-INSN: ##copy
+FOLDABLE-INSN: ##copy
 def: dst
 use: src
 literal: rep ;

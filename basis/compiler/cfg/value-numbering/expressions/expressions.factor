@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays classes classes.algebra combinators fry
 generic.parser kernel math namespaces quotations sequences slots
-words make
+words make sets
 compiler.cfg.instructions
 compiler.cfg.instructions.syntax
 compiler.cfg.value-numbering.graph ;
@@ -50,6 +50,7 @@ GENERIC: >expr ( insn -- expr )
 
 insn-classes get
 [ foldable-insn class<= ] filter
+{ ##copy ##load-integer ##load-reference } diff
 [
     dup "insn-slots" word-prop input-values
     define->expr-method

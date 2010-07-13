@@ -645,11 +645,13 @@ HOOK: %begin-callback cpu ( -- )
 
 M: x86 %callback-inputs ( reg-outputs stack-outputs -- )
     [ [ first3 %load-reg-param ] each ]
-    [ [ first3 %load-stack-param ] each ] bi* ;
+    [ [ first3 %load-stack-param ] each ] bi*
+    %begin-callback ;
 
 HOOK: %end-callback cpu ( -- )
 
 M: x86 %callback-outputs ( reg-inputs -- )
+    %end-callback
     [ first3 %store-reg-param ] each ;
 
 M: x86 %loop-entry 16 alignment [ NOP ] times ;

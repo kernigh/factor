@@ -91,8 +91,6 @@ M: ##dispatch generate-insn
 ! Special cases
 M: ##no-tco generate-insn drop ;
 
-M: ##stack-frame generate-insn drop ;
-
 M: ##prologue generate-insn
     drop
     cfg get stack-frame>>

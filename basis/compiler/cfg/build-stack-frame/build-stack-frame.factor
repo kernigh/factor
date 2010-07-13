@@ -21,9 +21,9 @@ M:: ##local-allot compute-stack-frame* ( insn -- )
     allot-area-align [ a max ] change
     allot-area-size [ a align [ insn offset<< ] [ s + ] bi ] change ;
 
-M: ##stack-frame compute-stack-frame*
+M: alien-call-insn compute-stack-frame*
     frame-required
-    stack-frame>> param-area-size [ max ] change ;
+    stack-size>> param-area-size [ max ] change ;
 
 : vm-frame-required ( -- )
     frame-required

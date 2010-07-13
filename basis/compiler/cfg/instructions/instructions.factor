@@ -639,9 +639,6 @@ use: src/tagged-rep
 literal: offset ;
 
 ! FFI
-INSN: ##stack-frame
-literal: stack-frame ;
-
 FOLDABLE-INSN: ##unbox
 def: dst
 use: src/tagged-rep

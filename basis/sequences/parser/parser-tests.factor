@@ -104,3 +104,6 @@ IN: sequences.parser.tests
 
 [ "\n" ] [ "\n" <sequence-parser> [ ] take-while ] unit-test
 [ f ] [ "\n" <sequence-parser> [ not ] take-while ] unit-test
+
+[ "abcde" ] [ "abcde " <sequence-parser> take-until-whitespace ] unit-test
+[ "abcde" ] [ "  abcde " <sequence-parser> take-until-whitespace ] unit-test

@@ -1,13 +1,13 @@
-USING: accessors namespaces kernel combinators.short-circuit
-db.tuples db.types furnace.auth furnace.sessions furnace.cache ;
+USING: accessors combinators.short-circuit db.orm
+db.orm.persistent db.types furnace.auth furnace.cache
+furnace.sessions kernel namespaces ;
 IN: furnace.auth.login.permits
 
 TUPLE: permit < server-state session uid ;
 
-permit "PERMITS" {
-    { "session" "SESSION" BIG-INTEGER +not-null+ }
-    { "uid" "UID" { VARCHAR 255 } +not-null+ }
-} define-persistent
+PERSISTENT: permit
+    { "session" BIG-INTEGER NOT-NULL }
+    { "uid" VARCHAR NOT-NULL } ;
 
 : touch-permit ( permit -- )
     realm get touch-state ;

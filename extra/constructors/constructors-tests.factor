@@ -59,3 +59,4 @@ CONSTRUCTOR: foo ( a c -- obj ) ;""" eval( -- )
 ] [
     error>> unknown-constructor-parameters?
 ] must-fail-with
+

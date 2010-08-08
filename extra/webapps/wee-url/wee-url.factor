@@ -1,27 +1,28 @@
 ! Copyright (C) 2007 Doug Coleman.
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: math.ranges sequences random accessors 
-kernel namespaces fry db.types db.tuples urls validators
-html.components html.forms http http.server.dispatchers furnace
-furnace.actions furnace.boilerplate furnace.redirection 
-furnace.utilities continuations ;
+USING: accessors continuations db.orm db.orm.persistent
+db.types fry furnace.actions furnace.boilerplate
+furnace.redirection furnace.utilities html.forms
+http.server.dispatchers kernel literals math.ranges random
+sequences urls validators ;
 IN: webapps.wee-url
 
 TUPLE: wee-url < dispatcher ;
 
 TUPLE: short-url short url ;
 
-short-url "SHORT_URLS" {
-    { "short" "SHORT" TEXT +user-assigned-id+ }
-    { "url" "URL" TEXT +not-null+ }
-} define-persistent
+PERSISTENT: short-url
+    { "short" TEXT +primary-key+ }
+    { "url" URL NOT-NULL } ;
 
-: letter-bank ( -- seq )
-    CHAR: a CHAR: z [a,b]
-    CHAR: A CHAR: Z [a,b]
-    CHAR: 1 CHAR: 0 [a,b]
-    3append ; foldable
+CONSTANT: letter-bank
+    $[
+        CHAR: a CHAR: z [a,b]
+        CHAR: A CHAR: Z [a,b]
+        CHAR: 1 CHAR: 0 [a,b]
+        3append
+    ]
 
 : random-url ( -- string )
     1 6 [a,b] random [ letter-bank random ] "" replicate-as ;

@@ -1,10 +1,15 @@
 ! Copyright (C) 2009, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors furnace.auth furnace.db
+USING: accessors arrays combinators db db.orm furnace.actions
+furnace.db html.forms http.server.dispatchers
+http.server.responses io.encodings.utf8 io.files io.pathnames
+kernel mason.notify.server mason.platform mason.report
+math.order present sequences sorting splitting urls validators
+xml.syntax xml.writer
+accessors furnace.auth furnace.db
 http.server.dispatchers mason.server webapps.mason.grids
 webapps.mason.make-release webapps.mason.package
-webapps.mason.release webapps.mason.report
-webapps.mason.downloads webapps.mason.status-update ;
+FROM: assocs => at keys values ;
 IN: webapps.mason
 
 TUPLE: mason-app < dispatcher ;

@@ -1,22 +1,12 @@
 ! Copyright (C) 2008 Chris Double, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: alien.c-types alien.data arrays assocs kernel math math.parser
-namespaces sequences db.sqlite.ffi db combinators
-continuations db.types calendar.format serialize
-io.streams.byte-array byte-arrays io.encodings.binary
-io.backend db.errors present urls io.encodings.utf8
-io.encodings.string accessors shuffle io db.private ;
+USING: accessors alien.c-types alien.data arrays assocs
+byte-arrays calendar.format combinators continuations db
+db.connections db.errors db.sqlite.errors db.sqlite.ffi
+db.types io io.backend io.encodings.binary io.encodings.string
+io.encodings.utf8 io.streams.byte-array kernel math math.parser
+namespaces present sequences serialize shuffle urls ;
 IN: db.sqlite.lib
-
-ERROR: sqlite-error < db-error n string ;
-ERROR: sqlite-sql-error < sql-error n string ;
-
-: throw-sqlite-error ( n -- * )
-    dup sqlite-error-messages nth sqlite-error ;
-
-: sqlite-statement-error ( -- * )
-    SQLITE_ERROR
-    db-connection get handle>> sqlite3_errmsg sqlite-sql-error ;
 
 : sqlite-check-result ( n -- )
     {
@@ -58,6 +48,9 @@ ERROR: sqlite-sql-error < sql-error n string ;
 : sqlite-bind-uint64 ( handle i n -- )
     sqlite3-bind-uint64 sqlite-check-result ;
 
+: sqlite-bind-boolean ( handle name obj -- )
+    >boolean 1 0 ? sqlite-bind-int ;
+
 : sqlite-bind-double ( handle i x -- )
     sqlite3_bind_double sqlite-check-result ;
 
@@ -92,38 +85,6 @@ ERROR: sqlite-sql-error < sql-error n string ;
 : sqlite-bind-null-by-name ( handle name obj -- )
     parameter-index drop sqlite-bind-null ;
 
-: (sqlite-bind-type) ( handle key value type -- )
-    dup array? [ first ] when
-    {
-        { INTEGER [ sqlite-bind-int-by-name ] }
-        { BIG-INTEGER [ sqlite-bind-int64-by-name ] }
-        { SIGNED-BIG-INTEGER [ sqlite-bind-int64-by-name ] }
-        { UNSIGNED-BIG-INTEGER [ sqlite-bind-uint64-by-name ] }
-        { BOOLEAN [ sqlite-bind-boolean-by-name ] }
-        { TEXT [ sqlite-bind-text-by-name ] }
-        { VARCHAR [ sqlite-bind-text-by-name ] }
-        { DOUBLE [ sqlite-bind-double-by-name ] }
-        { DATE [ timestamp>ymd sqlite-bind-text-by-name ] }
-        { TIME [ timestamp>hms sqlite-bind-text-by-name ] }
-        { DATETIME [ timestamp>ymdhms sqlite-bind-text-by-name ] }
-        { TIMESTAMP [ timestamp>ymdhms sqlite-bind-text-by-name ] }
-        { BLOB [ sqlite-bind-blob-by-name ] }
-        { FACTOR-BLOB [ object>bytes sqlite-bind-blob-by-name ] }
-        { URL [ present sqlite-bind-text-by-name ] }
-        { +db-assigned-id+ [ sqlite-bind-int-by-name ] }
-        { +random-id+ [ sqlite-bind-int64-by-name ] }
-        { NULL [ sqlite-bind-null-by-name ] }
-        [ no-sql-type ]
-    } case ;
-
-: sqlite-bind-type ( handle key value type -- )
-    #! null and empty values need to be set by sqlite-bind-null-by-name
-    over [
-        NULL = [ 2drop NULL NULL ] when
-    ] [
-        drop NULL 
-    ] if* (sqlite-bind-type) ;
-
 : sqlite-finalize ( handle -- ) sqlite3_finalize sqlite-check-result ;
 : sqlite-reset ( handle -- ) sqlite3_reset sqlite-check-result ;
 : sqlite-clear-bindings ( handle -- )
@@ -141,32 +102,6 @@ ERROR: sqlite-sql-error < sql-error n string ;
         sqlite3_column_blob swap memory>byte-array
     ] if ;
 
-: sqlite-column-typed ( handle index type -- obj )
-    dup array? [ first ] when
-    {
-        { +db-assigned-id+ [ sqlite3_column_int64  ] }
-        { +random-id+ [ sqlite3-column-uint64 ] }
-        { INTEGER [ sqlite3_column_int ] }
-        { BIG-INTEGER [ sqlite3_column_int64 ] }
-        { SIGNED-BIG-INTEGER [ sqlite3_column_int64 ] }
-        { UNSIGNED-BIG-INTEGER [ sqlite3-column-uint64 ] }
-        { BOOLEAN [ sqlite3_column_int 1 = ] }
-        { DOUBLE [ sqlite3_column_double ] }
-        { TEXT [ sqlite3_column_text ] }
-        { VARCHAR [ sqlite3_column_text ] }
-        { DATE [ sqlite3_column_text dup [ ymd>timestamp ] when ] }
-        { TIME [ sqlite3_column_text dup [ hms>timestamp ] when ] }
-        { TIMESTAMP [ sqlite3_column_text dup [ ymdhms>timestamp ] when ] }
-        { DATETIME [ sqlite3_column_text dup [ ymdhms>timestamp ] when ] }
-        { BLOB [ sqlite-column-blob ] }
-        { URL [ sqlite3_column_text dup [ >url ] when ] }
-        { FACTOR-BLOB [ sqlite-column-blob dup [ bytes>object ] when ] }
-        [ no-sql-type ]
-    } case ;
-
-: sqlite-row ( handle -- seq )
-    dup sqlite-#columns [ sqlite-column ] with map ;
-
 : sqlite-step-has-more-rows? ( prepared -- ? )
     {
         { SQLITE_ROW [ t ] }
@@ -176,3 +111,9 @@ ERROR: sqlite-sql-error < sql-error n string ;
 
 : sqlite-next ( prepared -- ? )
     sqlite3_step sqlite-step-has-more-rows? ;
+
+ERROR: sqlite-last-id-fail ;
+
+: last-insert-id ( -- id )
+    db-connection get handle>> sqlite3_last_insert_rowid
+    dup zero? [ sqlite-last-id-fail ] when ;

@@ -26,6 +26,9 @@ SYMBOL: logged-in-user
 : username ( -- string/f )
     logged-in-user get dup [ username>> ] when ;
 
+: user-id ( -- n/f )
+    logged-in-user get dup [ id>> ] when ;
+
 GENERIC: init-user-profile ( responder -- )
 
 M: object init-user-profile drop ;

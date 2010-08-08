@@ -1,8 +1,8 @@
 ! Copyright (C) 2008, 2009 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel accessors strings namespaces assocs hashtables io
-mirrors math fry sequences words continuations
-xml.entities xml.writer xml.syntax ;
+USING: accessors assocs classes continuations fry hashtables io
+kernel math mirrors namespaces sequences strings words
+xml.entities xml.syntax xml.writer ;
 IN: html.forms
 
 TUPLE: form errors values validation-failed ;
@@ -37,6 +37,16 @@ M: form clone
 : from-object ( object -- )
     [ values ] [ make-mirror ] bi* assoc-union! drop ;
 
+: make-qualified-mirror ( object -- assoc )
+    [ make-mirror ] keep dup tuple? [
+        class name>> '[ [ _ swap ":" glue ] dip ] assoc-map
+    ] [
+        drop
+    ] if ;
+
+: qualified-from-object ( object -- )
+    [ values ] [ make-qualified-mirror ] bi* update ;
+
 : to-object ( destination names -- )
     [ make-mirror ] [ values extract-keys ] bi* assoc-union! drop ;
 
@@ -56,6 +66,16 @@ M: form clone
             begin-form
             1 + "index" set-value
             from-object
+            @
+        ] with-scope
+    ] each-index ; inline
+
+: with-each-qualified-object ( name quot -- )
+    [ value ] dip '[
+        [
+            begin-form
+            1 + "index" set-value
+            [ qualified-from-object ] each
             @
         ] with-scope
     ] each-index ; inline

@@ -5,7 +5,7 @@ sequences math ;
 IN: furnace.auth.providers
 
 TUPLE: user
-username realname
+id username realname
 password salt
 email ticket capabilities profile deleted changed? ;
 

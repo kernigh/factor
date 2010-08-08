@@ -1,32 +1,55 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors furnace.actions furnace.redirection
-html.forms http http.server http.server.dispatchers
-io.directories io.encodings.utf8 io.files io.pathnames
-kernel math.parser multiline namespaces sequences urls ;
+USING: accessors combinators constructors db.orm
+db.orm.persistent db.types furnace.actions furnace.alloy
+furnace.redirection html.forms http.server
+http.server.dispatchers http.server.static io.directories
+io.encodings.utf8 io.files io.files.temp io.files.unique
+io.pathnames kernel math math.parser namespaces sequences
+sorting validators db.sqlite db.connections ;
 IN: webapps.imagebin
 
-TUPLE: imagebin < dispatcher path n ;
+TUPLE: imagebin < dispatcher path ;
 
 : <uploaded-image-action> ( -- action )
     <page-action>
         { imagebin "uploaded-image" } >>template ;
 
-: next-image-path ( -- path )
-    imagebin get
-    [ path>> ] [ n>> number>string ] bi append-path ; 
-
 M: imagebin call-responder*
     [ imagebin set ] [ call-next-method ] bi ;
 
-: move-image ( mime-file -- )
-    next-image-path
-    [ [ temporary-path>> ] dip move-file ]
-    [ [ filename>> ] dip ".txt" append utf8 set-file-contents ] 2bi ;
+TUPLE: imagebin-file path original-name ;
 
-: <upload-image-action> ( -- action )
+CONSTRUCTOR: imagebin-file ( path original-name -- obj ) ;
+
+PERSISTENT: imagebin-file
+    { "path" VARCHAR +primary-key+ }
+    { "original-name" VARCHAR } ;
+
+: move-image ( mime-file -- )
+    [ temporary-path>> imagebin get path>> move-file-unique file-name ]
+    [ filename>> ] bi
+    <imagebin-file> insert-tuple ;
+    
+: <download-image-action> ( -- action )
     <page-action>
-        { imagebin "upload-image" } >>template
+        { imagebin "download-image" } >>template
+        [ { { "id" [ v-number ] } } validate-params ] >>validate
+        [
+            imagebin get path>> "id" value append-path <static>
+            <redirect>
+        ] >>submit ;
+
+: <list-images> ( -- action )
+    <page-action>
+        [
+            imagebin-file new select-tuples "images" set-value
+        ] >>init
+        { imagebin "list-images" } >>template ;
+
+: <default-imagebin-action> ( -- action )
+    <page-action>
+        { imagebin "imagebin" } >>template
         [
             "file1" param [ move-image ] when*
             "file2" param [ move-image ] when*
@@ -34,12 +57,18 @@ M: imagebin call-responder*
             "uploaded-image" <redirect>
         ] >>submit ;
 
+: imagebin-db ( -- db ) "resource:imagebin.db" temp-file <sqlite-db> ;
+
 : <imagebin> ( image-directory -- responder )
     imagebin new-dispatcher
         swap [ make-directories ] [ >>path ] bi
-        0 >>n
-        <upload-image-action> "" add-responder
-        <upload-image-action> "upload-image" add-responder
-        <uploaded-image-action> "uploaded-image" add-responder ;
+        <default-imagebin-action> "" add-responder
+        <download-image-action> "download-image" add-responder
+        <uploaded-image-action> "uploaded-image" add-responder
+        imagebin-db <alloy> ;
 
-"resource:images" <imagebin> main-responder set-global
+: run-imagebin ( -- )
+    imagebin-db [ { imagebin-file } ensure-tables ] with-db
+    "resource:images" <imagebin> main-responder set-global ;
+
+MAIN: run-imagebin

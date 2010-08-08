@@ -1,22 +1,20 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: db db.tuples db.types accessors
-furnace.auth.providers kernel continuations
-classes.singleton ;
+USING: accessors classes.singleton continuations db db.orm
+db.orm.persistent db.transactions db.types
+furnace.auth.providers kernel ;
 IN: furnace.auth.providers.db
 
-user "USERS"
-{
-    { "username" "USERNAME" { VARCHAR 256 } +user-assigned-id+ }
-    { "realname" "REALNAME" { VARCHAR 256 } }
-    { "password" "PASSWORD" BLOB +not-null+ }
-    { "salt" "SALT" INTEGER +not-null+ }
-    { "email" "EMAIL" { VARCHAR 256 } }
-    { "ticket" "TICKET" { VARCHAR 256 } }
-    { "capabilities" "CAPABILITIES" FACTOR-BLOB }
-    { "profile" "PROFILE" FACTOR-BLOB }
-    { "deleted" "DELETED" INTEGER +not-null+ }
-} define-persistent
+PERSISTENT: user
+    { "username" VARCHAR +primary-key+ }
+    { "realname" VARCHAR }
+    { "password" BLOB NOT-NULL }
+    { "salt" INTEGER NOT-NULL }
+    { "email" VARCHAR }
+    { "ticket" VARCHAR }
+    { "capabilities" FACTOR-BLOB }
+    { "profile" FACTOR-BLOB }
+    { "deleted" INTEGER NOT-NULL } ;
 
 SINGLETON: users-in-db
 

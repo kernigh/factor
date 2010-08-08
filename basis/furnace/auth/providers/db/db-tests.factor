@@ -1,10 +1,7 @@
-USING: furnace.actions
-furnace.auth
-furnace.auth.login
-furnace.auth.providers
-furnace.auth.providers.db tools.test
-namespaces db db.sqlite db.tuples continuations
-io.files io.files.temp io.directories accessors kernel ;
+USING: accessors continuations db.connections db.orm db.sqlite
+furnace.actions furnace.auth furnace.auth.login
+furnace.auth.providers io.directories io.files.temp kernel
+namespaces tools.test ;
 IN: furnace.auth.providers.db.tests
 
 <action> "test" <login-realm> realm set
@@ -13,7 +10,9 @@ IN: furnace.auth.providers.db.tests
 
 "auth-test.db" temp-file <sqlite-db> [
 
-    user ensure-table
+    [ user drop-table ] ignore-errors
+
+    [ ] [ user create-table ] unit-test
 
     [ t ] [
         "slava" <user>

@@ -1,4 +1,5 @@
-! Copyright (C) 2005, 2009 Daniel Ehrenberg, Doug Coleman.
+! Copyright (C) 2005 Daniel Ehrenberg.
+! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors circular combinators.short-circuit fry io
 kernel locals math math.order sequences sorting.functor
@@ -146,3 +147,9 @@ TUPLE: sequence-parser sequence n ;
 
 : write-full ( sequence-parser -- ) sequence>> write ;
 : write-rest ( sequence-parser -- ) take-rest write ;
+
+: take-until-whitespace ( sequence-parser -- string )
+    skip-whitespace [ current blank? ] take-until ;
+
+: take-until-eol ( sequence-parser -- string )
+    [ current CHAR: \n = ] take-until ;

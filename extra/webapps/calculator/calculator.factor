@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: furnace furnace.actions furnace.redirection
 http.server.dispatchers html.forms validators urls accessors
-math ;
+math io.files.temp ;
 IN: webapps.calculator
 
 TUPLE: calculator < dispatcher ;
@@ -33,7 +33,7 @@ TUPLE: calculator < dispatcher ;
 ! Deployment example
 USING: db.sqlite furnace.alloy namespaces http.server ;
 
-: calculator-db ( -- db ) "calculator.db" <sqlite-db> ;
+: calculator-db ( -- db ) "calculator.db" temp-file <sqlite-db> ;
 
 : run-calculator ( -- )
     <calculator>

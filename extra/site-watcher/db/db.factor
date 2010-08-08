@@ -1,8 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db db.sqlite db.tuples db.types
-io.directories io.files.temp kernel io.streams.string calendar
-debugger combinators.smart sequences arrays ;
+USING: accessors calendar combinators.smart db db.connections
+db.orm db.orm.persistent db.sqlite db.types debugger
+io.files.temp io.streams.string kernel sequences ;
 IN: site-watcher.db
 
 TUPLE: account account-name email twitter sms ;
@@ -12,12 +12,11 @@ TUPLE: account account-name email twitter sms ;
         swap >>email
         swap >>account-name ;
 
-account "ACCOUNT" {
-    { "account-name" "ACCOUNT_NAME" VARCHAR +user-assigned-id+ }
-    { "email" "EMAIL" VARCHAR }
-    { "twitter" "TWITTER" VARCHAR }
-    { "sms" "SMS" VARCHAR }
-} define-persistent
+PERSISTENT: account
+    { "account-name" VARCHAR +primary-key+ }
+    { "email" VARCHAR }
+    { "twitter" VARCHAR }
+    { "sms" VARCHAR } ;
 
 TUPLE: site site-id url up? changed? last-up error last-error ;
 
@@ -31,15 +30,14 @@ TUPLE: site site-id url up? changed? last-up error last-error ;
 : site-with-id ( id -- site )
     site new swap >>site-id select-tuple ;
 
-site "SITE" {
-    { "site-id" "SITE_ID" INTEGER +db-assigned-id+ }
-    { "url" "URL" VARCHAR }
-    { "up?" "UP" BOOLEAN }
-    { "changed?" "CHANGED" BOOLEAN }
-    { "last-up" "LAST_UP" TIMESTAMP }
-    { "error" "ERROR" VARCHAR }
-    { "last-error" "LAST_ERROR" TIMESTAMP }
-} define-persistent
+PERSISTENT: site
+    { "site-id" INTEGER +primary-key+ }
+    { "url" VARCHAR }
+    { "up?" BOOLEAN }
+    { "changed?" BOOLEAN }
+    { "last-up" TIMESTAMP }
+    { "error" VARCHAR }
+    { "last-error" TIMESTAMP } ;
 
 TUPLE: watching-site account-name site-id ;
 
@@ -48,10 +46,9 @@ TUPLE: watching-site account-name site-id ;
         swap >>site-id
         swap >>account-name ;
 
-watching-site "WATCHING_SITE" {
-    { "account-name" "ACCOUNT_NAME" VARCHAR +user-assigned-id+ }
-    { "site-id" "SITE_ID" INTEGER +user-assigned-id+ }
-} define-persistent
+PERSISTENT: watching-site
+    { "account-name" VARCHAR +primary-key+ }
+    { "site-id" INTEGER +primary-key+ } ;
 
 TUPLE: spidering-site < watching-site max-depth max-count ;
 
@@ -67,10 +64,9 @@ SLOT: account
 M: watching-site account>>
     account-name>> account new swap >>account-name select-tuple ;
 
-spidering-site "SPIDERING_SITE" {
-    { "max-depth" "MAX_DEPTH" INTEGER }
-    { "max-count" "MAX_COUNT" INTEGER }
-} define-persistent
+PERSISTENT: spidering-site
+    { "max-depth" INTEGER }
+    { "max-count" INTEGER } ;
 
 : spidering-sites ( username -- sites )
     spidering-site new swap >>account-name select-tuples ;

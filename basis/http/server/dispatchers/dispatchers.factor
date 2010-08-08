@@ -14,10 +14,13 @@ TUPLE: dispatcher default responders ;
 : <dispatcher> ( -- dispatcher )
     dispatcher new-dispatcher ;
 
+: (find-responder) ( dispatcher string -- responder )
+    over responders>> at*
+    [ nip ] [ drop default>> ] if ;
+
 : find-responder ( path dispatcher -- path responder )
     over empty? [
-        "" over responders>> at*
-        [ nip ] [ drop default>> ] if
+        "" (find-responder)
     ] [
         over first over responders>> at*
         [ [ drop rest-slice ] dip ] [ drop default>> ] if
@@ -35,8 +38,7 @@ TUPLE: vhost-dispatcher default responders ;
     >lower "www." ?head drop "." ?tail drop ;
 
 : find-vhost ( dispatcher -- responder )
-    url get host>> canonical-host over responders>> at*
-    [ nip ] [ drop default>> ] if ;
+    url get host>> canonical-host (find-responder) ;
 
 M: vhost-dispatcher call-responder* ( path dispatcher -- response )
     find-vhost call-responder ;

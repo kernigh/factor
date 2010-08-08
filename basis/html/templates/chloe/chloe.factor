@@ -59,6 +59,8 @@ CHLOE: each [ with-each-value ] (bind-tag) ;
 
 CHLOE: bind-each [ with-each-object ] (bind-tag) ;
 
+CHLOE: bind-each-sequence [ with-each-qualified-object ] (bind-tag) ;
+
 CHLOE: bind [ with-form ] (bind-tag) ;
 
 CHLOE: comment drop ;
@@ -81,6 +83,7 @@ CHLOE: validation-errors
     ] [ ] make ;
 
 CHLOE: if dup if>quot [ swap when ] append process-children ;
+CHLOE: if-not dup if>quot [ swap unless ] append process-children ;
 
 COMPONENT: label
 COMPONENT: link

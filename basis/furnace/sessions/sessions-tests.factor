@@ -1,9 +1,9 @@
-USING: tools.test http furnace.sessions furnace.actions
-http.server http.server.responses math namespaces make kernel
-accessors io.sockets io.servers.connection prettyprint
-io.streams.string io.files io.files.temp io.directories
-splitting destructors sequences db db.tuples db.sqlite
-continuations urls math.parser furnace furnace.utilities ;
+USING: accessors continuations db db.connections db.orm
+db.sqlite destructors furnace furnace.actions furnace.sessions
+furnace.utilities http http.server http.server.responses
+io.directories io.files io.files.temp io.servers.connection
+io.sockets io.streams.string kernel make math math.parser
+namespaces prettyprint sequences splitting tools.test urls ;
 IN: furnace.sessions.tests
 
 : with-session ( session quot -- )

@@ -1,9 +1,8 @@
 ! Copyright (C) 2005 Chris Double, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-! An interface to the sqlite database. Tested against sqlite v3.1.3.
 ! Not all functions have been wrapped.
-USING: alien compiler kernel math namespaces sequences strings alien.syntax
-system combinators alien.c-types alien.libraries ;
+USING: alien alien.c-types alien.libraries alien.syntax
+combinators system ;
 IN: db.sqlite.ffi
 
 << "sqlite" {
@@ -11,6 +10,8 @@ IN: db.sqlite.ffi
         { [ os macosx? ] [ "/usr/lib/libsqlite3.dylib" ] }
         { [ os unix? ]  [ "libsqlite3.so" ] }
     } cond cdecl add-library >>
+
+LIBRARY: sqlite
 
 ! Return values from sqlite functions
 CONSTANT: SQLITE_OK           0 ! Successful result
@@ -41,7 +42,8 @@ CONSTANT: SQLITE_FORMAT      24 ! Auxiliary database format error
 CONSTANT: SQLITE_RANGE       25 ! 2nd parameter to sqlite3_bind out of range
 CONSTANT: SQLITE_NOTADB      26 ! File opened that is not a database file
 
-: sqlite-error-messages ( -- seq ) {
+CONSTANT: sqlite-error-messages
+{
     "Successful result"
     "SQL error or missing database"
     "An internal logic error in SQLite"
@@ -69,7 +71,7 @@ CONSTANT: SQLITE_NOTADB      26 ! File opened that is not a database file
     "Auxiliary database format error"
     "2nd parameter to sqlite3_bind out of range"
     "File opened that is not a database file"
-} ;
+}
 
 ! Return values from sqlite3_step
 CONSTANT: SQLITE_ROW         100

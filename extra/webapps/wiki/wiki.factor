@@ -1,21 +1,11 @@
 ! Copyright (C) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors kernel hashtables calendar random assocs
-namespaces make splitting sequences sorting math.order present
-io.files io.directories io.encodings.ascii
-syndication farkup
-html.components html.forms
-http.server
-http.server.dispatchers
-furnace.actions
-furnace.utilities
-furnace.redirection
-furnace.auth
-furnace.auth.login
-furnace.boilerplate
-furnace.syndication
-validators
-db.types db.tuples lcs urls ;
+USING: accessors calendar db.orm db.orm.persistent db.types
+farkup furnace.actions furnace.auth furnace.boilerplate
+furnace.redirection furnace.syndication furnace.utilities
+html.forms http.server.dispatchers io.directories
+io.encodings.ascii io.files kernel lcs make namespaces present
+random sequences sorting splitting urls validators ;
 IN: webapps.wiki
 
 : wiki-url ( rest path -- url )
@@ -40,23 +30,21 @@ can-delete-wiki-articles? define-capability
 
 TUPLE: article title revision ;
 
-article "ARTICLES" {
-    { "title" "TITLE" { VARCHAR 256 } +not-null+ +user-assigned-id+ }
-    { "revision" "REVISION" INTEGER +not-null+ } ! revision id
-} define-persistent
+PERSISTENT: article
+    { "title" VARCHAR +primary-key+ }
+    { "revision" INTEGER NOT-NULL } ; ! revision id
 
 : <article> ( title -- article ) article new swap >>title ;
 
 TUPLE: revision id title author date content description ;
 
-revision "REVISIONS" {
-    { "id" "ID" INTEGER +db-assigned-id+ }
-    { "title" "TITLE" { VARCHAR 256 } +not-null+ } ! article id
-    { "author" "AUTHOR" { VARCHAR 256 } +not-null+ } ! uid
-    { "date" "DATE" TIMESTAMP +not-null+ }
-    { "content" "CONTENT" TEXT +not-null+ }
-    { "description" "DESCRIPTION" TEXT }
-} define-persistent
+PERSISTENT: revision
+    { "id" +db-assigned-key+ }
+    { "title" VARCHAR NOT-NULL } ! article id
+    { "author" VARCHAR NOT-NULL } ! uid
+    { "date" TIMESTAMP NOT-NULL }
+    { "content" TEXT NOT-NULL }
+    { "description" TEXT } ;
 
 M: revision feed-entry-title
     [ title>> ] [ drop " by " ] [ author>> ] tri 3append ;

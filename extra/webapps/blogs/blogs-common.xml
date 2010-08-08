@@ -9,7 +9,11 @@
 	<div class="navbar">
 
 		  <t:a t:href="$blogs/">All Posts</t:a>
-		| <t:a t:href="$blogs/by">My Posts</t:a>
+
+		  <t:if t:value="me">
+			| <t:a t:href="$blogs/by" t:rest="me">My Posts</t:a>
+		  </t:if>
+
 		| <t:a t:href="$blogs/new-post">New Post</t:a>
 
 		<t:if t:code="furnace.auth:logged-in?">

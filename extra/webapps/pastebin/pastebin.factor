@@ -1,25 +1,10 @@
 ! Copyright (C) 2007, 2010 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: namespaces assocs sorting sequences kernel accessors
-hashtables db.types db.tuples db combinators
-calendar calendar.format math.parser math.order syndication urls
-xml.writer xmode.catalog validators
-html.forms
-html.components
-html.templates.chloe
-http.server
-http.server.dispatchers
-http.server.redirection
-http.server.responses
-furnace
-furnace.actions
-furnace.redirection
-furnace.auth
-furnace.auth.login
-furnace.boilerplate
-furnace.recaptcha
-furnace.syndication
-furnace.conversations ;
+USING: accessors calendar db.orm db.orm.persistent
+db.transactions db.types furnace.actions furnace.auth
+furnace.boilerplate furnace.redirection furnace.syndication
+html.forms http.server.dispatchers http.server.responses kernel
+math.parser sequences sorting urls validators xmode.catalog ;
 IN: webapps.pastebin
 
 TUPLE: pastebin < dispatcher ;
@@ -34,15 +19,13 @@ can-delete-pastes? define-capability
 
 TUPLE: entity id summary author mode date contents ;
 
-entity f
-{
-    { "id" "ID" INTEGER +db-assigned-id+ }
-    { "summary" "SUMMARY" { VARCHAR 256 } +not-null+ }
-    { "author" "AUTHOR" { VARCHAR 256 } +not-null+ }
-    { "mode" "MODE" { VARCHAR 256 } +not-null+ }
-    { "date" "DATE" DATETIME +not-null+ }
-    { "contents" "CONTENTS" TEXT +not-null+ }
-} define-persistent
+PERSISTENT: entity
+    { "id" +db-assigned-key+ }
+    { "summary" VARCHAR NOT-NULL }
+    { "author" VARCHAR NOT-NULL }
+    { "mode" VARCHAR NOT-NULL }
+    { "date" DATETIME NOT-NULL }
+    { "contents" TEXT NOT-NULL } ;
 
 GENERIC: entity-url ( entity -- url )
 
@@ -54,7 +37,7 @@ M: entity feed-entry-url entity-url ;
 
 TUPLE: paste < entity annotations ;
 
-\ paste "PASTES" { } define-persistent
+PERSISTENT: paste ;
 
 : <paste> ( id -- paste )
     \ paste new
@@ -67,10 +50,8 @@ TUPLE: paste < entity annotations ;
 
 TUPLE: annotation < entity parent ;
 
-\ annotation "ANNOTATIONS"
-{
-    { "parent" "PARENT" INTEGER +not-null+ }
-} define-persistent
+PERSISTENT: annotation
+    { "parent" INTEGER NOT-NULL } ;
 
 : <annotation> ( parent id -- annotation )
     \ annotation new

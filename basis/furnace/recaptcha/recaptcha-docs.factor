@@ -21,14 +21,17 @@ ARTICLE: "recaptcha-example" "Recaptcha example"
 "There are several steps to using the recaptcha library."
 { $list
     { "Wrap the responder in a " { $link <recaptcha> } }
-    { "Wrap the responder in an " { $link <alloy> } " if it is not already, to enable conversations and database access" }
-    { "Call " { $link validate-recaptcha } " from the " { $slot "validate" } " slot of the " { $link action } }
-    { "Put the chloe tag " { $snippet "<recaptcha/>" } " inside a form tag in the template served by your " { $link action } }
+    { "Wrap the responder in a " { $link <conversations> } " if it is not already" }
+    { "Ensure that there is a database connected, with the " { $link <alloy> } " word" }
+    { "Start a conversation with " { $link begin-conversation } " to move values between requests" }
+    { "Add a handler calling " { $link validate-recaptcha } " in the " { $slot "submit" } " of the " { $link page-action } }
+    { "Pass the conversation from your submit action using " { $link <continue-conversation> } }
+    { "Put the chloe tag " { $snippet "<recaptcha/>" } " inside a form tag in the template for your " { $link page-action } }
 }
 $nl
 "There is an example web app using recaptcha support:"
 { $code
-    "USING: furnace.recaptcha.example http.server ;"
+    "USING: furnace.recaptcha.example http.server namespaces ;"
     "<recaptcha-app> main-responder set-global"
     "8080 httpd"
 } ;

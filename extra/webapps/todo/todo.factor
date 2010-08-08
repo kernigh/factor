@@ -1,33 +1,26 @@
 ! Copyright (c) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors kernel sequences namespaces
-db db.types db.tuples validators hashtables urls
-html.forms
-html.components
-html.templates.chloe
-http.server
-http.server.dispatchers
-furnace
-furnace.boilerplate
-furnace.auth
-furnace.actions
-furnace.redirection
-furnace.db
-furnace.auth.login ;
+USING: accessors db.connections db.orm db.orm.persistent
+db.sqlite db.types furnace furnace.actions furnace.alloy
+furnace.auth furnace.auth.features.deactivate-user
+furnace.auth.features.edit-profile
+furnace.auth.features.registration furnace.auth.login
+furnace.boilerplate furnace.db furnace.redirection hashtables
+html.components html.forms html.templates.chloe http.server
+http.server.dispatchers io.servers.connection io.sockets.secure
+kernel namespaces sequences urls validators ;
 IN: webapps.todo
 
 TUPLE: todo-list < dispatcher ;
 
 TUPLE: todo uid id priority summary description ;
 
-todo "TODO"
-{
-    { "uid" "UID" { VARCHAR 256 } +not-null+ }
-    { "id" "ID" +db-assigned-id+ }
-    { "priority" "PRIORITY" INTEGER +not-null+ }
-    { "summary" "SUMMARY" { VARCHAR 256 } +not-null+ }
-    { "description" "DESCRIPTION" { VARCHAR 256 } }
-} define-persistent
+PERSISTENT: todo
+    { "id" +db-assigned-key+ }
+    { "uid" VARCHAR NOT-NULL }
+    { "priority" INTEGER NOT-NULL }
+    { "summary" VARCHAR NOT-NULL }
+    { "description" VARCHAR } ;
 
 : <todo> ( id -- todo )
     todo new
@@ -117,13 +110,7 @@ todo "TODO"
     <protected>
         "view your todo list" >>description ;
 
-USING: furnace.auth.features.registration
-furnace.auth.features.edit-profile
-furnace.auth.features.deactivate-user
-db.sqlite
-furnace.alloy
-io.servers.connection
-io.sockets.secure ;
+
 
 : <login-config> ( responder -- responder' )
     "Todo list" <login-realm>

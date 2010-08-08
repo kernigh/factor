@@ -68,12 +68,12 @@ slot-name column-name type modifiers getter setter ;
 : join-persistent-hierarchy ( class -- persistent )
     [ superclass-persistent-columns [ clone ] map ]
     [ >persistent* clone ] bi
-    [ (>>columns) ] keep ;
+    [ columns<< ] keep ;
 
 : compute-persistent-slots ( persistent -- )
     dup columns>>
     [ [ clone ] change-persistent ] map
-    [ (>>persistent) ] with each ;
+    [ persistent<< ] with each ;
 
 : compute-setters ( persistent -- )
     columns>> [

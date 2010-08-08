@@ -1,11 +1,12 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.binders db.connections
-db.postgresql.connections db.query-objects
+USING: db.binders db.connections
 db.postgresql.connections.private db.query-objects
 db.sqlite.connections db.statements db.types namespaces
 tools.test ;
 IN: db.query-objects.tests
+
+! TOC - table ordinal column
 
 ! Test expansion of insert
 TUPLE: qdog id age ;
@@ -28,6 +29,7 @@ T{ statement
     }
     { out V{ } }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection [
@@ -59,6 +61,7 @@ T{ statement
     }
     { out V{ } }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ postgresql-db-connection } db-connection
@@ -107,6 +110,7 @@ T{ statement
         }
     }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -160,6 +164,7 @@ T{ statement
     }
     { out V{ } }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -201,6 +206,7 @@ T{ statement
     }
     { out V{ } }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -234,6 +240,7 @@ T{ statement
         }
     }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -276,6 +283,7 @@ T{ statement
         }
     }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -343,6 +351,7 @@ T{ statement
         }
     }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -426,6 +435,7 @@ T{ statement
         }
     }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -500,6 +510,7 @@ T{ statement
         }
     }
     { errors V{ } }
+    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection

@@ -104,7 +104,7 @@ SYMBOL: ordinal
             [ out-binder tuple>binders >>out ]
             [ equal-binder tuple>binders [ value>> ] filter >>in ]
             [
-                tuple>pairs [ first persistent>> table-name>> ] map prune
+                tuple>pairs [ first persistent>> table-name>> ] map members
                 [ next-ordinal <table-ordinal> ] map >>from
             ]
         } cleave

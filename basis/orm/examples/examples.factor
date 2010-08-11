@@ -30,7 +30,7 @@ PERSISTENT: user2
 
 PERSISTENT: score2
     { "id" INTEGER +primary-key+ }
-    { "user" user }
+    { "user" user2 }
     { "score" INTEGER } ;
 
 

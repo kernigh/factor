@@ -175,11 +175,17 @@ M: tuple-class >persistent
 : clear-persistent ( -- )
     inherited-persistent-table get clear-assoc ;
 
+: rebuild-persistent ( -- )
+    clear-persistent
+    raw-persistent-table get
+    [ drop >persistent drop ] assoc-each ;
+
 : save-persistent ( persistent -- )
     dup class>> raw-persistent-table get set-at ;
 
 : make-persistent ( class name columns -- )
-    clear-persistent <persistent> save-persistent ;
+    <persistent> save-persistent
+    rebuild-persistent ;
 
 SYNTAX: PERSISTENT:
     scan-object parse-table-name check-sanitized-name

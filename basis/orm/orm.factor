@@ -3,8 +3,10 @@
 USING: accessors arrays assocs classes classes.tuple
 combinators db.query-objects db.types fry kernel make
 namespaces orm.persistent sequences shuffle db.utils
-nested-comments ;
+nested-comments locals ;
 IN: orm
+
+TUPLE: relations internal external ;
 
 SYMBOL: table-counter
 
@@ -37,15 +39,24 @@ SYMBOL: table-counter
         [ 0 swap (tuple>relations) ] { } make
     ] with-variable ;
 
-(*
-Don't introspect the quotation at runtime.
-*)
+: internal-class-relations ( class -- seq )
+    dup >persistent columns>> [
+        type>> dup tuple-class? [ 2array ] [ 2drop f ] if
+    ] with filter ;
 
-: find-containing-classes ( class -- seq )
+: external-class-relations ( class -- seq )
     [ inherited-persistent-table get-global ] dip
     '[
         nip columns>> [ type>> _ eq? ] any?
     ] assoc-filter ;
+
+: class-relations ( class -- internal external )
+    [ internal-class-relations ]
+    [ external-class-relations ] bi ;
+
+(*
+Don't introspect the quotation at runtime.
+*)
 
 : column-contains-many? ( column -- ? )
     type>> dup array? [

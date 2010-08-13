@@ -36,6 +36,7 @@ IN: db.tester
     ] call ; inline
 
 
+(*
 TUPLE: test-1 id a b c ;
 
 test-1 "TEST1" {
@@ -90,3 +91,4 @@ test-2 "TEST2" {
             ] parallel-each
         ] with-pooled-db
     ] bi ;
+*)

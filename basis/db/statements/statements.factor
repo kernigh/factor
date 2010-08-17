@@ -58,12 +58,9 @@ M: object reset-statement ;
 : result-set-map ( statement quot -- sequence )
     collector [ result-set-each ] dip { } like ; inline
 
-: statement>sequence ( statement word -- sequence )
-    [ statement>result-set ] dip
-    '[ [ _ execute ] result-set-map ] with-disposal ; inline
-
 : statement>result-sequence ( statement -- sequence )
-    \ sql-row statement>sequence ;
+    statement>result-set
+    [ [ sql-row ] result-set-map ] with-disposal ;
 
 : (run-after-setters) ( tuple statement -- )
     after>> [

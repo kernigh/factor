@@ -16,7 +16,7 @@ GENERIC: get-type ( binder/word -- type )
 
 : init-result-set ( result-set -- result-set )
     dup #rows >>max
-    0 >>n ;
+    0 >>n ; inline
 
 : new-result-set ( query handle class -- result-set )
     new
@@ -25,7 +25,7 @@ GENERIC: get-type ( binder/word -- type )
             [ sql>> >>sql ]
             [ in>> >>in ]
             [ out>> >>out ]
-        } cleave ;
+        } cleave ; inline
 
 : sql-row ( result-set -- seq )
     dup #columns iota [ column ] with map ;

@@ -1,9 +1,10 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays calendar.format combinators sqlite.db
-sqlite.db.connections sqlite.db.ffi sqlite.db.lib
-sqlite.db.statements db.statements db.types db.utils fry kernel
-math present sequences serialize urls unicode.case ;
+USING: accessors arrays calendar.format combinators db.binders
+db.statements db.types db.utils fry kernel math present
+sequences serialize sqlite.db sqlite.db.connections
+sqlite.db.ffi sqlite.db.lib sqlite.db.statements strings
+unicode.case urls ;
 IN: sqlite.db.types
 
 : (bind-next-sqlite-type) ( handle key value type -- )
@@ -107,10 +108,17 @@ ERROR: sqlite-type-error handle index type n ;
         [ sqlite-type-error ]
     } case ;
 
+GENERIC: sqlite-bind ( handle index obj -- )
+
+M: string sqlite-bind sqlite-bind-text ;
+M: in-binder-low sqlite-bind
+    [ value>> ] [ type>> ] bi bind-next-sqlite-type ;
+
 M: sqlite-db-connection bind-sequence ( statement -- )
     [ in>> ] [ handle>> ] bi '[
-        [ _ ] 2dip 1 + swap sqlite-bind-text
+        [ _ ] 2dip 1 + swap sqlite-bind
     ] each-index ;
+
 
 M: sqlite-db-connection bind-typed-sequence ( statement -- )
     [ in>> ] [ handle>> ] bi '[

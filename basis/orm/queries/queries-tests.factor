@@ -4,7 +4,7 @@ USING: continuations db.debug orm.examples orm.queries
 tools.test ;
 IN: orm.queries.tests
 
-[ [ \ user drop-table ] test-dbs ] ignore-errors
+[ [ \ user drop-table ] ignore-errors ] test-dbs
 
 [ \ user create-table ] test-dbs
 [ \ user drop-table ] test-dbs

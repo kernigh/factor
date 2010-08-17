@@ -14,8 +14,7 @@ HOOK: drop-table-sql db-connection ( tuple-class -- sql )
     drop-table-sql sql-command ;
 
 M: object create-table-sql
-    
-    ;
+    "CREATE TABLE " prepend ;
 
 M: object drop-table-sql
     >persistent table-name>> "DROP TABLE " prepend ;

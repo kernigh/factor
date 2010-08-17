@@ -84,8 +84,10 @@ IN: sqlite.orm.queries
             "(" % [ ", " % ] [
                 [ column-name>> % " " % ]
                 [ type>> sql-create-type>string % ]
-                [ drop ] tri
-                ! [ modifiers % ] bi
+                [
+                    modifiers>> sql-modifiers>string
+                    [ " " % % ] unless-empty
+                ] tri
             ] interleave
         ] [
             drop

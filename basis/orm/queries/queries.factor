@@ -33,8 +33,7 @@ M: object create-table-sql
             "(" % [ ", " % ] [
                 [ column-name>> % " " % ]
                 [ type>> sql-create-type>string % ]
-                [ drop ] tri
-                ! [ modifiers % ] bi
+                [ modifiers>> " " join % ] tri
             ] interleave
         ] [
             drop

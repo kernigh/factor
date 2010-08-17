@@ -34,6 +34,21 @@ PERSISTENT: score2
     { "score" INTEGER } ;
 
 
+TUPLE: user3 id name age ;
+CONSTRUCTOR: user3 ( name age -- obj ) ;
+TUPLE: score3 id user score ;
+
+PERSISTENT: user3
+    { "id" INTEGER +primary-key+ }
+    { "name" VARCHAR NOT-NULL }
+    { "age" INTEGER NOT-NULL } ;
+
+PERSISTENT: score3
+    { "id" INTEGER +primary-key+ }
+    { "user" user3 NOT-NULL }
+    { "score" INTEGER NOT-NULL } ;
+
+
 (*
 
 T{ score2

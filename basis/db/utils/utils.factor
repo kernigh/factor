@@ -18,6 +18,11 @@ MACRO: slots ( seq -- quot )
 : sanitize-sql-name ( string -- string' )
     H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
 
+ERROR: invalid-table-name name ;
+
+: check-sql-name ( string -- string )
+    CHAR: " over member? [ invalid-table-name ] when ;
+
 : quote-sql-name ( string -- string' ) "\"" dup surround ; 
 
 : malloc-byte-array/length ( byte-array -- alien length )

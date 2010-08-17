@@ -4,18 +4,16 @@ USING: accessors arrays continuations db.connections db.errors
 db.result-sets db.utils destructors fry kernel sequences math ;
 IN: db.statements
 
-TUPLE: statement handle sql in in-types out after
+TUPLE: statement handle sql in out after
 retries errors retry-quotation ;
 ! reconstructor
 
 : normalize-statement ( statement -- statement )
     [ obj>vector ] change-in
-    [ obj>vector ] change-in-types
     [ obj>vector ] change-out ;
 
 : initialize-statement ( statement -- statement )
     V{ } clone >>in
-    V{ } clone >>in-types
     V{ } clone >>out
     V{ } clone >>errors ;
  

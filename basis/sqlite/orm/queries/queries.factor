@@ -1,7 +1,9 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors sqlite.db.connections db.types kernel make
-namespaces nested-comments orm.persistent orm.queries sequences ;
+USING: accessors arrays assocs combinators db.binders
+db.statements db.types fry kernel make namespaces
+nested-comments orm.persistent orm.queries sequences
+sqlite.db.connections ;
 IN: sqlite.orm.queries
 
 (*
@@ -134,3 +136,26 @@ IN: sqlite.orm.queries
 M: sqlite-db-connection create-table-sql ( class -- seq )
     ! [ sqlite-create-table ] [ drop create-db-triggers ] 2bi 2array ;
     sqlite-create-table ;
+
+: filter-tuple-values ( persistent tuple -- assoc )
+    [ columns>> ] dip
+    '[ _ over getter>> call( obj -- slot-value ) ] { } map>assoc
+    [ nip ] assoc-filter ;
+
+M: sqlite-db-connection insert-tuple-sql ( tuple -- object )
+    [ <statement> ] dip
+    [ >persistent ] [ ] bi {
+        [ drop table-name>> "INSERT INTO " "(" surround add-sql ]
+        [
+            filter-tuple-values
+            [
+                keys
+                [ [ column-name>> ] map ", " join ]
+                [
+                    length "?" <array> ", " join
+                    ") values(" ");" surround
+                ] bi append add-sql
+            ]
+            [ [ [ second ] [ first type>> ] bi <in-binder-low> ] map >>in ] bi
+        ]
+    } 2cleave ;

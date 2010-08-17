@@ -30,7 +30,6 @@ T{ statement
     }
     { out V{ } }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection [
@@ -62,7 +61,6 @@ T{ statement
     }
     { out V{ } }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ postgresql-db-connection } db-connection
@@ -111,7 +109,6 @@ T{ statement
         }
     }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -165,7 +162,6 @@ T{ statement
     }
     { out V{ } }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -207,7 +203,6 @@ T{ statement
     }
     { out V{ } }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -241,7 +236,6 @@ T{ statement
         }
     }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -284,7 +278,6 @@ T{ statement
         }
     }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -352,7 +345,6 @@ T{ statement
         }
     }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -436,7 +428,6 @@ T{ statement
         }
     }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection
@@ -511,7 +502,6 @@ T{ statement
         }
     }
     { errors V{ } }
-    { in-types V{ } }
 }
 ] [
     T{ sqlite-db-connection } db-connection

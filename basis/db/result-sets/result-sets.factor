@@ -10,8 +10,7 @@ GENERIC: #rows ( result-set -- n )
 GENERIC: #columns ( result-set -- n )
 GENERIC: advance-row ( result-set -- )
 GENERIC: more-rows? ( result-set -- ? )
-GENERIC# column 1 ( result-set column -- obj )
-GENERIC# column-typed 2 ( result-set column type -- sql )
+GENERIC# column 2 ( result-set column type -- sql )
 GENERIC: get-type ( binder/word -- type )
 
 : init-result-set ( result-set -- result-set )
@@ -27,12 +26,23 @@ GENERIC: get-type ( binder/word -- type )
             [ out>> >>out ]
         } cleave ; inline
 
-: sql-row ( result-set -- seq )
-    dup #columns iota [ column ] with map ;
+ERROR: result-set-length-mismatch result-set #columns out-length ;
 
-: sql-row-typed ( result-set -- seq )
-    [ #columns iota ] [ out>> ] [ ] tri
-    '[ [ _ ] 2dip get-type column-typed ] 2map ;
+: validate-result-set ( result-set -- result-set )
+    dup [ #columns ] [ out>> length ] bi 2dup = [
+        2drop
+    ] [
+        result-set-length-mismatch
+    ] if ;
+
+: sql-row ( result-set -- seq )
+    [ #columns iota ] [ out>> ] [ ] tri over empty? [
+        nip
+        '[ [ _ ] dip VARCHAR column ] map
+    ] [
+        validate-result-set
+        '[ [ _ ] 2dip get-type column ] 2map
+    ] if ;
 
 M: sql-type get-type ;
 

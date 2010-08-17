@@ -4,5 +4,6 @@ USING: sequences vocabs.loader ;
 IN: sqlite
 
 [
+    "sqlite.db"
     "sqlite.orm"
 ] [ require ] each

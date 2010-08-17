@@ -1,7 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors db.result-sets db.statements destructors
-kernel sqlite.db.connections sqlite.db.lib sqlite.db.types ;
+kernel sqlite.db.connections sqlite.db.lib sqlite.db.types
+strings ;
 IN: sqlite.db.result-sets
 
 TUPLE: sqlite-result-set < result-set has-more? ;
@@ -22,8 +23,5 @@ M: sqlite-result-set more-rows? ( result-set -- )
 M: sqlite-result-set #columns ( result-set -- n )
     handle>> sqlite-#columns ;
 
-M: sqlite-result-set column ( result-set n -- obj )
-    [ handle>> ] [ sqlite-column ] bi* ;
-
-M: sqlite-result-set column-typed ( result-set n type -- obj )
+M: sqlite-result-set column ( result-set n type -- obj )
     [ handle>> ] 2dip sqlite-type ;

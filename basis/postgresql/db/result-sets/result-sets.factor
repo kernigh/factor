@@ -26,13 +26,6 @@ M: postgresql-result-set #columns ( result-set -- n )
 : result>handle-n ( result-set -- handle n )
     [ handle>> ] [ n>> ] bi ; inline
 
-M: postgresql-result-set column ( result-set column -- object )
-    [ result>handle-n ] dip pq-get-string ;
-
-! M: postgresql-result-set column-typed ( result-set column -- object )
-    ! dup pick out>> nth type>>
-    ! [ result>handle-n ] 2dip postgresql-column-typed ;
-
 M: postgresql-result-set advance-row ( result-set -- )
     [ 1 + ] change-n drop ;
 
@@ -112,10 +105,7 @@ M: postgresql-db-connection statement>result-set ( statement -- result-set )
     \ postgresql-result-set new-result-set
     init-result-set ;
 
-M: postgresql-db-connection bind-typed-sequence ( statement -- )
-    drop ;
-
-M: postgresql-result-set column-typed
+M: postgresql-result-set column
     [ [ handle>> ] [ n>> ] bi ] 2dip
     dup array? [ first ] when
     {

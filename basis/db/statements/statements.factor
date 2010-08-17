@@ -36,7 +36,6 @@ HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: prepare-statement* db-connection ( statement -- statement' )
 HOOK: dispose-statement db-connection ( statement -- )
 HOOK: bind-sequence db-connection ( statement -- )
-HOOK: bind-typed-sequence db-connection ( statement -- )
 HOOK: reset-statement db-connection ( statement -- statement' )
 
 ERROR: no-database-in-scope ;
@@ -65,9 +64,6 @@ M: object reset-statement ;
 
 : statement>result-sequence ( statement -- sequence )
     \ sql-row statement>sequence ;
-
-: statement>result-sequence-typed ( statement -- sequence )
-    \ sql-row-typed statement>sequence ;
 
 : (run-after-setters) ( tuple statement -- )
     after>> [

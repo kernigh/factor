@@ -9,8 +9,6 @@ ERROR: no-out-types statement ;
 
 GENERIC: sql-command ( object -- )
 GENERIC: sql-query ( object -- sequence )
-GENERIC: sql-bind-typed-command ( object -- )
-GENERIC: sql-bind-typed-query ( object -- sequence )
 
 M: string sql-command ( string -- )
     <statement>
@@ -48,8 +46,6 @@ ERROR: retryable-failed statement ;
         with-disposal
     ] if ; inline
 
-! : typed-statement? ( statement -- ? ) ;
-
 M: statement sql-command ( statement -- )
     [
         prepare-statement
@@ -62,23 +58,5 @@ M: statement sql-query ( statement -- sequence )
         [ bind-sequence ] [ statement>result-sequence ] bi
     ] run-retryable ; inline
 
-M: statement sql-bind-typed-command ( statement -- )
-    [
-        prepare-statement
-        [ bind-typed-sequence ] [ statement>result-set ] bi
-    ] run-retryable drop ; inline
-
-M: no-out-types summary
-    drop "SQL types are required for the return values of this query" ;
-
-M: statement sql-bind-typed-query ( statement -- sequence )
-    [
-        dup out>> empty? [ no-out-types ] when
-        prepare-statement
-        [ bind-typed-sequence ] [ statement>result-sequence-typed ] bi
-    ] run-retryable ; inline
-
 M: sequence sql-command [ sql-command ] each ;
 M: sequence sql-query [ sql-query ] map ;
-M: sequence sql-bind-typed-command [ sql-bind-typed-command ] each ;
-M: sequence sql-bind-typed-query [ sql-bind-typed-query ] map ;

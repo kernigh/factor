@@ -1,8 +1,7 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors db.sqlite.connections db.types kernel make
-namespaces nested-comments orm.persistent orm.queries sequences
-ui.backend.cocoa.views ;
+USING: accessors sqlite.db.connections db.types kernel make
+namespaces nested-comments orm.persistent orm.queries sequences ;
 IN: sqlite.orm.queries
 
 (*

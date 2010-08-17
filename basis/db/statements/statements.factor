@@ -10,21 +10,21 @@ retries errors retry-quotation ;
 
 : normalize-statement ( statement -- statement )
     [ obj>vector ] change-in
-    [ obj>vector ] change-out ;
+    [ obj>vector ] change-out ; inline
 
 : initialize-statement ( statement -- statement )
     V{ } clone >>in
     V{ } clone >>out
-    V{ } clone >>errors ;
+    V{ } clone >>errors ; inline
  
 : <sql> ( string -- statement )
     statement new
         swap >>sql
-        initialize-statement ;
+        initialize-statement ; inline
 
 : <statement> ( -- statement )
     statement new
-        initialize-statement ;
+        initialize-statement ; inline
 
 HOOK: next-bind-index db-connection ( -- string )
 HOOK: init-bind-index db-connection ( -- )

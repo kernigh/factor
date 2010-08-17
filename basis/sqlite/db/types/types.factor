@@ -6,31 +6,6 @@ sqlite.db.statements db.statements db.types db.utils fry kernel
 math present sequences serialize urls unicode.case ;
 IN: sqlite.db.types
 
-: (bind-sqlite-type) ( handle key value type -- )
-    dup array? [ first ] when
-    {
-        { INTEGER [ sqlite-bind-int-by-name ] }
-        { BIG-INTEGER [ sqlite-bind-int64-by-name ] }
-        { SIGNED-BIG-INTEGER [ sqlite-bind-int64-by-name ] }
-        { UNSIGNED-BIG-INTEGER [ sqlite-bind-uint64-by-name ] }
-        { BOOLEAN [ sqlite-bind-boolean-by-name ] }
-        { TEXT [ sqlite-bind-text-by-name ] }
-        { VARCHAR [ sqlite-bind-text-by-name ] }
-        { DOUBLE [ sqlite-bind-double-by-name ] }
-        { REAL [ sqlite-bind-double-by-name ] }
-        { DATE [ timestamp>ymd sqlite-bind-text-by-name ] }
-        { TIME [ timestamp>hms sqlite-bind-text-by-name ] }
-        { DATETIME [ timestamp>ymdhms sqlite-bind-text-by-name ] }
-        { TIMESTAMP [ timestamp>ymdhms sqlite-bind-text-by-name ] }
-        { BLOB [ sqlite-bind-blob-by-name ] }
-        { FACTOR-BLOB [ object>bytes sqlite-bind-blob-by-name ] }
-        { URL [ present sqlite-bind-text-by-name ] }
-        { +db-assigned-key+ [ sqlite-bind-int-by-name ] }
-        { +random-key+ [ sqlite-bind-uint64-by-name ] }
-        { NULL [ sqlite-bind-null-by-name ] }
-        [ no-sql-type ]
-    } case ;
-
 : (bind-next-sqlite-type) ( handle key value type -- )
     {
         { INTEGER [ sqlite-bind-int ] }
@@ -62,6 +37,31 @@ IN: sqlite.db.types
     ] [
         2drop sqlite-bind-null
     ] if ;
+
+: (bind-sqlite-type) ( handle key value type -- )
+    dup array? [ first ] when
+    {
+        { INTEGER [ sqlite-bind-int-by-name ] }
+        { BIG-INTEGER [ sqlite-bind-int64-by-name ] }
+        { SIGNED-BIG-INTEGER [ sqlite-bind-int64-by-name ] }
+        { UNSIGNED-BIG-INTEGER [ sqlite-bind-uint64-by-name ] }
+        { BOOLEAN [ sqlite-bind-boolean-by-name ] }
+        { TEXT [ sqlite-bind-text-by-name ] }
+        { VARCHAR [ sqlite-bind-text-by-name ] }
+        { DOUBLE [ sqlite-bind-double-by-name ] }
+        { REAL [ sqlite-bind-double-by-name ] }
+        { DATE [ timestamp>ymd sqlite-bind-text-by-name ] }
+        { TIME [ timestamp>hms sqlite-bind-text-by-name ] }
+        { DATETIME [ timestamp>ymdhms sqlite-bind-text-by-name ] }
+        { TIMESTAMP [ timestamp>ymdhms sqlite-bind-text-by-name ] }
+        { BLOB [ sqlite-bind-blob-by-name ] }
+        { FACTOR-BLOB [ object>bytes sqlite-bind-blob-by-name ] }
+        { URL [ present sqlite-bind-text-by-name ] }
+        { +db-assigned-key+ [ sqlite-bind-int-by-name ] }
+        { +random-key+ [ sqlite-bind-uint64-by-name ] }
+        { NULL [ sqlite-bind-null-by-name ] }
+        [ no-sql-type ]
+    } case ;
 
 : bind-sqlite-type ( handle key value type -- )
     #! null and empty values need to be set by sqlite-bind-null-by-name

@@ -9,6 +9,8 @@ HOOK: sql-create-type>string db-connection ( type -- string )
 HOOK: sql-modifiers>string db-connection ( modifiers -- string )
 HOOK: db-type>fql-type db-connection ( name -- table-schema )
 
+HOOK: persistent-type-hashtable db-connection ( -- hashtable )
+
 MIXIN: sql-type
 MIXIN: sql-modifier
 MIXIN: sql-primary-key
@@ -62,8 +64,9 @@ SQL-TYPES:
     URL ;
 
 SQL-MODIFIERS: +primary-key+
-SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL ;
-PRIMARY-KEY-TYPES: +db-assigned-key+ +random-key+ ;
+SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL
++on-update+ +on-delete+ +restrict+ +cascade+ +set-null+ +set-default+ ;
+PRIMARY-KEY-TYPES: +db-assigned-key+ +user-assigned-key+ +random-key+ ;
 
 SYMBOL: IGNORE
 

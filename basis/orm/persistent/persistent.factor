@@ -2,9 +2,9 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors annotations arrays assocs classes
 classes.tuple combinators combinators.short-circuit
-constructors db.types db.utils kernel math multiline namespaces
+constructors db.types db.utils kernel math namespaces
 parser quotations sequences sets strings words make
-fry lexer db.binders ;
+fry lexer db.binders nested-comments ;
 IN: orm.persistent
 
 ERROR: bad-table-name obj ;
@@ -188,7 +188,7 @@ M: tuple-class >persistent
     rebuild-persistent ;
 
 SYNTAX: PERSISTENT:
-    scan-object parse-table-name check-sanitized-name
+    scan-object parse-table-name check-sanitized-name quote-sql-name
     \ ; parse-until
     [ parse-column ] map make-persistent ;
 
@@ -403,7 +403,7 @@ M: db-column select-reconstructor*
     over find-primary-key 1 ensure-length
     first setter>> call( tuple obj -- tuple ) ;
 
-/*
+(*
 : select-joins ( obj -- seq )
     query-shape
     [ nip ] assoc-filter
@@ -416,4 +416,4 @@ M: db-column select-reconstructor*
             [ first relation-class primary-key-slots ]
         } cleave <left-join>
     ] map ;
-*/
+*)

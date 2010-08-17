@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors combinators db.connections db.postgresql
-db.sqlite fry io.files.temp kernel namespaces system tools.test ;
+USING: accessors combinators db.connections postgresql.db
+sqlite.db fry io.files.temp kernel namespaces system tools.test ;
 IN: db.debug
 
 : sqlite-test-db ( -- sqlite-db )

@@ -1,5 +1,5 @@
-USING: accessors continuations db.pools db.sqlite
-db.sqlite.connections destructors io.directories io.files
+USING: accessors continuations db.pools sqlite.db
+sqlite.db.connections destructors io.directories io.files
 io.files.temp kernel math namespaces tools.test ;
 IN: db.pools.tests
 

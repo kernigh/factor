@@ -1,8 +1,9 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: db.binders db.connections
-db.postgresql.connections.private db.query-objects
-db.sqlite.connections db.statements db.types namespaces
+postgresql.db.connections
+postgresql.db.connections.private db.query-objects
+sqlite.db.connections db.statements db.types namespaces
 tools.test ;
 IN: db.query-objects.tests
 

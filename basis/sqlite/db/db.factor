@@ -12,11 +12,10 @@ CONSTRUCTOR: sqlite-db ( path -- db ) ;
     "sqlite.db.errors"
     "sqlite.db.ffi"
     "sqlite.db.lib"
-    ! "sqlite.db.introspection"
     "sqlite.db.result-sets"
     "sqlite.db.statements"
-    ! "sqlite.db.tuples"
     "sqlite.db.types"
-    ! "sqlite.db.fql"
-    ! "sqlite.db.orm"
+    ! "sqlite.db.introspection"
+
+    "sqlite.orm"
 } [ require ] each

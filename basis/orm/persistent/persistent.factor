@@ -136,6 +136,9 @@ M: tuple find-primary-key ( class -- seq )
     >persistent
     find-primary-key [ [ table-name ] [ slot-name>> ] bi "." glue ] map ;
 
+: remove-primary-key ( slots -- slots' )
+    [ modifiers>> +primary-key+ swap member? not ] filter ;
+
 : process-persistent ( persistent -- persistent )
     {
         [ compute-persistent-slots ]

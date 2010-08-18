@@ -32,6 +32,9 @@ HOOK: init-bind-index db-connection ( -- )
 : add-sql ( statement sql -- statement )
     '[ _ "" append-as ] change-sql ;
 
+: add-in ( statement binder -- statement ) over in>> push ;
+: add-out ( statement binder -- statement ) over out>> push ;
+
 HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: prepare-statement* db-connection ( statement -- statement' )
 HOOK: dispose-statement db-connection ( statement -- )

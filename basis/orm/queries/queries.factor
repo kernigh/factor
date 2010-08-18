@@ -8,6 +8,9 @@ HOOK: create-table-sql db-connection ( tuple-class -- object )
 
 HOOK: drop-table-sql db-connection ( tuple-class -- object )
 
+HOOK: <insert-db-assigned-key-sql> db-connection ( tuple -- object )
+HOOK: <insert-user-assigned-key-sql> db-connection ( tuple -- object )
+
 HOOK: insert-tuple-sql db-connection ( tuple -- object )
 
 HOOK: update-tuple-sql db-connection ( tuple -- object )

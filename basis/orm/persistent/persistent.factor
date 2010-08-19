@@ -62,7 +62,8 @@ slot-name column-name type modifiers getter setter ;
     [ parse-column-modifiers ] tri* <db-column> ;
 
 : superclass-persistent-columns ( class -- columns )
-    superclasses [ ?>persistent ] map sift
+    superclasses [ ?>persistent ] map
+    sift \ deferred-persistent swap remove
     [ columns>> ] map concat ;
 
 : join-persistent-hierarchy ( class -- persistent )
@@ -182,7 +183,7 @@ M: tuple-class >persistent
 : rebuild-persistent ( -- )
     clear-persistent
     raw-persistent-table get
-    [ drop >persistent drop ] assoc-each ;
+    [ deferred-persistent = [ >persistent ] unless drop ] assoc-each ;
 
 : save-persistent ( persistent -- )
     dup class>> raw-persistent-table get set-at ;

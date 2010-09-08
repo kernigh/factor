@@ -1,13 +1,11 @@
 ! Copyright (C) 2003, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: continuations destructors kernel math math.parser
-namespaces parser sequences strings prettyprint
-quotations combinators logging calendar assocs present
-fry accessors arrays io io.sockets io.encodings.ascii
-io.sockets.secure io.files io.streams.duplex io.timeouts
-io.encodings threads make concurrency.combinators
-concurrency.semaphores concurrency.flags
-combinators.short-circuit ;
+USING: accessors arrays calendar combinators.short-circuit
+concurrency.combinators concurrency.count-downs
+concurrency.flags concurrency.semaphores continuations debugger
+destructors fry io.sockets io.sockets.secure io.streams.duplex
+io.timeouts kernel logging make math namespaces present
+prettyprint sequences strings threads ;
 IN: io.servers.connection
 
 TUPLE: threaded-server
@@ -22,7 +20,9 @@ semaphore
 timeout
 encoding
 handler
-ready ;
+listen-on
+ready-counter
+server-stopped ;
 
 : local-server ( port -- addrspec ) "localhost" swap <inet> ;
 
@@ -36,7 +36,6 @@ ready ;
         V{ } clone >>sockets
         1 minutes >>timeout
         [ "No handler quotation" throw ] >>handler
-        <flag> >>ready
         swap >>encoding ;
 
 : <threaded-server> ( encoding -- threaded-server )
@@ -46,16 +45,25 @@ GENERIC: handle-client* ( threaded-server -- )
 
 <PRIVATE
 
-: >insecure ( addrspec -- addrspec' )
-    dup { [ integer? ] [ string? ] } 1|| [ internet-server ] when ;
+GENERIC: (>insecure) ( obj -- obj )
+
+M: inet (>insecure) ;
+M: local (>insecure) ;
+M: integer (>insecure) internet-server ;
+M: string (>insecure) internet-server ;
+M: array (>insecure) [ (>insecure) ] map ;
+M: f (>insecure) ;
+
+: >insecure ( obj -- seq )
+    (>insecure) dup sequence? [ 1array ] unless ;
 
 : >secure ( addrspec -- addrspec' )
     >insecure
-    dup { [ secure? ] [ not ] } 1|| [ <secure> ] unless ;
+    [ dup { [ secure? ] [ not ] } 1|| [ <secure> ] unless ] map ;
 
 : listen-on ( threaded-server -- addrspecs )
-    [ secure>> >secure ] [ insecure>> >insecure ] bi
-    [ dup [ resolve-host ] when ] bi@ append ;
+    [ secure>> >secure ] [ insecure>> >insecure ] bi append
+    [ resolve-host ] map concat ;
 
 : accepted-connection ( remote local -- )
     [
@@ -98,60 +106,88 @@ M: threaded-server handle-client* handler>> call( -- ) ;
         if*
     ] [ accept-loop ] bi ;
 
-: started-accept-loop ( threaded-server -- )
+: started-accept-loop ( server -- )
     threaded-server get
-    [ sockets>> push ] [ ready>> raise-flag ] bi ;
+    [ sockets>> push ] [ ready-counter>> count-down ] bi ;
 
-: start-accept-loop ( addrspec -- )
-    threaded-server get encoding>> <server>
+: start-accept-loop ( server -- )
     [ started-accept-loop ] [ [ accept-loop ] with-disposal ] bi ;
+
+: make-server ( addrspec -- server )
+    threaded-server get encoding>> <server> ;
 
 \ start-accept-loop NOTICE add-error-logging
 
+ERROR: no-ports-configured threaded-server ;
+
+: check-ports-configured ( threaded-server -- threaded-server )
+    dup listen-on>> empty? [ no-ports-configured ] when ;
+
+: set-listening-ports ( threaded-server -- threaded-server )
+    dup listen-on
+    [ >>listen-on ] [ length <count-down> >>ready-counter ] bi ;
+
 : init-server ( threaded-server -- threaded-server )
+    set-listening-ports
+    <flag> >>server-stopped
     dup semaphore>> [
         dup max-connections>> [
             <semaphore> >>semaphore
         ] when*
     ] unless ;
 
-: (start-server) ( threaded-server -- )
+: ((start-server)) ( threaded-server -- )
     init-server
+    check-ports-configured
     dup threaded-server [
-        [ ] [ name>> ] bi [
-            [ listen-on [ start-accept-loop ] parallel-each ]
-            [ ready>> raise-flag ]
-            bi
+        [ ] [ name>> ] bi
+        [
+            [
+                listen-on>> [ make-server |dispose ] map
+                [ '[ _ start-accept-loop ] in-thread ] parallel-each
+            ] with-destructors
         ] with-logging
     ] with-variable ;
 
-PRIVATE>
-
-: start-server ( threaded-server -- )
+: (start-server) ( threaded-server -- )
     #! Only create a secure-context if we want to listen on
     #! a secure port, otherwise start-server won't work at
     #! all if SSL is not available.
     dup secure>> [
         dup secure-config>> [
-            (start-server)
+            ((start-server))
         ] with-secure-context
     ] [
-        (start-server)
+        ((start-server))
     ] if ;
 
-: wait-for-server ( threaded-server -- )
-    ready>> wait-for-flag ;
+PRIVATE>
 
-: start-server* ( threaded-server -- )
-    [ [ start-server ] curry "Threaded server" spawn drop ]
-    [ wait-for-server ]
-    bi ;
+: start-server ( threaded-server -- threaded-server )
+    [ (start-server) ]
+    [ ready-counter>> await ]
+    [ ] tri ;
 
 : stop-server ( threaded-server -- )
-    [ f ] change-sockets drop dispose-each ;
+    [ [ f ] change-sockets drop dispose-each ]
+    [ server-stopped>> raise-flag ] bi ;
 
 : stop-this-server ( -- )
     threaded-server get stop-server ;
+
+: this-port ( -- n )
+    threaded-server get sockets>> first addr>> port>> ;
+
+: wait-for-server ( threaded-server -- )
+    server-stopped>> wait-for-flag ;
+
+: with-threaded-server ( threaded-server quot -- )
+    over
+    '[
+        [ _ start-server threaded-server _ with-variable ]
+        [ _ stop-server ]
+        [ ] cleanup
+    ] call ; inline
 
 GENERIC: port ( addrspec -- n )
 

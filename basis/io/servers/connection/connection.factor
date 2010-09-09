@@ -20,8 +20,6 @@ semaphore
 timeout
 encoding
 handler
-listen-on
-ready-counter
 server-stopped ;
 
 : local-server ( port -- addrspec ) "localhost" swap <inet> ;
@@ -100,35 +98,20 @@ M: threaded-server handle-client* handler>> call( -- ) ;
 
 : accept-loop ( threaded-server -- )
     [
-        threaded-server get semaphore>>
-        [ [ accept-connection ] with-semaphore ]
-        [ accept-connection ]
-        if*
-    ] [ accept-loop ] bi ;
-
-: started-accept-loop ( server -- )
-    threaded-server get
-    [ sockets>> push ] [ ready-counter>> count-down ] bi ;
-
-: start-accept-loop ( server -- )
-    [ started-accept-loop ] [ [ accept-loop ] with-disposal ] bi ;
+        [
+            threaded-server get semaphore>>
+            [ [ accept-connection ] with-semaphore ]
+            [ accept-connection ]
+            if*
+        ] [ accept-loop ] bi
+    ] with-disposal ;
 
 : make-server ( addrspec -- server )
     threaded-server get encoding>> <server> ;
 
-\ start-accept-loop NOTICE add-error-logging
-
-ERROR: no-ports-configured threaded-server ;
-
-: check-ports-configured ( threaded-server -- threaded-server )
-    dup listen-on>> empty? [ no-ports-configured ] when ;
-
-: set-listening-ports ( threaded-server -- threaded-server )
-    dup listen-on
-    [ >>listen-on ] [ length <count-down> >>ready-counter ] bi ;
+\ accept-loop NOTICE add-error-logging
 
 : init-server ( threaded-server -- threaded-server )
-    set-listening-ports
     <flag> >>server-stopped
     dup semaphore>> [
         dup max-connections>> [
@@ -136,15 +119,23 @@ ERROR: no-ports-configured threaded-server ;
         ] when*
     ] unless ;
 
+ERROR: no-ports-configured threaded-server ;
+
+: set-sockets ( threaded-server -- threaded-server )
+    dup listen-on [
+        no-ports-configured
+    ] [
+        [ make-server |dispose ] map >>sockets
+    ] if-empty ;
+
 : ((start-server)) ( threaded-server -- )
     init-server
-    check-ports-configured
     dup threaded-server [
         [ ] [ name>> ] bi
         [
             [
-                listen-on>> [ make-server |dispose ] map
-                [ '[ _ start-accept-loop ] in-thread ] parallel-each
+                set-sockets sockets>>
+                [ '[ _ accept-loop ] in-thread ] parallel-each
             ] with-destructors
         ] with-logging
     ] with-variable ;
@@ -164,9 +155,7 @@ ERROR: no-ports-configured threaded-server ;
 PRIVATE>
 
 : start-server ( threaded-server -- threaded-server )
-    [ (start-server) ]
-    [ ready-counter>> await ]
-    [ ] tri ;
+    [ (start-server) ] [ ] bi ;
 
 : stop-server ( threaded-server -- )
     [ [ f ] change-sockets drop dispose-each ]

@@ -1,26 +1,53 @@
-! Copyright (C) 2003, 2009 Slava Pestov.
+! Copyright (C) 2003, 2010 Slava Pestov, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays calendar combinators.short-circuit
-concurrency.combinators concurrency.count-downs
-concurrency.flags concurrency.semaphores continuations debugger
-destructors fry io.sockets io.sockets.secure io.streams.duplex
-io.timeouts kernel logging make math namespaces present
-prettyprint sequences strings threads random ;
+USING: accessors arrays calendar combinators
+combinators.short-circuit concurrency.combinators
+concurrency.count-downs concurrency.flags
+concurrency.semaphores continuations debugger destructors fry
+io io.sockets io.sockets.secure io.streams.duplex io.styles
+io.timeouts kernel logging make math math.parser namespaces
+present prettyprint random sequences sets strings threads ;
+FROM: namespaces => set ;
 IN: io.servers.connection
 
-TUPLE: threaded-server
+TUPLE: threaded-server < identity-tuple
 name
 log-level
 secure
 insecure
 secure-config
-sockets
+servers
 max-connections
 semaphore
 timeout
 encoding
 handler
 server-stopped ;
+
+SYMBOL: running-servers
+running-servers [ HS{ } clone ] initialize
+
+ERROR: server-already-running threaded-server ;
+
+ERROR: server-not-running threaded-server ;
+
+<PRIVATE
+
+: must-be-running ( threaded-server -- threaded-server )
+    dup running-servers get in? [ server-not-running ] unless ;
+
+: must-not-be-running ( threaded-server -- threaded-server )
+    dup running-servers get in? [ server-already-running ] when ;
+
+: add-running-server ( threaded-server -- )
+    must-not-be-running
+    running-servers get adjoin ;
+
+: remove-running-server ( threaded-server -- )
+    must-be-running
+    running-servers get delete ;
+
+PRIVATE>
 
 : local-server ( port -- addrspec ) "localhost" swap <inet> ;
 
@@ -86,13 +113,14 @@ M: threaded-server handle-client* handler>> call( -- ) ;
 
 \ handle-client NOTICE add-error-logging
 
-: thread-name ( server-name addrspec -- string )
+: client-thread-name ( addrspec -- string )
+    [ threaded-server get name>> ] dip
     unparse-short " connection from " glue ;
 
 : (accept-connection) ( server -- )
     [ accept ] [ addr>> ] bi
     [ '[ _ _ _ handle-client ] ]
-    [ drop threaded-server get name>> swap thread-name ] 2bi
+    [ drop client-thread-name ] 2bi
     spawn drop ;
 
 : accept-connection ( server -- )
@@ -108,9 +136,6 @@ M: threaded-server handle-client* handler>> call( -- ) ;
 
 \ start-accept-loop NOTICE add-error-logging
 
-: make-server ( addrspec -- server )
-    threaded-server get encoding>> <server> ;
-
 : init-server ( threaded-server -- threaded-server )
     <flag> >>server-stopped
     dup semaphore>> [
@@ -121,20 +146,29 @@ M: threaded-server handle-client* handler>> call( -- ) ;
 
 ERROR: no-ports-configured threaded-server ;
 
-: set-sockets ( threaded-server -- threaded-server )
-    dup listen-on [
-        no-ports-configured
-    ] [
-        [ [ make-server |dispose ] map >>sockets ] with-destructors
-    ] if-empty ;
+: (make-servers) ( theaded-server addrspecs -- servers )
+    swap encoding>>
+    '[ [ _ <server> |dispose ] map ] with-destructors ;
+
+: set-servers ( threaded-server -- threaded-server )
+    dup dup listen-on [ no-ports-configured ] [ (make-servers) ] if-empty
+    >>servers ;
+
+: server-thread-name ( threaded-server addrspec -- string )
+    [ name>> ] [ addr>> present ] bi* " server on " glue ;
 
 : (start-server) ( threaded-server -- )
     init-server
     dup threaded-server [
         [ ] [ name>> ] bi
         [
-            set-sockets sockets>>
-            [ '[ _ [ start-accept-loop ] with-disposal ] in-thread ] each
+            set-servers
+            dup add-running-server
+            dup servers>>
+            [
+                [ nip '[ _ [ start-accept-loop ] with-disposal ] ]
+                [ server-thread-name ] 2bi spawn drop
+            ] with each
         ] with-logging
     ] with-variable ;
 
@@ -152,9 +186,17 @@ PRIVATE>
         (start-server)
     ] if ;
 
+: server-running? ( threaded-server -- ? )
+    server-stopped>> [ value>> not ] [ f ] if* ;
+
 : stop-server ( threaded-server -- )
-    [ [ f ] change-sockets drop dispose-each ]
-    [ server-stopped>> raise-flag ] bi ;
+    dup server-running? [
+        [ [ f ] change-servers drop dispose-each ]
+        [ remove-running-server ]
+        [ server-stopped>> raise-flag ] tri
+    ] [
+        drop
+    ] if ;
 
 : stop-this-server ( -- )
     threaded-server get stop-server ;
@@ -173,7 +215,7 @@ PRIVATE>
 <PRIVATE
 
 : first-port ( quot -- n/f )
-    [ threaded-server get sockets>> ] dip
+    [ threaded-server get servers>> ] dip
     filter [ f ] [ first addr>> port>> ] if-empty ; inline
 
 PRIVATE>
@@ -181,3 +223,16 @@ PRIVATE>
 : secure-port ( -- n/f ) [ addr>> secure? ] first-port ;
 
 : insecure-port ( -- n/f ) [ addr>> secure? not ] first-port ;
+
+: server. ( threaded-server -- )
+    [ [ "=== " write name>> ] [ ] bi write-object nl ]
+    [ servers>> [ addr>> present print ] each ] bi ;
+
+: all-servers ( -- sequence )
+    running-servers get-global members ;
+
+: servers. ( -- )
+    all-servers [ server. ] each ;
+
+: stop-all-servers ( -- )
+    all-servers [ stop-server ] each ;

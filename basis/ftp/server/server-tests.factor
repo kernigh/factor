@@ -17,7 +17,7 @@ CONSTANT: test-file-contents "Files are so boring anymore."
     '[
         current-temporary-directory get
         0 <ftp-server> [
-            this-port
+            insecure-port
             <url>
                 swap >>port
                 "ftp" >>protocol

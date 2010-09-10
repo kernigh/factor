@@ -157,9 +157,6 @@ PRIVATE>
 : stop-this-server ( -- )
     threaded-server get stop-server ;
 
-: this-port ( -- n )
-    threaded-server get sockets>> first addr>> port>> ;
-
 : wait-for-server ( threaded-server -- )
     server-stopped>> wait-for-flag ;
 
@@ -171,11 +168,14 @@ PRIVATE>
         [ ] cleanup
     ] call ; inline
 
-: random-port ( obj -- n/f )
-    dup sequence? [ random ] when ;
+<PRIVATE
 
-: secure-port ( -- n/f )
-    threaded-server get secure>> random-port ;
+: first-port ( quot -- n/f )
+    [ threaded-server get sockets>> ] dip
+    filter [ f ] [ first addr>> port>> ] if-empty ; inline
 
-: insecure-port ( -- n/f )
-    threaded-server get insecure>> random-port ;
+PRIVATE>
+
+: secure-port ( -- n/f ) [ addr>> secure? ] first-port ;
+
+: insecure-port ( -- n/f ) [ addr>> secure? not ] first-port ;

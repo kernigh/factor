@@ -102,12 +102,14 @@ M: threaded-server handle-client* handler>> call( -- ) ;
     if* ;
 
 : accept-loop ( server -- )
-    [ [ accept-connection ] [ accept-loop ] bi ] unless-disposed ;
+    [ accept-connection ] [ accept-loop ] bi ;
+
+: start-accept-loop ( server -- ) accept-loop ;
+
+\ start-accept-loop NOTICE add-error-logging
 
 : make-server ( addrspec -- server )
     threaded-server get encoding>> <server> ;
-
-\ accept-loop NOTICE add-error-logging
 
 : init-server ( threaded-server -- threaded-server )
     <flag> >>server-stopped
@@ -132,7 +134,7 @@ ERROR: no-ports-configured threaded-server ;
         [ ] [ name>> ] bi
         [
             set-sockets sockets>>
-            [ '[ _ [ accept-loop ] with-disposal ] in-thread ] each
+            [ '[ _ [ start-accept-loop ] with-disposal ] in-thread ] each
         ] with-logging
     ] with-variable ;
 

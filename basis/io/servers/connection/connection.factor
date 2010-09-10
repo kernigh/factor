@@ -5,7 +5,7 @@ concurrency.combinators concurrency.count-downs
 concurrency.flags concurrency.semaphores continuations debugger
 destructors fry io.sockets io.sockets.secure io.streams.duplex
 io.timeouts kernel logging make math namespaces present
-prettyprint sequences strings threads ;
+prettyprint sequences strings threads random ;
 IN: io.servers.connection
 
 TUPLE: threaded-server
@@ -31,7 +31,6 @@ server-stopped ;
         "server" >>name
         DEBUG >>log-level
         <secure-config> >>secure-config
-        V{ } clone >>sockets
         1 minutes >>timeout
         [ "No handler quotation" throw ] >>handler
         swap >>encoding ;
@@ -90,21 +89,20 @@ M: threaded-server handle-client* handler>> call( -- ) ;
 : thread-name ( server-name addrspec -- string )
     unparse-short " connection from " glue ;
 
-: accept-connection ( threaded-server -- )
+: (accept-connection) ( server -- )
     [ accept ] [ addr>> ] bi
     [ '[ _ _ _ handle-client ] ]
     [ drop threaded-server get name>> swap thread-name ] 2bi
     spawn drop ;
 
-: accept-loop ( threaded-server -- )
-    [
-        [
-            threaded-server get semaphore>>
-            [ [ accept-connection ] with-semaphore ]
-            [ accept-connection ]
-            if*
-        ] [ accept-loop ] bi
-    ] with-disposal ;
+: accept-connection ( server -- )
+    threaded-server get semaphore>>
+    [ [ (accept-connection) ] with-semaphore ]
+    [ (accept-connection) ]
+    if* ;
+
+: accept-loop ( server -- )
+    [ [ accept-connection ] [ accept-loop ] bi ] unless-disposed ;
 
 : make-server ( addrspec -- server )
     threaded-server get encoding>> <server> ;
@@ -125,37 +123,32 @@ ERROR: no-ports-configured threaded-server ;
     dup listen-on [
         no-ports-configured
     ] [
-        [ make-server |dispose ] map >>sockets
+        [ [ make-server |dispose ] map >>sockets ] with-destructors
     ] if-empty ;
 
-: ((start-server)) ( threaded-server -- )
+: (start-server) ( threaded-server -- )
     init-server
     dup threaded-server [
         [ ] [ name>> ] bi
         [
-            [
-                set-sockets sockets>>
-                [ '[ _ accept-loop ] in-thread ] parallel-each
-            ] with-destructors
+            set-sockets sockets>>
+            [ '[ _ [ accept-loop ] with-disposal ] in-thread ] each
         ] with-logging
     ] with-variable ;
-
-: (start-server) ( threaded-server -- )
-    #! Only create a secure-context if we want to listen on
-    #! a secure port, otherwise start-server won't work at
-    #! all if SSL is not available.
-    dup secure>> [
-        dup secure-config>> [
-            ((start-server))
-        ] with-secure-context
-    ] [
-        ((start-server))
-    ] if ;
 
 PRIVATE>
 
 : start-server ( threaded-server -- threaded-server )
-    [ (start-server) ] [ ] bi ;
+    #! Only create a secure-context if we want to listen on
+    #! a secure port, otherwise start-server won't work at
+    #! all if SSL is not available.
+    dup dup secure>> [
+        dup secure-config>> [
+            (start-server)
+        ] with-secure-context
+    ] [
+        (start-server)
+    ] if ;
 
 : stop-server ( threaded-server -- )
     [ [ f ] change-sockets drop dispose-each ]
@@ -178,14 +171,11 @@ PRIVATE>
         [ ] cleanup
     ] call ; inline
 
-GENERIC: port ( addrspec -- n )
+: random-port ( obj -- n/f )
+    dup sequence? [ random ] when ;
 
-M: integer port ;
+: secure-port ( -- n/f )
+    threaded-server get secure>> random-port ;
 
-M: object port port>> ;
-
-: secure-port ( -- n )
-    threaded-server get dup [ secure>> port ] when ;
-
-: insecure-port ( -- n )
-    threaded-server get dup [ insecure>> port ] when ;
+: insecure-port ( -- n/f )
+    threaded-server get insecure>> random-port ;

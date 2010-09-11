@@ -105,19 +105,19 @@ HELP: handle-client*
 
 HELP: start-server
 { $values { "threaded-server" threaded-server } }
-{ $description "Starts a threaded server and returns after the server is running. Throws an error if any of the ports cannot be aquired." }
+{ $description "Starts a threaded server and returns after the server is fully running. Throws an error if any of the ports cannot be aquired." }
 { $notes "Use " { $link stop-server } " or " { $link stop-this-server } " to stop the server." } ;
 
 HELP: stop-server
 { $values { "threaded-server" threaded-server } }
-{ $description "Stops a threaded server, preventing it from accepting any more connections and returning to the caller of " { $link start-server } ". All client connections which have already been opened continue to be serviced." } ;
+{ $description "Stops a threaded server, preventing it from accepting any more connections. All client connections which have already been opened continue to be serviced." } ;
 
 HELP: wait-for-server
 { $values { "threaded-server" threaded-server } }
-{ $description "Waits for a threaded server to return." } ;
+{ $description "Waits for a threaded server to stop serving new connections." } ;
 
 HELP: stop-this-server
-{ $description "Stops the current threaded server, preventing it from accepting any more connections and returning to the caller of " { $link start-server } ". All client connections which have already been opened continue to be serviced." } ;
+{ $description "Stops the current threaded server, preventing it from accepting any more connections. All client connections which have already been opened continue to be serviced." } ;
 
 HELP: with-threaded-server
 { $values

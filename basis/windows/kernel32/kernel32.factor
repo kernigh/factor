@@ -1,7 +1,7 @@
 ! Copyright (C) 2005, 2006 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: alien alien.c-types alien.syntax kernel windows.types
-math multiline classes.struct ;
+USING: alien alien.c-types alien.syntax classes.struct kernel
+literals math multiline windows.types ;
 IN: windows.kernel32
 
 CONSTANT: MAX_PATH 260
@@ -987,7 +987,7 @@ FUNCTION: HANDLE CreateRemoteThread ( HANDLE hProcess,
 ! FUNCTION: CreateThread
 ! FUNCTION: CreateTimerQueue
 ! FUNCTION: CreateTimerQueueTimer
-! FUNCTION: CreateToolhelp32Snapshot
+FUNCTION: HANDLE CreateToolhelp32Snapshot ( DWORD dwFlags, DWORD th32ProcessID ) ;
 ! FUNCTION: CreateVirtualBuffer
 ! FUNCTION: CreateWaitableTimerA
 ! FUNCTION: CreateWaitableTimerW
@@ -1589,10 +1589,31 @@ FUNCTION: LPVOID MapViewOfFileEx ( HANDLE hFileMappingObject,
                                  SIZE_T dwNumberOfBytesToMap,
                                  LPVOID lpBaseAddress ) ;
 
-! FUNCTION: Module32First
-! FUNCTION: Module32FirstW
-! FUNCTION: Module32Next
-! FUNCTION: Module32NextW
+
+<< CONSTANT: MAX_MODULE_NAME32 255 >>                                
+CONSTANT: MAX_MODULE_NAME32+1 $[ MAX_MODULE_NAME32 1 + ]
+
+STRUCT: MODULEENTRY32
+    { dwSize DWORD }
+    { th32ModuleID DWORD }
+    { th32ProcessID DWORD }
+    { GlblcntUsage DWORD }
+    { ProccntUsage DWORD }
+    { modBaseAddr BYTE* }
+    { modBaseSize DWORD }
+    { hModule HMODULE }
+    { szModule TCHAR[MAX_MODULE_NAME32+1] }
+    { szExePath TCHAR[MAX_PATH] } ;
+    
+TYPEDEF: MODULEENTRY32* PMODULEENTRY32
+TYPEDEF: MODULEENTRY32* LPMODULEENTRY32
+
+                                 
+FUNCTION: BOOL Module32FirstW ( HANDLE hSnapshot, LPMODULEENTRY32 lpme ) ;
+ALIAS: Module32First Module32FirstW
+
+FUNCTION: BOOL Module32NextW ( HANDLE hSnapshot, LPMODULEENTRY32 lpme ) ;
+ALIAS: Module32Next Module32NextW
 ! FUNCTION: MoveFileA
 ! FUNCTION: MoveFileExA
 ! FUNCTION: MoveFileExW
@@ -1636,10 +1657,34 @@ FUNCTION: HANDLE OpenProcess ( DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD
 ! FUNCTION: PrepareTape
 ! FUNCTION: PrivCopyFileExW
 ! FUNCTION: PrivMoveFileIdentityW
-! FUNCTION: Process32First
-! FUNCTION: Process32FirstW
-! FUNCTION: Process32Next
-! FUNCTION: Process32NextW
+
+STRUCT: PROCESSENTRY32
+    { dwSize DWORD }
+    { cntUsage DWORD }
+    { th32ProcessID DWORD }
+    { th32DefaultHeapID ULONG_PTR }
+    { th32ModuleID DWORD }
+    { cntThreads DWORD }
+    { th32ParentProcessID DWORD }
+    { pcPriClassBase LONG }
+    { dwFlags DWORD }
+    { szExeFile TCHAR[MAX_PATH] } ;
+
+TYPEDEF: PROCESSENTRY32* LPPROCESSENTRY32
+
+FUNCTION: BOOL Process32FirstW ( HANDLE hSnapshot, LPPROCESSENTRY32 lppe ) ;
+ALIAS: Process32First Process32FirstW
+FUNCTION: BOOL Process32Next ( HANDLE hSnapshot, LPPROCESSENTRY32 lppe ) ;
+
+CONSTANT: TH32CS_INHERIT HEX: 80000000
+CONSTANT: TH32CS_SNAPHEAPLIST HEX: 00000001
+CONSTANT: TH32CS_SNAPMODULE 00000008
+CONSTANT: TH32CS_SNAPMODULE32 HEX: 00000010
+CONSTANT: TH32CS_SNAPPROCESS HEX: 00000002
+CONSTANT: TH32CS_SNAPTHREAD HEX: 00000004
+CONSTANT: TH32CS_SNAPALL flags{ TH32CS_SNAPHEAPLIST TH32CS_SNAPMODULE TH32CS_SNAPPROCESS TH32CS_SNAPTHREAD }
+
+ALIAS: Process32NextW Process32Next
 ! FUNCTION: ProcessIdToSessionId
 ! FUNCTION: PulseEvent
 ! FUNCTION: PurgeComm

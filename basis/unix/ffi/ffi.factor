@@ -157,5 +157,6 @@ FUNCTION: int link ( c-string path1, c-string path2 ) ;
 FUNCTION: int unlink ( c-string path ) ;
 FUNCTION: int utimes ( c-string path, timeval[2] times ) ;
 FUNCTION: ssize_t write ( int fd, void* buf, size_t nbytes ) ;
+FUNCTION: int sysctl ( int* name, uint namelen, void* oldp, size_t* oldlenp, void* newp, size_t newlen ) ;
 
 "librt" "librt.so" cdecl add-library

@@ -4,7 +4,7 @@ USING: alien alien.c-types arrays destructors io io.backend.windows libc
 windows.types math.bitwise windows.kernel32 windows namespaces
 make kernel sequences windows.errors assocs math.parser system
 random combinators accessors io.pipes io.ports literals ;
-IN: io.pipes.windows.nt
+IN: io.pipes.windows
 
 ! This code is based on
 ! http://twistedmatrix.com/trac/browser/trunk/twisted/internet/iocpreactor/process.py

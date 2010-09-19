@@ -3,7 +3,7 @@
 USING: accessors alien alien.c-types alien.data alien.strings
 alien.syntax arrays assocs classes.struct combinators
 combinators.short-circuit continuations destructors environment
-io io.backend io.backend.windows io.binary io.buffers
+io io.backend io.binary io.buffers
 io.encodings.utf16n io.files io.files.private io.files.types
 io.pathnames io.ports io.streams.c io.streams.null io.timeouts
 kernel libc literals locals make math math.bitwise namespaces
@@ -351,5 +351,3 @@ M: winnt home
         [ "USERPROFILE" os-env ]
         [ my-documents ]
     } 0|| ;
-    
-winnt set-io-backend

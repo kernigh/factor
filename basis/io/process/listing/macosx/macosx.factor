@@ -345,6 +345,14 @@ STRUCT: kinfo_proc
 
 SPECIALIZED-ARRAY: kinfo_proc
 
+: *value ( c-ptr c-type -- value )
+    [ [ 0 ] dip heap-size <byte-array> ] keep alien-value ; inline
+
+:: <value> ( value c-type -- c-ptr )
+    c-type heap-size <byte-array> :> c-ptr
+    value 0 c-ptr c-type set-alien-value
+    c-ptr ; inline
+
 : sysctl-enum-processes ( -- obj )
     int-array{ $ CTL_KERN $ KERN_PROC $ KERN_PROC_ALL 0 } ;
 
@@ -352,15 +360,15 @@ SPECIALIZED-ARRAY: kinfo_proc
     sysctl-enum-processes
     [ ]
     [ length 1 - f ]
-    [ length <int> f 0 ] tri
-    [ sysctl io-error ] 3keep 2drop *uint ;
+    [ length size_t <value> f 0 ] tri
+    [ my_sysctl io-error ] 3keep 2drop size_t *value ;
 
 :: get-result ( len -- byte-array n )
     sysctl-enum-processes
     [ ]
     [ length 1 - len <byte-array> ] bi
-    len <int> f 0
-    [ sysctl io-error ] 4 nkeep 2drop *uint ;
+    len size_t <value> f 0
+    [ my_sysctl io-error ] 4 nkeep 2drop size_t *value ;
 
 : list-processes ( -- seq )
     get-buffer-size get-result head kinfo_proc-array-cast ;

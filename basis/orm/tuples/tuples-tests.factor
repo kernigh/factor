@@ -38,8 +38,7 @@ PERSISTENT: foo-1
     [ { T{ foo-1 { a 1 } { b "lol" } } } ] [ T{ foo-1 f 1 "lol" } select-tuples ] unit-test
     ;
 
-[ test-1 ] test-sqlite
-[ test-1 ] test-postgresql
+[ test-1 ] test-dbs
 
 TUPLE: foo-2 id a ;
 PERSISTENT: foo-2
@@ -78,11 +77,9 @@ PERSISTENT: bar-2
     ! [ ] [ T{ bar-2 f 0 } select-tuples ] unit-test
     ;
 
-[ setup-test-2-sql ] test-sqlite
-[ setup-test-2-sql ] test-postgresql
+[ setup-test-2-sql ] test-dbs
 
-[ test-2 ] test-sqlite
-[ test-2 ] test-postgresql
+[ test-2 ] test-dbs
 
 
 
@@ -138,5 +135,4 @@ PERSISTENT: baz-3
         sql-query
     ] unit-test ;
 
-[ setup-test-3-sql ] test-sqlite
-[ setup-test-3-sql ] test-postgresql
+[ setup-test-3-sql ] test-dbs

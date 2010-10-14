@@ -9,5 +9,4 @@ IN: db.queries.tests
     [ ] [ "create table table_omg(id integer);" sql-command ] unit-test
     [ t ] [ "table_omg" table-exists? ] unit-test ;
 
-[ test-table-exists ] test-sqlite
-[ test-table-exists ] test-postgresql
+[ test-table-exists ] test-dbs

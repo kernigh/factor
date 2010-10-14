@@ -14,7 +14,7 @@ TUPLE: postgresql-db-connection < db-connection ;
 
 PRIVATE>
 
-M: postgresql-db db>db-connection ( db -- db-connection )
+M: postgresql-db db>db-connection-generic ( db -- db-connection )
     {
         [ host>> ]
         [ port>> ]

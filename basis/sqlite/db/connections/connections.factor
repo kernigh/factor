@@ -10,7 +10,7 @@ TUPLE: sqlite-db-connection < db-connection ;
 : <sqlite-db-connection> ( handle -- db-connection )
     sqlite-db-connection new-db-connection ;
 
-M: sqlite-db db>db-connection ( db -- db-connection )
+M: sqlite-db db>db-connection-generic ( db -- db-connection )
     path>> normalize-path sqlite-open <sqlite-db-connection> ;
 
 M: sqlite-db-connection dispose* ( db-connection -- )

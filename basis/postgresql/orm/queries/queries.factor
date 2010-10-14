@@ -6,7 +6,7 @@ math.ranges nested-comments orm.persistent orm.queries
 postgresql.db.connections.private sequences ;
 IN: postgresql.orm.queries
 
-M: postgresql-db-connection <insert-db-assigned-key-sql>
+M: postgresql-db-connection insert-db-assigned-key-sql
     [ <statement> ] dip >persistent {
         [ table-name>> "select add_" prepend add-sql "(" add-sql ]
         [
@@ -24,7 +24,7 @@ M: postgresql-db-connection <insert-db-assigned-key-sql>
 : bind-name% ( column -- )
     ;
 
-M: postgresql-db-connection <insert-user-assigned-key-sql>
+M: postgresql-db-connection insert-user-assigned-key-sql
     [ <statement> ] dip >persistent {
         [ table-name>> "INSERT INTO " prepend add-sql "(" add-sql ]
         [

@@ -121,6 +121,7 @@ M: postgresql-result-set column
         { TIMESTAMP [ pq-get-string dup [ ymdhms>timestamp ] when ] }
         { DATETIME [ pq-get-string dup [ ymdhms>timestamp ] when ] }
         { BLOB [ pq-get-blob ] }
+        { BOOLEAN [ pq-get-boolean ] }
         { URL [ pq-get-string dup [ >url ] when ] }
         { FACTOR-BLOB [
             pq-get-blob

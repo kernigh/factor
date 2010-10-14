@@ -3,20 +3,93 @@
 USING: accessors arrays assocs combinators combinators.smart db
 db.binders db.query-objects db.types db.utils fry kernel macros
 make math math.parser mirrors namespaces nested-comments orm
-orm.persistent sequences sets splitting.monotonic ;
+orm.persistent orm.queries sequences sets splitting.monotonic ;
 IN: orm.tuples
 
-! : create-table ( class -- ) ; "CREATE TABLE " ;
+: create-table ( tuple-class -- )
+    create-table-sql sql-command ;
 
-: drop-table ( class -- )
-    >persistent table-name>>
-    "DROP TABLE " ";" surround sql-command ;
+: drop-table ( tuple-class -- )
+    drop-table-sql sql-command ;
 
 : ensure-table ( class -- ) drop ;
 
 : ensure-tables ( classes -- ) [ ensure-table ] each ;
 
 : recreate-table ( class -- ) drop ;
+
+: insert-tuple ( tuple -- )
+    insert-tuple-sql sql-command ;
+
+: select-tuples ( tuple -- seq )
+    ;
+
+: select-tuple ( tuple -- elt/f )
+    select-tuples ?first ;
+
+: delete-tuples ( tuple -- )
+    drop
+    ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(*
 
 
 : tuple>pairs ( tuple -- seq )
@@ -50,7 +123,7 @@ M: out-binder pair>binder* ( binder-class pair -- binder )
 : insert-tuple ( tuple -- )
     [ <insert> ] dip
     in-binder tuple>binders >>in
-    query-object>statement sql-bind-typed-command ;
+    query-object>statement sql-command ;
 
 
 : tuple>primary-key-binders ( tuple -- seq )
@@ -66,13 +139,13 @@ M: out-binder pair>binder* ( binder-class pair -- binder )
         [ equal-binder tuple>binders >>in ]
         [ tuple>primary-key-binders >>where ]
     } cleave
-    query-object>statement sql-bind-typed-command ;
+    query-object>statement sql-command ;
 
 
 : delete-tuples ( tuple -- )
     [ <delete> ] dip
     tuple>primary-key-binders >>where
-    query-object>statement sql-bind-typed-command ;
+    query-object>statement sql-command ;
 
 ERROR: no-setter ;
 
@@ -112,7 +185,7 @@ SYMBOL: ordinal
 
 MACRO: select-tuples ( tuple -- tuples )
     (select-tuples)
-    [ query-object>statement sql-bind-typed-query ] keep
+    [ query-object>statement sql-query ] keep
 B
     query-object>reconstructor
     '[ [ @ ] map ] ;
@@ -165,3 +238,5 @@ ERROR: unimplemented ;
     ] [
         select-relations
     ] if-empty ;
+
+*)

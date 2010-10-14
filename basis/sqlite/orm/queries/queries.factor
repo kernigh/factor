@@ -144,7 +144,7 @@ M: sqlite-db-connection create-table-sql ( class -- seq )
     '[ _ over getter>> call( obj -- slot-value ) ] { } map>assoc
     [ nip ] assoc-filter ;
 
-M: sqlite-db-connection insert-tuple-sql ( tuple -- object )
+M: sqlite-db-connection insert-user-assigned-key-sql ( tuple -- object )
     [ <statement> ] dip
     [ >persistent ] [ ] bi {
         [ drop table-name>> "INSERT INTO " "(" surround add-sql ]

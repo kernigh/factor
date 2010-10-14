@@ -1,13 +1,25 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays combinators combinators.smart
-db.statements db.types kernel locals make math.parser
-math.ranges nested-comments orm.persistent orm.queries
-postgresql.db.connections.private sequences ;
+USING: accessors arrays assocs combinators combinators.smart
+db.binders db.statements db.types db.utils kernel locals make
+math.parser math.ranges namespaces nested-comments
+orm.persistent orm.queries postgresql.db.connections.private
+sequences sqlite.orm.queries ;
 IN: postgresql.orm.queries
 
+! TODOOOOOO
+SYMBOL: postgresql-counter
+
+: next-bind ( -- string )
+    postgresql-counter [ inc ] [ get ] bi
+    number>string "$" prepend ;
+
+: n>bind-string ( n -- string )
+    [1,b] [ number>string "$" prepend ] map "," join ;
+
 M: postgresql-db-connection insert-db-assigned-key-sql
-    [ <statement> ] dip >persistent {
+    [ <statement> ] dip
+    >persistent {
         [ table-name>> "select add_" prepend add-sql "(" add-sql ]
         [
             [ find-primary-key first add-in ]
@@ -19,6 +31,24 @@ M: postgresql-db-connection insert-db-assigned-key-sql
             ] bi
         ]
     } cleave ;
+
+M: postgresql-db-connection insert-user-assigned-key-sql
+    [ <statement> ] dip
+    [ >persistent ] [ ] bi {
+        [ drop table-name>> "INSERT INTO " "(" surround add-sql ]
+        [
+            filter-tuple-values
+            [
+                keys
+                [ [ column-name>> ] map ", " join ]
+                [
+                    length n>bind-string
+                    ") values(" ");" surround
+                ] bi append add-sql
+            ]
+            [ [ [ second ] [ first type>> ] bi <in-binder-low> ] map >>in ] bi
+        ]
+    } 2cleave ;
 
 (*
 : bind-name% ( column -- )
@@ -80,13 +110,10 @@ M: postgresql-db-connection insert-user-assigned-key-sql
         ] 2bi
     ] "" make ;
 
-: trim-quotes ( string -- string' )
-    [ CHAR: " = ] trim ;
-
 :: postgresql-create-function ( tuple-class -- string )
     tuple-class >persistent :> persistent
     persistent table-name>> :> table-name
-    table-name trim-quotes :> table-name-unquoted
+    table-name trim-double-quotes :> table-name-unquoted
     persistent columns>> :> columns
     columns remove-primary-key :> columns-minus-key
 
@@ -114,7 +141,6 @@ M: postgresql-db-connection create-table-sql ( tuple-class -- seq )
     [ postgresql-create-table ]
     [ dup db-assigned-key? [ postgresql-create-function 2array ] [ drop ] if ] bi ;
 
-
 :: postgresql-drop-table ( tuple-class -- string )
     tuple-class >persistent table-name>> :> table-name
     [
@@ -124,7 +150,7 @@ M: postgresql-db-connection create-table-sql ( tuple-class -- seq )
 :: postgresql-drop-function ( tuple-class -- string )
     tuple-class >persistent :> persistent
     persistent table-name>> :> table-name
-    table-name trim-quotes :> table-name-unquoted
+    table-name trim-double-quotes :> table-name-unquoted
     persistent columns>> :> columns
     columns remove-primary-key :> columns-minus-key
     [

@@ -58,8 +58,8 @@ M: postgresql-result-set more-rows? ( result-set -- ? )
     {
         { [ dup string? ] [ VARCHAR ] }
         { [ dup array? ] [ first2 ] }
-        { [ dup in-binder? ] [ [ value>> ] [ type>> ] bi ] }
-        [ "omg" throw ] 
+        { [ dup in-binder-low? ] [ [ value>> ] [ type>> ] bi ] }
+        [ "postgresql obj>value/type: no binder found" throw ] 
     } cond ;
 
 : param-values ( statement -- seq seq2 )

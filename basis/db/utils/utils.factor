@@ -26,6 +26,9 @@ MACRO: slots ( seq -- quot )
 : object>vector ( obj -- vector )
     dup sequence? [ >vector ] [ 1vector ] if ;
 
+: trim-double-quotes ( string -- string' )
+    [ CHAR: " = ] trim ;
+
 : ?when ( object quot -- object' ) dupd when ; inline
 
 : ?1array ( obj -- array )

@@ -6,10 +6,12 @@ db.types db.utils fry kernel orm.tuples sequences strings ;
 IN: db.queries
 
 HOOK: current-db-name db-connection ( -- string )
+HOOK: sanitize-string db-connection ( string -- string )
+HOOK: table-exists-sql db-connection ( database table -- ? )
+HOOK: table-rows-sql db-connection ( database table -- ? )
+HOOK: table-row-class db-connection ( -- class )
 
 ERROR: unsafe-sql-string string ;
-
-HOOK: sanitize-string db-connection ( string -- string )
 
 M: object sanitize-string
     dup [ { [ Letter? ] [ digit? ] [ "_" member? ] } 1|| ] all?
@@ -22,8 +24,6 @@ M: string >sql-name* sql-name-replace ;
 PRIVATE>
 
 : >sql-name ( object -- string ) >sql-name* sanitize-string ;
-
-HOOK: table-exists-sql db-connection ( database table -- ? )
 
 : database-table-exists? ( database table -- ? )
     table-exists-sql sql-query ?first ?first >boolean ;
@@ -47,9 +47,6 @@ CONSTANT: table-information-string
 M: object table-exists-sql
     table-information-statement
     [ "SELECT EXISTS(" ")" surround ] change-sql ;
-
-HOOK: table-rows-sql db-connection ( database table -- ? )
-HOOK: table-row-class db-connection ( -- class )
 
 M: object table-rows-sql
     table-information-statement f >>out ;

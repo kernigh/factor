@@ -18,20 +18,21 @@ SYNTAX: TOC{
     \ } [ 3 ensure-length first3 <table-ordinal-column> ] parse-literal ;
 
 TUPLE: binder ;
-TUPLE: high-binder < binder class toc type value ;
+TUPLE: low-binder value type ;
+TUPLE: high-binder < low-binder class toc ;
 
-TUPLE: in-binder < high-binder ;
-TUPLE: in-binder-low < binder value type ;
-CONSTRUCTOR: in-binder ( -- obj ) ;
+TUPLE: in-binder-low < low-binder ;
 CONSTRUCTOR: in-binder-low ( value type -- obj ) ;
+TUPLE: in-binder < high-binder ;
+CONSTRUCTOR: in-binder ( -- obj ) ;
 
 SYNTAX: TYPED{
     \ } [ first2 <in-binder-low> ] parse-literal ;
 
-TUPLE: out-binder < high-binder ;
 TUPLE: out-binder-low < binder type ;
-CONSTRUCTOR: out-binder ( toc type -- obj ) ;
 CONSTRUCTOR: out-binder-low ( type -- obj ) ;
+TUPLE: out-binder < high-binder ;
+CONSTRUCTOR: out-binder ( toc type -- obj ) ;
 
 TUPLE: and-binder binders ;
 TUPLE: or-binder binders ;

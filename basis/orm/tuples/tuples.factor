@@ -21,7 +21,11 @@ IN: orm.tuples
 
 
 : insert-tuple ( tuple -- )
-    insert-tuple-sql sql-command ;
+    dup db-assigned-key? [
+        insert-db-assigned-key-sql
+    ] [
+        insert-user-assigned-key-sql
+    ] if sql-command ;
 
 : select-tuples ( tuple -- seq )
     ;

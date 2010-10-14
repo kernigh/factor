@@ -1,7 +1,7 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays ascii combinators.short-circuit db
-db.connections db.statements db.types kernel sequences ;
+db.connections db.statements db.types db.utils kernel sequences ;
 IN: db.queries
 
 HOOK: current-db-name db-connection ( -- string )
@@ -14,14 +14,17 @@ M: object sanitize-string
     dup [ { [ Letter? ] [ digit? ] [ "_" member? ] } 1|| ] all?
     [ unsafe-sql-string ] unless ;
 
-HOOK: table-exists-sql db-connection ( string -- ? )
+HOOK: table-exists-sql db-connection ( database table -- ? )
 
-: table-exists? ( string -- ? )
+: database-table-exists? ( database table -- ? )
     table-exists-sql sql-query ?first ?first >boolean ;
 
+: table-exists? ( table -- ? )
+    [ current-db-name ] dip database-table-exists? ;
+
 M: object table-exists-sql
-    [ <statement> ] dip
-        [ current-db-name ] dip 2array >>in
+    [ <statement> ] 2dip
+        2array >>in
         { BOOLEAN } >>out
         """SELECT EXISTS(
             SELECT * FROM information_schema.tables

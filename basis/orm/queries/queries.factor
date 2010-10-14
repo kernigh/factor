@@ -5,6 +5,7 @@ make orm.persistent sequences ;
 IN: orm.queries
 
 HOOK: create-table-sql db-connection ( tuple-class -- object )
+HOOK: ensure-table-sql db-connection ( tuple-class -- object )
 HOOK: drop-table-sql db-connection ( tuple-class -- object )
 
 HOOK: insert-tuple-sql db-connection ( tuple -- object )

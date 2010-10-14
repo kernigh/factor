@@ -12,11 +12,13 @@ IN: orm.tuples
 : drop-table ( tuple-class -- )
     drop-table-sql sql-command ;
 
-: ensure-table ( class -- ) drop ;
+: ensure-table ( tuple-class -- )
+    ensure-table-sql sql-command ;
 
-: ensure-tables ( classes -- ) [ ensure-table ] each ;
+: ensure-tables ( tuple-classes -- ) [ ensure-table ] each ;
 
-: recreate-table ( class -- ) drop ;
+! : recreate-table ( tuple-class -- ) [ [ drop-table ] try ] [ create-table ] bi ;
+
 
 : insert-tuple ( tuple -- )
     insert-tuple-sql sql-command ;

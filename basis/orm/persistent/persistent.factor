@@ -38,8 +38,8 @@ SYMBOL: deferred-persistent
 : >persistent* ( class -- persistent/f )
     raw-persistent-table get ?at [ not-persistent ] unless ;
 
-: check-sanitized-name ( string -- string )
-    dup dup sanitize-sql-name = [ bad-table-name ] unless ;
+: check-sql-name ( string -- string )
+    [ ] [ ] [ sql-name-replace ] tri = [ bad-table-name ] unless ;
 
 TUPLE: persistent class table-name columns primary-key incomplete? ;
 
@@ -193,7 +193,7 @@ M: tuple-class >persistent
     rebuild-persistent ;
 
 SYNTAX: PERSISTENT:
-    scan-object parse-table-name check-sanitized-name quote-sql-name
+    scan-object parse-table-name check-sql-name quote-sql-name
     \ ; parse-until
     [ parse-column ] map make-persistent ;
 
@@ -215,11 +215,11 @@ M: sequence parse-table-name
     } case ;
 
 M: tuple-class parse-table-name
-    dup name>> sanitize-sql-name ;
+    dup name>> sql-name-replace ;
 
 M: sequence parse-name
     2 ensure-length first2
-    [ ensure-string ] bi@ sanitize-sql-name ;
+    [ ensure-string ] bi@ sql-name-replace ;
 
 M: string parse-name dup 2array parse-name ;
 
@@ -364,7 +364,7 @@ M: db-column select-reconstructor*
 
 : (column>create-text) ( db-column -- string )
     [
-        [ slot-name>> sanitize-sql-name % " " % ]
+        [ slot-name>> sql-name-replace % " " % ]
         [ ((column>create-text)) ] bi
     ] "" make ;
 

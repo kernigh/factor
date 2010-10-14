@@ -9,8 +9,8 @@ retries errors retry-quotation ;
 ! reconstructor
 
 : normalize-statement ( statement -- statement )
-    [ obj>vector ] change-in
-    [ obj>vector ] change-out ; inline
+    [ object>vector ] change-in
+    [ object>vector ] change-out ; inline
 
 : initialize-statement ( statement -- statement )
     V{ } clone >>in

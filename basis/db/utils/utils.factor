@@ -15,20 +15,15 @@ MACRO: slots ( seq -- quot )
 : subclass? ( class1 class2 -- ? )
     { [ class<= ] [ drop tuple-class? ] } 2&& ;
 
-: sanitize-sql-name ( string -- string' )
-    H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
-
-ERROR: invalid-table-name name ;
-
-: check-sql-name ( string -- string )
-    CHAR: " over member? [ invalid-table-name ] when ;
-
 : quote-sql-name ( string -- string' ) "\"" dup surround ; 
+
+: sql-name-replace ( string -- string' )
+    H{ { CHAR: - CHAR: _ } { CHAR: ? CHAR: p } } substitute ;
 
 : malloc-byte-array/length ( byte-array -- alien length )
     [ malloc-byte-array &free ] [ length ] bi ;
 
-: obj>vector ( obj -- vector )
+: object>vector ( obj -- vector )
     dup sequence? [ >vector ] [ 1vector ] if ;
 
 : ?when ( object quot -- object' ) dupd when ; inline

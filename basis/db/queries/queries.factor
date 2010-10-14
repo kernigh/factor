@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays ascii classes.tuple
 combinators.short-circuit db db.connections db.statements
-db.types db.utils fry kernel orm.tuples sequences ;
+db.types db.utils fry kernel orm.tuples sequences strings ;
 IN: db.queries
 
 HOOK: current-db-name db-connection ( -- string )
@@ -14,6 +14,14 @@ HOOK: sanitize-string db-connection ( string -- string )
 M: object sanitize-string
     dup [ { [ Letter? ] [ digit? ] [ "_" member? ] } 1|| ] all?
     [ unsafe-sql-string ] unless ;
+
+<PRIVATE
+GENERIC: >sql-name* ( object -- string )
+M: tuple-class >sql-name* name>> sql-name-replace ;
+M: string >sql-name* sql-name-replace ;
+PRIVATE>
+
+: >sql-name ( object -- string ) >sql-name* sanitize-string ;
 
 HOOK: table-exists-sql db-connection ( database table -- ? )
 

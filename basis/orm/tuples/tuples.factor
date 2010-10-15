@@ -22,10 +22,10 @@ IN: orm.tuples
 
 : insert-tuple ( tuple -- )
     dup db-assigned-key? [
-        insert-db-assigned-key-sql
+        dup insert-db-assigned-key-sql insert-tuple-set-key
     ] [
-        insert-user-assigned-key-sql
-    ] if sql-command ;
+        insert-user-assigned-key-sql sql-command
+    ] if ;
 
 : select-tuples ( tuple -- seq )
     ;

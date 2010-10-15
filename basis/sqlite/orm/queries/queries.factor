@@ -1,9 +1,9 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs combinators db.binders
+USING: accessors arrays assocs combinators db db.binders
 db.statements db.types fry kernel make namespaces
 nested-comments orm.persistent orm.queries sequences
-sqlite.db.connections ;
+sqlite.db.connections sqlite.db.lib ;
 IN: sqlite.orm.queries
 
 (*
@@ -135,7 +135,7 @@ IN: sqlite.orm.queries
     ] each ;
 *)
 
-M: sqlite-db-connection create-table-sql ( class -- seq )
+M: sqlite-db-connection create-table-sql ( tuple-class -- seq )
     ! [ sqlite-create-table ] [ drop create-db-triggers ] 2bi 2array ;
     sqlite-create-table ;
 
@@ -161,3 +161,9 @@ M: sqlite-db-connection insert-user-assigned-key-sql ( tuple -- object )
             [ [ [ second ] [ first type>> ] bi <in-binder-low> ] map >>in ] bi
         ]
     } 2cleave ;
+
+M: sqlite-db-connection insert-db-assigned-key-sql
+    insert-user-assigned-key-sql ;
+
+M: sqlite-db-connection insert-tuple-set-key ( tuple statement -- )
+    sql-command last-insert-id set-primary-key drop ;

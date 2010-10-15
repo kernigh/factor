@@ -1,6 +1,6 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs combinators combinators.smart
+USING: accessors arrays assocs combinators combinators.smart db
 db.binders db.statements db.types db.utils kernel locals make
 math.parser math.ranges namespaces nested-comments
 orm.persistent orm.queries postgresql.db.connections.private
@@ -31,14 +31,14 @@ M: postgresql-db-connection insert-db-assigned-key-sql
         [
 
             filter-tuple-values check-db-assigned-assoc
-            [ [ [ ", " % ] [ first column-name>> % ] interleave ");" % ] "" make add-sql ]
+            [ length n>bind-string add-sql ");" add-sql ]
             [ [ [ second ] [ first type>> ] bi <in-binder-low> ] map >>in ] bi
             { INTEGER } >>out
         ]
-    } 2cleave dup . ;
+    } 2cleave ;
 
-
-
+M: postgresql-db-connection insert-tuple-set-key ( tuple statement -- )
+    sql-query first first set-primary-key drop ;
 
 M: postgresql-db-connection insert-user-assigned-key-sql
     [ <statement> ] dip

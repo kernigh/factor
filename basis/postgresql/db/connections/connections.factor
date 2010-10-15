@@ -28,6 +28,8 @@ M: postgresql-db db>db-connection-generic ( db -- db-connection )
 M: postgresql-db-connection dispose* ( db-connection -- )
     [ handle>> PQfinish ] [ f >>handle drop ] bi ;
 
+ERROR: postgresql:sql-error string length ;
+
 M: postgresql-db-connection parse-sql-error
     "\n" split dup length {
         { 1 [ first parse-postgresql-sql-error ] }
@@ -36,4 +38,5 @@ M: postgresql-db-connection parse-sql-error
                 [ parse-postgresql-sql-error ] 2dip
                 postgresql-location >>location
         ] }
+        [ postgresql:sql-error ]
     } case ;

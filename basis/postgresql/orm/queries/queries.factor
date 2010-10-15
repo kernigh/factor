@@ -4,7 +4,7 @@ USING: accessors arrays assocs combinators combinators.smart db
 db.binders db.statements db.types db.utils kernel locals make
 math.parser math.ranges namespaces nested-comments
 orm.persistent orm.queries postgresql.db.connections.private
-sequences sqlite.orm.queries ;
+sequences sqlite.orm.queries math ;
 IN: postgresql.orm.queries
 
 ! TODOOOOOO
@@ -14,10 +14,13 @@ SYMBOL: postgresql-counter
     postgresql-counter [ inc ] [ get ] bi
     number>string "$" prepend ;
 
-: n>bind-string ( n -- string )
-    [1,b] [ number>string "$" prepend ] map "," join ;
+M: postgresql-db-connection n>bind-sequence ( n -- sequence )
+    [1,b] [ number>string "$" prepend ] map ;
 
-            ! [ find-primary-key first add-in ]
+M:: postgresql-db-connection continue-bind-sequence ( previous n -- sequence )
+    previous 1 +
+    dup n +
+    [a,b] [ number>string "$" prepend ] map ;
 
 ERROR: db-assigned-keys-not-empty assoc ;
 : check-db-assigned-assoc ( assoc -- assoc )
@@ -59,9 +62,6 @@ M: postgresql-db-connection insert-user-assigned-key-sql
     } 2cleave ;
 
 (*
-: bind-name% ( column -- )
-    ;
-
 M: postgresql-db-connection insert-user-assigned-key-sql
     [ <statement> ] dip >persistent {
         [ table-name>> "INSERT INTO " prepend add-sql "(" add-sql ]
@@ -142,9 +142,6 @@ M: postgresql-db-connection insert-user-assigned-key-sql
         "_seq'');' language sql;"
     ] "" append-outputs-as ;
 
-: db-assigned-key? ( persistent -- ? )
-     find-primary-key [ type>> +db-assigned-key+ = ] all? ;
-
 M: postgresql-db-connection create-table-sql ( tuple-class -- seq )
     [ postgresql-create-table ]
     [ dup db-assigned-key? [ postgresql-create-function 2array ] [ drop ] if ] bi ;
@@ -171,4 +168,4 @@ M: postgresql-db-connection create-table-sql ( tuple-class -- seq )
 M: postgresql-db-connection drop-table-sql ( tuple-class -- seq )
     [ postgresql-drop-table ]
     [ dup db-assigned-key? [ postgresql-drop-function 2array ] [ drop ] if ] bi ;
-    
+

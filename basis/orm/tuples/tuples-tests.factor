@@ -1,6 +1,6 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: classes.tuple.private db db.debug db.types debugger
+USING: db db.debug db.types debugger
 kernel nested-comments orm.persistent orm.tuples sequences
 tools.test ;
 IN: orm.tuples.tests
@@ -80,9 +80,6 @@ PERSISTENT: bar-2
 [ setup-test-2-sql ] test-dbs
 
 [ test-2 ] test-dbs
-
-
-
 
 
 TUPLE: foo-3 id a ;

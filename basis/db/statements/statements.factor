@@ -1,7 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays continuations db.connections db.errors
-db.result-sets db.utils destructors fry kernel sequences math ;
+db.result-sets db.utils destructors fry kernel sequences math
+vectors ;
 IN: db.statements
 
 TUPLE: statement handle sql in out after
@@ -32,8 +33,19 @@ HOOK: init-bind-index db-connection ( -- )
 : add-sql ( statement sql -- statement )
     '[ _ "" append-as ] change-sql ;
 
-: add-in ( statement binder -- statement ) over in>> push ;
-: add-out ( statement binder -- statement ) over out>> push ;
+GENERIC: add-in ( statement object -- statement )
+GENERIC: add-out ( statement object -- statement )
+
+: in-vector ( statmenet object -- statement object statement )
+    over [ >vector ] change-in in>> ;
+
+: out-vector ( statmenet object -- statement object statement )
+    over [ >vector ] change-out out>> ;
+
+M: sequence add-in in-vector push-all ;
+M: object add-in in-vector push ;
+M: sequence add-out out-vector push-all ;
+M: object add-out out-vector push ;
 
 HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: prepare-statement* db-connection ( statement -- statement' )

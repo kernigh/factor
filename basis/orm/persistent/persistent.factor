@@ -120,12 +120,8 @@ M: tuple-class find-primary-key ( class -- seq )
 M: tuple find-primary-key ( class -- seq )
     class find-primary-key ;
 
-: db-assigned-key? ( class -- ? )
-    find-primary-key [
-        f
-    ] [
-        [ type>> +db-assigned-key+? ] all?
-    ] if-empty ;
+: db-assigned-key? ( persistent -- ? )
+     find-primary-key [ type>> +db-assigned-key+ = ] all? ;
 
 : user-assigned-key? ( class -- ? )
     find-primary-key [ modifiers>> +primary-key+ swap member? ] all? ;

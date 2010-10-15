@@ -27,6 +27,9 @@ IN: orm.tuples
         insert-user-assigned-key-sql sql-command
     ] if ;
 
+: update-tuple ( tuple -- )
+    update-tuple-sql sql-command ;
+
 : select-tuples ( tuple -- seq )
     ;
 

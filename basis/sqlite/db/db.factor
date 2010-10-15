@@ -15,6 +15,7 @@ CONSTRUCTOR: sqlite-db ( path -- db ) ;
     "sqlite.db.result-sets"
     "sqlite.db.statements"
     "sqlite.db.types"
+    "sqlite.db.queries"
     ! "sqlite.db.introspection"
 
     "sqlite.orm"

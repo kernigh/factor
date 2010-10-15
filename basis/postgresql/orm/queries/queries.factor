@@ -17,20 +17,28 @@ SYMBOL: postgresql-counter
 : n>bind-string ( n -- string )
     [1,b] [ number>string "$" prepend ] map "," join ;
 
+            ! [ find-primary-key first add-in ]
+
+ERROR: db-assigned-keys-not-empty assoc ;
+: check-db-assigned-assoc ( assoc -- assoc )
+    dup [ first column-primary-key? ] filter
+    [ db-assigned-keys-not-empty ] unless-empty ;
+
 M: postgresql-db-connection insert-db-assigned-key-sql
     [ <statement> ] dip
-    >persistent {
-        [ table-name>> "select add_" prepend add-sql "(" add-sql ]
+    [ >persistent ] [ ] bi {
+        [ drop table-name>> trim-double-quotes "select add_" prepend add-sql "(" add-sql ]
         [
-            [ find-primary-key first add-in ]
-            [
-                columns>>
-                remove-primary-key
-                [ [ ", " % ] [ column-name>> % ] interleave ] "" make add-sql
-                ");" add-sql
-            ] bi
+
+            filter-tuple-values check-db-assigned-assoc
+            [ [ [ ", " % ] [ first column-name>> % ] interleave ");" % ] "" make add-sql ]
+            [ [ [ second ] [ first type>> ] bi <in-binder-low> ] map >>in ] bi
+            { INTEGER } >>out
         ]
-    } cleave ;
+    } 2cleave dup . ;
+
+
+
 
 M: postgresql-db-connection insert-user-assigned-key-sql
     [ <statement> ] dip

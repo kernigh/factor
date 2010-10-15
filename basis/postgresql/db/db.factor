@@ -17,6 +17,7 @@ TUPLE: postgresql-db
     "postgresql.db.result-sets"
     "postgresql.db.statements"
     "postgresql.db.types"
+    "postgresql.db.queries"
     ! "postgresql.db.introspection"
 
     "postgresql.orm"

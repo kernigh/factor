@@ -5,11 +5,19 @@ combinators.short-circuit db db.connections db.statements
 db.types db.utils fry kernel orm.tuples sequences strings ;
 IN: db.queries
 
+TUPLE: sql-object ;
+TUPLE: sql-column ;
+
 HOOK: current-db-name db-connection ( -- string )
 HOOK: sanitize-string db-connection ( string -- string )
-HOOK: table-exists-sql db-connection ( database table -- ? )
-HOOK: table-rows-sql db-connection ( database table -- ? )
-HOOK: table-row-class db-connection ( -- class )
+
+HOOK: databases-statement db-connection ( -- statement )
+HOOK: database-tables-statement db-connection ( database -- statement )
+HOOK: database-table-columns-statement db-connection ( database table -- sequence )
+
+HOOK: sql-object-class db-connection ( -- tuple-class )
+HOOK: sql-column-class db-connection ( -- tuple-class )
+
 
 ERROR: unsafe-sql-string string ;
 
@@ -25,35 +33,66 @@ PRIVATE>
 
 : >sql-name ( object -- string ) >sql-name* sanitize-string ;
 
-: database-table-exists? ( database table -- ? )
-    table-exists-sql sql-query ?first ?first >boolean ;
+: information-schema-select-sql ( string -- string' )
+    "SELECT * FROM information_schema." " " surround ;
 
-: table-exists? ( table -- ? )
-    [ current-db-name ] dip database-table-exists? ;
-
-CONSTANT: table-information-string
-    """SELECT * FROM information_schema.tables
-        WHERE
+: database-table-schema-select-sql ( string -- string )
+    information-schema-select-sql
+    """WHERE
             table_catalog=$1 AND 
             table_name=$2 AND
-            table_schema='public'"""
+            table_schema='public'""" append ;
 
-: table-information-statement ( database table -- statement )
+: database-schema-select-sql ( string -- string )
+    information-schema-select-sql
+    """WHERE
+            table_catalog=$1 AND 
+            table_schema='public'""" append ;
+
+M: object database-tables-statement
+    [ <statement> ] dip
+        1array >>in
+        "tables" database-schema-select-sql >>sql ;
+
+M: object databases-statement
+    <statement>
+        """SELECT DISTINCT table_catalog
+        FROM information_schema.tables
+        WHERE
+            table_schema='public'""" >>sql ;
+
+M: object database-table-columns-statement ( database table -- sequence )
     [ <statement> ] 2dip
         2array >>in
-        { BOOLEAN } >>out
-        table-information-string >>sql ;
+        "columns" database-table-schema-select-sql >>sql ;
 
-M: object table-exists-sql
-    table-information-statement
-    [ "SELECT EXISTS(" ")" surround ] change-sql ;
+: >sql-objects ( statement -- sequence' )
+    sql-query
+    sql-object-class '[ _ slots>tuple ] map ;
 
-M: object table-rows-sql
-    table-information-statement f >>out ;
+: >sql-columns ( statement -- sequence' )
+    sql-query
+    sql-column-class '[ _ slots>tuple ] map ;
 
-: database-table-rows ( database table -- sequence )
-    table-rows-sql sql-query
-    table-row-class '[ _ slots>tuple ] map ;
+: database-tables ( database -- sequence )
+    database-tables-statement >sql-objects ;
 
-: table-rows ( table -- sequence )
-    [ current-db-name ] dip database-table-rows ;
+: tables ( -- sequence )
+    current-db-name database-tables ;
+
+: database-table-names ( database -- sequence )
+    database-tables [ table-name>> ] map ;
+
+: table-names ( -- sequence )
+    current-db-name database-table-names ;
+
+: table-exists? ( table -- ? ) table-names member? ;
+
+: database-table-columns ( database table -- sequence )
+    database-table-columns-statement >sql-columns ;
+
+: table-columns ( table -- sequence )
+    [ current-db-name ] dip database-table-columns ;
+
+: databases ( -- sequence )
+    databases-statement sql-query concat ;

@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db.statements destructors fry
-kernel locals math sequences strings summary ;
+kernel locals math sequences strings summary vocabs.loader ;
 IN: db
 
 ERROR: no-in-types statement ;
@@ -60,3 +60,5 @@ M: statement sql-query ( statement -- sequence )
 
 M: sequence sql-command [ sql-command ] each ;
 M: sequence sql-query [ sql-query ] map ;
+
+"db.queries" require

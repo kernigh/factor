@@ -9,7 +9,9 @@ IN: db.queries.tests
     [ f ] [ "table_omg" table-exists? ] unit-test
     [ ] [ "create table table_omg(id integer);" sql-command ] unit-test
     [ t ] [ "table_omg" table-exists? ] unit-test
-    [ t ] [ "default_person" table-rows empty? not ] unit-test
-    ;
+    [ t ] [ "default_person" table-columns empty? not ] unit-test
+
+    [ ] [ "factor-test" database-tables drop ] unit-test
+    [ ] [ databases drop ] unit-test ;
 
 [ test-table-exists ] test-dbs

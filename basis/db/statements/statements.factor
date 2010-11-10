@@ -6,8 +6,7 @@ vectors ;
 IN: db.statements
 
 TUPLE: statement handle sql in out after
-retries errors retry-quotation ;
-! reconstructor
+retries errors retry-quotation reconstructor ;
 
 : normalize-statement ( statement -- statement )
     [ object>vector ] change-in

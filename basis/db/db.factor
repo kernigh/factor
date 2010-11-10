@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors continuations db.statements destructors fry
 kernel locals math sequences strings summary vocabs.loader
-db.query-objects ;
+db.query-objects reconstructors ;
 IN: db
 
 ERROR: no-in-types statement ;
@@ -58,8 +58,13 @@ M: query sql-command
 
 M: statement sql-query ( statement -- sequence )
     [
-        prepare-statement
-        [ bind-sequence ] [ statement>result-sequence ] bi
+        [
+            prepare-statement
+            [ bind-sequence ] [ statement>result-sequence ] bi
+        ] [
+            drop
+            ! reconstructor>> [ rows>tuples ] when*
+        ] bi
     ] run-retryable ; inline
 
 M: sequence sql-command [ sql-command ] each ;

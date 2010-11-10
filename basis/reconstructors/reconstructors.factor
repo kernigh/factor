@@ -5,7 +5,6 @@ kernel locals macros make math orm.persistent prettyprint
 sequences sequences.private splitting.monotonic nested-comments ;
 IN: reconstructors
 
-(*
 ERROR: no-setter ;
 
 : out-binder>setter ( toc -- word )
@@ -37,8 +36,7 @@ MACRO:: row>tuples ( spec -- quot )
     ] map [ ] concat-as '[ _ { } make nip ] ;
 
 MACRO: rows>tuples ( spec -- quot )
-    '[ [ _ row>tuples ] map ] ;
-
+    '[ [ _ row>tuples ] map concat ] ;
 
 (*
 TUPLE: bag id beans ;
@@ -51,5 +49,4 @@ TUPLE: bean id color ;
     { T{ bag { id 0 } } T{ bean { id 0 } { color "blue" } } }
     { T{ bag { id 0 } } T{ bean { id 1 } { color "red" } } }
 }
-*)
 *)

@@ -31,7 +31,7 @@ IN: orm.tuples
     update-tuple-sql sql-command ;
 
 : select-tuples ( tuple -- seq )
-    ;
+    select-tuple-sql ; ! sql-query ;
 
 : select-tuple ( tuple -- elt/f )
     select-tuples ?first ;

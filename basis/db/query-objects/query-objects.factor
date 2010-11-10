@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors combinators constructors db.binders
 db.statements db.utils kernel make math namespaces sequences
-sequences.deep sets ;
+sequences.deep sets strings ;
 IN: db.query-objects
 
 TUPLE: query ;
@@ -32,6 +32,8 @@ GENERIC: >qualified-column-name ( in -- string )
 
 M: binder >table-as ( obj -- string )
     toc>> >table-as ;
+
+M: string >table-as ( string -- string ) ;
 
 M: table-ordinal >table-as ( obj -- string )
     { table-name>> table-name>> table-ordinal>> } slots
@@ -156,7 +158,7 @@ M: insert query-object>statement*
     [ >table-as ] map ", " join ;
 
 : select-from ( select -- string )
-    from>> renamed-table-names ;
+    from>> ?1array renamed-table-names ;
 
 GENERIC: >join-string ( join-binder -- string )
 

@@ -1,10 +1,19 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators db db.binders
-db.statements db.types fry kernel make namespaces
-nested-comments orm.persistent orm.queries sequences
-sqlite.db.connections sqlite.db.lib ;
+db.query-objects db.statements db.types db.utils fry kernel
+make namespaces nested-comments orm.persistent orm.queries
+sequences sqlite.db.connections sqlite.db.lib namespaces ;
 IN: sqlite.orm.queries
+
+(*
+M: sqlite-db-connection reset-bind-index
+    0 \ bind-index set ;
+
+M: sqlite-db-connection next-bind-index
+    \ bind-index [ get ] [ inc ] bi number>string ;
+*)
+
 
 (*
 : insert-trigger-not-null ( -- string )
@@ -167,3 +176,11 @@ M: sqlite-db-connection insert-db-assigned-key-sql
 
 M: sqlite-db-connection insert-tuple-set-key ( tuple statement -- )
     sql-command last-insert-id set-primary-key drop ;
+
+M: sqlite-db-connection select-tuple-sql ( tuple -- object )
+    [ <select> ] dip
+    [ >persistent ] [ ] bi {
+        [ filter-tuple-values [ first2 <column-binder-in> ] map >>in ]
+        [ drop columns>> [ <column-binder-out> ] map >>out ]
+        [ drop 1array >>from ]
+    } 2cleave ;

@@ -18,6 +18,16 @@ HOOK: select-tuple-sql db-connection ( tuple -- object )
 
 HOOK: n>bind-sequence db-connection ( n -- sequence ) 
 HOOK: continue-bind-sequence db-connection ( previous n -- sequence )
+
+(*
+SYMBOL: bind-index
+HOOK: reset-bind-index db-connection ( -- )
+HOOK: next-bind-index db-connection ( -- string )
+
+: with-bind-index ( quot -- )
+    '[ reset-bind-index @ ] with-scope ; inline
+*)
+
 : n>bind-string ( n -- string ) n>bind-sequence "," join ;
 M: object n>bind-sequence "?" <repetition> ;
 M: object continue-bind-sequence nip "?" <repetition> ;

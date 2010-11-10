@@ -5,7 +5,7 @@ db.statements db.utils kernel make math namespaces sequences
 sequences.deep sets strings ;
 IN: db.query-objects
 
-TUPLE: query ;
+TUPLE: query reconstructor ;
 
 TUPLE: insert < query { in sequence } ;
 CONSTRUCTOR: insert ( -- insert ) ;
@@ -204,6 +204,9 @@ M: delete query-object>statement*
 : query-object>statement ( object1 -- object2 )
     [
         init-bind-index
-        [ <statement> ] dip query-object>statement*
+        [ <statement> ] dip {
+            [ query-object>statement* ]
+            [ reconstructor>> >>reconstructor ]
+        } cleave
         ! normalize-fql
     ] with-scope ;

@@ -6,6 +6,12 @@ namespaces orm.persistent sequences shuffle db.utils
 nested-comments locals ;
 IN: orm
 
+
+
+
+
+(*
+
 TUPLE: relations internal external ;
 
 SYMBOL: table-counter
@@ -89,4 +95,5 @@ Don't introspect the quotation at runtime.
         ! [ tuple>relations relations>joins 1array >>join ]
         ! [ ]
     } cleave ;
+*)
 *)

@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors db.connections sqlite.db.connections
 sqlite.db.ffi sqlite.db.lib db.statements destructors kernel
-namespaces sqlite.db ;
+namespaces ;
 IN: sqlite.db.statements
 
 M: sqlite-db-connection prepare-statement* ( statement -- statement )

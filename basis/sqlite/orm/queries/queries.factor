@@ -3,7 +3,7 @@
 USING: accessors arrays assocs combinators db db.binders
 db.query-objects db.statements db.types db.utils fry kernel
 make namespaces nested-comments orm.persistent orm.queries
-sequences sqlite.db.connections sqlite.db.lib namespaces ;
+sequences sqlite.db.connections sqlite.db.lib orm.binders ;
 IN: sqlite.orm.queries
 
 (*

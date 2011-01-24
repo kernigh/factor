@@ -1,152 +1,74 @@
-! Copyright (C) 2008 Doug Coleman.
+! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: arrays assocs classes continuations destructors kernel math
-namespaces sequences classes.tuple words strings
-tools.walker accessors combinators fry db.errors ;
+USING: accessors continuations db.statements destructors fry
+kernel locals math sequences strings summary vocabs.loader
+db.query-objects reconstructors ;
 IN: db
 
-TUPLE: db-connection
-    handle
-    insert-statements
-    update-statements
-    delete-statements ;
+ERROR: no-in-types statement ;
+ERROR: no-out-types statement ;
 
-<PRIVATE
+GENERIC: sql-command ( object -- )
+GENERIC: sql-query ( object -- sequence )
 
-: new-db-connection ( class -- obj )
-    new
-        H{ } clone >>insert-statements
-        H{ } clone >>update-statements
-        H{ } clone >>delete-statements ; inline
+M: string sql-command ( string -- )
+    <statement>
+        swap >>sql
+    sql-command ;
 
-PRIVATE>
+M: string sql-query ( string -- sequence )
+    <statement>
+        swap >>sql
+    sql-query ;
 
-GENERIC: db-open ( db -- db-connection )
-HOOK: db-close db-connection ( handle -- )
-HOOK: parse-db-error db-connection ( error -- error' )
+ERROR: retryable-failed statement ;
 
-: dispose-statements ( assoc -- ) values dispose-each ;
+: execute-retry-quotation ( statement -- statement )
+    dup retry-quotation>> call( statement -- statement ) ;
 
-M: db-connection dispose ( db-connection -- ) 
-    dup db-connection [
-        [ dispose-statements H{ } clone ] change-insert-statements
-        [ dispose-statements H{ } clone ] change-update-statements
-        [ dispose-statements H{ } clone ] change-delete-statements
-        [ db-close f ] change-handle
-        drop
-    ] with-variable ;
-
-TUPLE: result-set sql in-params out-params handle n max ;
-
-GENERIC: query-results ( query -- result-set )
-GENERIC: #rows ( result-set -- n )
-GENERIC: #columns ( result-set -- n )
-GENERIC# row-column 1 ( result-set column -- obj )
-GENERIC# row-column-typed 1 ( result-set column -- sql )
-GENERIC: advance-row ( result-set -- )
-GENERIC: more-rows? ( result-set -- ? )
-
-: init-result-set ( result-set -- )
-    dup #rows >>max
-    0 >>n drop ;
-
-: new-result-set ( query handle class -- result-set )
-    new
-        swap >>handle
-        [ [ sql>> ] [ in-params>> ] [ out-params>> ] tri ] dip
-        swap >>out-params
-        swap >>in-params
-        swap >>sql ;
-
-TUPLE: statement handle sql in-params out-params bind-params bound? type retries ;
-TUPLE: simple-statement < statement ;
-TUPLE: prepared-statement < statement ;
-
-: new-statement ( sql in out class -- statement )
-    new
-        swap >>out-params
-        swap >>in-params
-        swap >>sql ;
-
-HOOK: <simple-statement> db-connection ( string in out -- statement )
-HOOK: <prepared-statement> db-connection ( string in out -- statement )
-GENERIC: prepare-statement ( statement -- )
-GENERIC: bind-statement* ( statement -- )
-GENERIC: low-level-bind ( statement -- )
-GENERIC: bind-tuple ( tuple statement -- )
-
-GENERIC: execute-statement* ( statement type -- )
-
-M: object execute-statement* ( statement type -- )
-    '[
-        _ _ drop query-results dispose
+:: (run-retryable) ( statement quot: ( statement -- statement ) -- obj )
+    statement retries>> 0 > [
+        statement [ 1 - ] change-retries drop
+        [
+            statement quot call
+        ] [
+            statement errors>> push
+            statement execute-retry-quotation reset-statement
+            quot (run-retryable)
+        ] recover
     ] [
-        parse-db-error rethrow
-    ] recover ;
-
-: execute-one-statement ( statement -- )
-    dup type>> execute-statement* ;
-
-: execute-statement ( statement -- )
-    dup sequence? [
-        [ execute-one-statement ] each
-    ] [
-        execute-one-statement
-    ] if ;
-
-: bind-statement ( obj statement -- )
-    swap >>bind-params
-    [ bind-statement* ] keep
-    t >>bound? drop ;
-
-: sql-row ( result-set -- seq )
-    dup #columns [ row-column ] with { } map-integers ;
-
-: sql-row-typed ( result-set -- seq )
-    dup #columns [ row-column-typed ] with { } map-integers ;
-
-: query-each ( statement quot: ( statement -- ) -- )
-    over more-rows? [
-        [ call ] 2keep over advance-row query-each
-    ] [
-        2drop
+        statement retryable-failed
     ] if ; inline recursive
 
-: query-map ( statement quot -- seq )
-    collector [ query-each ] dip { } like ; inline
+: run-retryable ( statement quot -- )
+    over retries>> [
+        '[ _ (run-retryable) ] with-disposal
+    ] [
+        with-disposal
+    ] if ; inline
 
-: with-db ( db quot -- )
-    [ db-open db-connection ] dip
-    '[ db-connection get [ drop @ ] with-disposal ] with-variable ; inline
+M: statement sql-command ( statement -- )
+    [
+        prepare-statement
+        [ bind-sequence ] [ statement>result-set ] bi
+    ] run-retryable drop ; inline
 
-! Words for working with raw SQL statements
-: default-query ( query -- result-set )
-    query-results [ [ sql-row ] query-map ] with-disposal ;
+M: query sql-command
+    query-object>statement sql-command ;
 
-: sql-query ( sql -- rows )
-    f f <simple-statement> [ default-query ] with-disposal ;
+M: statement sql-query ( statement -- sequence )
+    [
+        [
+            prepare-statement
+            [ bind-sequence ] [ statement>result-sequence ] bi
+        ] [
+            reconstructor>> [ rows>tuples ] when*
+        ] bi
+    ] run-retryable ; inline
 
-: (sql-command) ( string -- )
-    f f <simple-statement> [ execute-statement ] with-disposal ;
+M: sequence sql-command [ sql-command ] each ;
+M: sequence sql-query [ sql-query ] map ;
+M: query sql-query
+    query-object>statement sql-query ;
 
-: sql-command ( sql -- )
-    dup string? [ (sql-command) ] [ [ (sql-command) ] each ] if ;
-
-! Transactions
-SYMBOL: in-transaction
-
-HOOK: begin-transaction db-connection ( -- )
-HOOK: commit-transaction db-connection ( -- )
-HOOK: rollback-transaction db-connection ( -- )
-
-M: db-connection begin-transaction ( -- ) "BEGIN" sql-command ;
-M: db-connection commit-transaction ( -- ) "COMMIT" sql-command ;
-M: db-connection rollback-transaction ( -- ) "ROLLBACK" sql-command ;
-
-: in-transaction? ( -- ? ) in-transaction get ;
-
-: with-transaction ( quot -- )
-    t in-transaction [
-        begin-transaction
-        [ ] [ rollback-transaction ] cleanup commit-transaction
-    ] with-variable ; inline
+"db.queries" require

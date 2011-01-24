@@ -34,10 +34,16 @@ IN: xml.autoencoding
     ] if ;
 
 : prolog-encoding ( prolog -- )
-    encoding>> dup "UTF-16" =
-    [ drop ] [
-        dup name>encoding
-        [ decode-stream ] [ bad-encoding ] ?if
+    encoding>> dup { "UTF-16" "utf-16" } member? [
+        drop
+    ] [
+        dup name>encoding [
+            decode-stream
+        ] [
+            ! Try to normalize the encoding name if initial lookup fails
+            dup >lower name>encoding
+            [ decode-stream ] [ bad-encoding ] ?if
+        ] ?if
     ] if ;
 
 : instruct-encoding ( instruct/prolog -- )

@@ -44,7 +44,7 @@ HELP: nths
 { $values
      { "indices" sequence } { "seq" sequence }
      { "seq'" sequence } }
-{ $description "Outputs a sequence of elements from the input sequence indexed by the indices." }
+{ $description "Outputs a sequence of elements from the input sequence indexed by the indices using the input sequence as an exemplar." }
 { $examples
     { $example "USING: prettyprint sequences ;"
                "{ 0 2 } { \"a\" \"b\" \"c\" } nths ."

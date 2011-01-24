@@ -559,7 +559,7 @@ PRIVATE>
     [ [ (indices) ] 2curry each-index ] keep ;
 
 : nths ( indices seq -- seq' )
-    [ nth ] curry map ;
+    [ [ nth ] curry ] keep map-as ;
 
 : any? ( ... seq quot: ( ... elt -- ... ? ) -- ... ? )
     find drop >boolean ; inline

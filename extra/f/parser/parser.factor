@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors ascii f.dictionary f.lexer fry kernel math
 namespaces nested-comments sequences f.words f.manifest
-math.parser sequences.deep ;
+math.parser sequences.deep vocabs.loader ;
 IN: f.parser
 
 : with-output-variable ( obj symbol quot -- obj )
@@ -167,3 +167,4 @@ ERROR: expected expected got ;
     [ expect ]
     [ search definition>> call( -- obj ) ] bi ;
 
+"f.cheat" require

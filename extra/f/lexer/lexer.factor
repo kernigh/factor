@@ -3,23 +3,31 @@
 USING: accessors ascii classes combinators.short-circuit
 constructors continuations f.dictionary fry io
 io.encodings.utf8 io.files kernel make math namespaces
-sequences strings words nested-comments ;
+sequences strings words nested-comments splitting ;
 IN: f.lexer
 
 ERROR: lexer-error error ;
 
 CONSTRUCTOR: lexer-error ( error -- obj ) ;
 
-TUPLE: lexer path lines line# column# ;
+TUPLE: lexer lines line# column# ;
 
 : reset-lexer ( lexer -- lexer )
     0 >>line#
     0 >>column# ;
 
-TUPLE: file-lexer < lexer ;
+TUPLE: file-lexer < lexer path ;
 
 CONSTRUCTOR: file-lexer ( path -- obj )
     dup path>> utf8 file-lines >>lines
+    reset-lexer ;
+
+TUPLE: string-lexer < lexer ;
+
+: <string-lexer> ( string -- obj )
+    string-lines
+    string-lexer new
+        swap >>lines
     reset-lexer ;
 
 TUPLE: token line# start stop text ;
@@ -40,6 +48,9 @@ CONSTRUCTOR: token ( text -- obj )
 
 : with-file-lexer ( path quot -- )
     [ <file-lexer> ] dip with-lexer ; inline
+
+: with-string-lexer ( string quot -- )
+    [ <string-lexer> ] dip with-lexer ; inline
 
 : last-line? ( lexer -- ? )
     [ line#>> ] [ lines>> length ] bi >= ;

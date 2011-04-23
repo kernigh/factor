@@ -5,16 +5,14 @@ namespaces sequences sets io ;
 IN: f.manifest
 
 TUPLE: manifest
-    path
     current-vocabulary
     search-vocabulary-names
     search-vocabularies
     objects ;
     ! qualified-vocabularies
 
-: <manifest> ( path -- obj )
+: <manifest> ( -- obj )
     \ manifest new
-        swap >>path
         H{ } clone >>search-vocabulary-names
         V{ } clone >>search-vocabularies
         ! V{ } clone >>qualified-vocabs

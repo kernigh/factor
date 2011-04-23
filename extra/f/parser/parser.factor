@@ -126,7 +126,7 @@ ERROR: unknown-token token ;
 : add-parse-tree ( token -- )
     \ manifest get objects>> push ;
 
-: (parse-factor-file) ( -- )
+: (parse-factor) ( -- )
     [ lexer get lexer-done? not ]
     [ parse [ add-parse-tree ] when* ] while ;
 
@@ -134,16 +134,20 @@ PRIVATE>
 
 GENERIC: preload-manifest ( manifest -- manifest )
     
+: with-parser ( quot -- manifest )
+    [
+        <manifest> preload-manifest
+        \ manifest
+    ] dip '[
+        V{ } clone parsing-context set
+        0 parsing-depth set @
+    ] with-output-variable ; inline
+
 : parse-factor-file ( path -- tree )
-    dup <manifest>
-    preload-manifest
-    \ manifest [
-        [
-            V{ } clone parsing-context set
-            0 parsing-depth set
-            (parse-factor-file)
-        ] with-file-lexer
-    ] with-output-variable ;
+    [ [ (parse-factor) ] with-parser ] with-file-lexer ;
+
+: parse-factor ( string -- tree )
+    [ [ (parse-factor) ] with-parser ] with-string-lexer ;
 
 : tokens ( seq -- seq' )
     dup parsed? [

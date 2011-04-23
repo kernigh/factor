@@ -14,21 +14,17 @@ SYMBOL: parsing-depth
 : new-parsing-context ( -- )
     V{ } clone parsing-context get push ;
 
-: >parsing-context ( token -- )
-    parsing-context get parsing-depth get 0 <= [
-        push
-    ] [
-        last push
-    ] if ;
+: current-parsing-context ( -- seq )
+    parsing-context get
+    parsing-depth get 0 > [ last ] when ;
 
-: >all-parsing-context ( token -- )
-    parsing-context get parsing-depth get 0 <= [
-        push-all
-    ] [
-        last push-all
-    ] if ;
+: push-parsing ( token -- )
+    current-parsing-context push ;
 
-: parsing-context> ( -- seq )
+: push-all-parsing ( token -- )
+    current-parsing-context push-all ;
+
+: pop-parsing ( -- seq )
     parsing-context get pop ;
 
 TUPLE: parsed tokens ;
@@ -73,49 +69,54 @@ ERROR: unknown-token token ;
     [
         parsing-depth inc
         new-parsing-context
-        [ >parsing-context ]
+        [ push-parsing ]
         [ definition>> call( -- obj ) ] bi*
         parsing-depth dec
-        parsing-context>
-    ] keep <parsed-parsing-word> >parsing-context ;
+        pop-parsing
+    ] keep <parsed-parsing-word> push-parsing ;
 
 : lookup-token ( token/f -- )
     dup text>> search [
         dup parsing-word? [
             process-parsing-word
         ] [
-            <parsed-word> >parsing-context
+            <parsed-word> push-parsing
         ] if
     ] [
         dup text>> string>number [
-            <parsed-number> >parsing-context
+            <parsed-number> push-parsing
         ] [
-            >parsing-context
+            push-parsing
         ] if*
     ] if* ;
 
 : token ( -- token/f )
-    lex-token [ [ >parsing-context ] [ text>> ] bi ] [ f ] if* ;
+    lex-token [ [ push-parsing ] [ text>> ] bi ] [ f ] if* ;
 
 : tokens-until ( string -- seq )
     new-parsing-context
     '[
         token [ _ = not ] [ f ] if*
     ] loop
-    parsing-context> [ >all-parsing-context ] [ but-last ] bi
+    pop-parsing [ push-all-parsing ] [ but-last ] bi
     [ text>> ] map ;
 
 : parse ( -- obj/f )
     lex-token [ lookup-token get-last-parsed ] [ f ] if* ;
 
+: parse-again? ( string object -- ? )
+    dup parsed-parsing-word? [
+        2drop t
+    ] [
+        last-token text>> = not
+    ] if ;
+
 ! A parsing word cannot trigger the end of a parse-until.
 ! Example: { { } } -- } cannot be a parsing word
 : parse-until ( string -- seq )
     new-parsing-context
-    '[
-        parse [ dup parsed-parsing-word? [ drop t ] [ last-token text>> _ = not ] if ] [ f ] if*
-    ] loop
-    parsing-context> [ >all-parsing-context ] [ but-last ] bi ;
+    '[ parse [ [ _ ] dip parse-again? ] [ t ] if* ] loop
+    pop-parsing [ push-all-parsing ] [ but-last ] bi ;
 
 : token-til-eol ( -- string/f )
     lex-til-eol ;

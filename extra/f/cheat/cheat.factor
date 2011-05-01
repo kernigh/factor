@@ -31,8 +31,8 @@ C: <end-private> end-private
 TUPLE: instance instance mixin ;
 C: <instance> instance
 
-TUPLE: comment text ;
-C: <comment> comment
+! TUPLE: comment text ;
+! C: <comment> comment
 
 TUPLE: using vocabularies ;
 C: <using> using

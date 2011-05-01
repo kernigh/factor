@@ -8,6 +8,7 @@ TUPLE: manifest
     current-vocabulary
     search-vocabulary-names
     search-vocabularies
+    comments
     objects ;
     ! qualified-vocabularies
 
@@ -16,6 +17,7 @@ TUPLE: manifest
         H{ } clone >>search-vocabulary-names
         V{ } clone >>search-vocabularies
         ! V{ } clone >>qualified-vocabs
+        V{ } clone >>comments
         V{ } clone >>objects ;
 
 : (search-manifest) ( string assocs -- words )

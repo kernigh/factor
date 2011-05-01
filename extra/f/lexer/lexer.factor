@@ -83,15 +83,13 @@ CONSTRUCTOR: token ( text -- obj )
     [ take-line <token> ]
     [ advance-line drop ] bi ;
 
-: lex-token ( -- token/f )
+: lex-token ( -- comment/token/f )
     lexer get
     [ ?next-line current-position [ blank? ] find-from drop ] keep
     over [ take-token ] [ nip take-line ] if
     [ <token> ] [ f ] if*
     lexer get [ 1 + ] change-column# drop
     dup [ dup text>> empty? [ drop lex-token ] when ] when ;
-
-
 
 
 (*

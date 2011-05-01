@@ -5,6 +5,9 @@ namespaces nested-comments sequences f.words f.manifest
 math.parser sequences.deep vocabs.loader ;
 IN: f.parser
 
+TUPLE: comment text ;
+C: <comment> comment
+
 : with-output-variable ( obj symbol quot -- obj )
     over [ get ] curry compose with-variable ; inline
 
@@ -123,8 +126,12 @@ ERROR: unknown-token token ;
 
 <PRIVATE
 
-: add-parse-tree ( token -- )
-    \ manifest get objects>> push ;
+: parsed-comment? ( obj -- ? )
+    dup parsed-parsing-word? [ object>> comment? ] [ drop f ] if ;
+
+: add-parse-tree ( comment/token -- )
+    \ manifest get
+    over parsed-comment? [ comments>> ] [ objects>> ] if push ;
 
 : (parse-factor) ( -- )
     [ lexer get lexer-done? not ]

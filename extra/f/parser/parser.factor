@@ -39,7 +39,7 @@ TUPLE: parsed-word < parsed word ;
 
 TUPLE: parsed-parsing-word < parsed word object ;
 
-TUPLE: parsed-string < parsed name string delimiter ;
+TUPLE: parsed-string < parsed string delimiter ;
 
 : new-parsed ( tokens class -- parsed )
     new

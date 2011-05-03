@@ -3,8 +3,35 @@
 USING: accessors ascii classes combinators.short-circuit
 constructors continuations f.dictionary fry io
 io.encodings.utf8 io.files kernel make math namespaces
-sequences strings words nested-comments splitting ;
+sequences strings words nested-comments splitting grouping ;
 IN: f.lexer
+
+: loop>sequence ( quot exemplar -- seq )
+    [ '[ [ @ [ [ , ] when* ] keep ] loop ] ] dip make ; inline
+
+: loop>array ( quot -- seq )
+    { } loop>sequence ; inline
+
+: sequential? ( sequence -- ? )
+    2 <clumps> [ first2 - -1 = not ] find drop not ;
+
+: (start*-maximum) ( subseq seq n -- i/f )
+    3dup 1 + start* [
+        2dup - -1 = [
+            nip (start*-maximum)
+        ] [
+            [ 3drop ] dip
+        ] if
+    ] [
+        2nip
+    ] if* ;
+
+: start*-maximum ( subseq seq n -- i/f )
+    3dup start* [
+        nip (start*-maximum)
+    ] [
+        3drop f
+    ] if* ;
 
 ERROR: lexer-error error ;
 
@@ -30,12 +57,11 @@ TUPLE: string-lexer < lexer ;
         swap >>lines
     reset-lexer ;
 
-TUPLE: token line# start stop text ;
+TUPLE: token line# start text ;
 
 CONSTRUCTOR: token ( text -- obj )
     lexer get line#>> >>line#
-    lexer get column#>> >>stop
-    dup [ stop>> ] [ text>> length ] bi - >>start ;
+    lexer get column#>> over text>> length - >>start ;
 
 : advance-line ( lexer -- lexer )
     [ 1 + ] change-line#
@@ -61,6 +87,9 @@ CONSTRUCTOR: token ( text -- obj )
 : current-position ( lexer -- n string )
     [ column#>> ] [ current-line ] bi ;
 
+: current-character ( lexer -- ch/f )
+    current-position ?nth ;
+
 : take-token ( n lexer -- string )
     [ current-position swapd subseq ]
     [ column#<< ] 2bi ;
@@ -83,14 +112,39 @@ CONSTRUCTOR: token ( text -- obj )
     [ take-line <token> ]
     [ advance-line drop ] bi ;
 
+: advance-column ( n -- )
+    [ lexer get ] dip '[ _ + ] change-column# drop ;
+
+ERROR: token-not-found string ;
+
+ERROR: string-trailing-token token ;
+
 : lex-token ( -- comment/token/f )
     lexer get
     [ ?next-line current-position [ blank? ] find-from drop ] keep
     over [ take-token ] [ nip take-line ] if
     [ <token> ] [ f ] if*
-    lexer get [ 1 + ] change-column# drop
+    1 advance-column
     dup [ dup text>> empty? [ drop lex-token ] when ] when ;
 
+: lex-til-string ( string -- token/f )
+    dup '[
+        [
+            _
+            lexer get line-done? [ "" , ] when
+            lexer get ?next-line lexer-done? [ token-not-found ] when
+            lexer get current-position swap start*-maximum [
+                [ [ lexer get current-position ] dip swap subseq ]
+                [ _ length + lexer get column#<< ] bi , f
+            ] [
+                lexer get take-line , t
+            ] if*
+        ] loop
+    ] { } make "\n" join
+    lexer get current-character [
+        blank? [ lex-token text>> string-trailing-token ] unless
+        1 advance-column
+    ] when* ;
 
 (*
 : with-input-rewind ( quot -- )

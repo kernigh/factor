@@ -2,7 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors ascii f.dictionary f.lexer fry kernel math
 namespaces nested-comments sequences f.words f.manifest
-math.parser sequences.deep vocabs.loader ;
+math.parser sequences.deep vocabs.loader combinators
+strings splitting arrays ;
 IN: f.parser
 
 TUPLE: comment text ;
@@ -38,6 +39,8 @@ TUPLE: parsed-word < parsed word ;
 
 TUPLE: parsed-parsing-word < parsed word object ;
 
+TUPLE: parsed-string < parsed name string delimiter ;
+
 : new-parsed ( tokens class -- parsed )
     new
         swap >>tokens ; inline
@@ -54,6 +57,11 @@ TUPLE: parsed-parsing-word < parsed word object ;
 : <parsed-number> ( token n -- number )
     [ parsed-number new-parsed ] dip
         >>n ; inline
+
+: <parsed-string> ( token string delimiter -- parsed-string )
+    [ parsed-string new-parsed ] 2dip
+        [ >>string ] dip
+        >>delimiter ; inline
 
 GENERIC: last-token ( obj -- token/f )
 
@@ -78,20 +86,58 @@ ERROR: unknown-token token ;
         pop-parsing
     ] keep <parsed-parsing-word> push-parsing ;
 
-: lookup-token ( token/f -- )
-    dup text>> search [
-        dup parsing-word? [
-            process-parsing-word
-        ] [
-            <parsed-word> push-parsing
-        ] if
+: single-string-object ( token -- string )
+    dup text>> CHAR: " 1string split1 [ >>text ] dip
+    CHAR: " 1string lex-til-string " " glue "\"" <parsed-string> ;
+
+ERROR: malformed-string string ;
+
+: check-complete-string ( token indices -- string )
+    2dup [ text>> length ] [ last 1 + ] bi* =
+    [ malformed-string ] unless drop ;
+
+: complete-string-object ( token indices -- string )
+    check-complete-string
+    dup text>> CHAR: " 1string split1 [ >>text ] dip
+    but-last CHAR: " <parsed-string> ;
+
+ERROR: malformed-triple-string string ;
+: triple-string-object ( token indices -- string )
+    3 head sequential? [ malformed-triple-string ] unless
+    dup text>> "\"\"\"" split1 [ >>text ] dip
+    dup "\"\"\"" tail? [
+        3 head*
     ] [
-        dup text>> string>number [
-            <parsed-number> push-parsing
+        "\"\"\"" lex-til-string " " glue
+    ] if
+    "\"\"\"" <parsed-string> ;
+
+: parse-string-object ( token -- object )
+    CHAR: " over text>> indices
+    dup length {
+        { 1 [ drop single-string-object ] }
+        { 2 [ complete-string-object ] }
+        [ drop triple-string-object ]
+    } case ;
+
+: lookup-token ( token -- )
+    CHAR: " over text>> member? [
+        parse-string-object push-parsing
+    ] [
+        dup text>> search [
+            dup parsing-word? [
+                process-parsing-word
+            ] [
+                <parsed-word> push-parsing
+            ] if
         ] [
-            push-parsing
+            dup text>> string>number [
+                <parsed-number> push-parsing
+            ] [
+                push-parsing
+            ] if*
         ] if*
-    ] if* ;
+    ] if ;
 
 : token ( -- token/f )
     lex-token [ [ push-parsing ] [ text>> ] bi ] [ f ] if* ;

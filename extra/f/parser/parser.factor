@@ -72,7 +72,6 @@ ERROR: unknown-token token ;
 
 : lookup-token ( token -- )
     dup text search [
-B
         dup parsing-word? [
             process-parsing-word
         ] [
@@ -95,17 +94,21 @@ B
         f
     ] if* ;
 
-: token ( -- token/f )
+ERROR: premature-eof ;
+ERROR: token-expected token ;
+
+: maybe-token ( -- token/f )
     next-token [ [ push-parsing ] [ ] bi ] [ f ] if* ;
-    ! next-token [ [ push-parsing ] [ text>> ] bi ] [ f ] if* ;
+
+: token ( -- token/f )
+    maybe-token [ premature-eof ] unless* ;
 
 : tokens-until ( string -- seq )
     new-parsing-context
-    '[
-        token [ _ = not ] [ f ] if*
+    dup '[
+        maybe-token [ _ = not ] [ _ token-expected ] if*
     ] loop
     pop-parsing [ push-all-parsing ] [ but-last ] bi ;
-    ! [ text>> ] map ;
 
 : parse ( -- obj/f )
     next-token [ lookup-token get-last-parsed ] [ f ] if* ;

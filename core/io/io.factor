@@ -10,6 +10,8 @@ GENERIC: stream-element-type ( stream -- type )
 
 GENERIC: stream-read1 ( stream -- elt )
 GENERIC: stream-read ( n stream -- seq )
+GENERIC: stream-peek1 ( stream -- elt )
+GENERIC: stream-peek ( n stream -- seq )
 GENERIC: stream-read-until ( seps stream -- seq sep/f )
 GENERIC: stream-read-partial ( n stream -- seq )
 GENERIC: stream-readln ( stream -- str/f )
@@ -36,6 +38,8 @@ SYMBOL: error-stream
 : readln ( -- str/f ) input-stream get stream-readln ;
 : read1 ( -- elt ) input-stream get stream-read1 ;
 : read ( n -- seq ) input-stream get stream-read ;
+: peek1 ( -- elt ) input-stream get stream-peek1 ;
+: peek ( n -- seq ) input-stream get stream-peek ;
 : read-until ( seps -- seq sep/f ) input-stream get stream-read-until ;
 : read-partial ( n -- seq ) input-stream get stream-read-partial ;
 : tell-input ( -- n ) input-stream get stream-tell ;
@@ -69,6 +73,10 @@ SYMBOL: error-stream
     #! if both streams point to the same FD, we get to flush the
     #! buffer before closing the FD.
     swapd [ with-output-stream ] curry with-input-stream ; inline
+
+: with-input-rewind ( quot -- )
+    tell-input [ call ] dip
+    seek-absolute seek-input ; inline
 
 : print ( str -- ) output-stream get stream-print ;
 

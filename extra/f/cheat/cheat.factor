@@ -111,7 +111,7 @@ C: <exclude> exclude
 
 : fake-syntax-vocabulary ( -- vocabulary )
     "syntax" <vocabulary>
-        "syntax" "!" [ token-til-eol <comment> ] add-parsing-word
+        "syntax" "!" [ token-til-eol <line-comment> ] add-parsing-word
         "syntax" "USING:" [ ";" tokens-until <using> ] add-parsing-word
         "syntax" "USE:" [ token 1array <using> ] add-parsing-word
         "syntax" "UNUSE:" [ token <unuse> ] add-parsing-word

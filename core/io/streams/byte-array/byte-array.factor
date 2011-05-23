@@ -21,6 +21,8 @@ M: byte-reader stream-element-type drop +byte+ ;
 M: byte-reader stream-read-partial stream-read ;
 M: byte-reader stream-read sequence-read ;
 M: byte-reader stream-read1 sequence-read1 ;
+M: byte-reader stream-peek sequence-peek ;
+M: byte-reader stream-peek1 sequence-peek1 ;
 M: byte-reader stream-read-until sequence-read-until ;
 M: byte-reader dispose drop ;
 

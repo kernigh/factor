@@ -61,6 +61,9 @@ M: decoder stream-seek stream>> stream-seek ;
 M: decoder stream-read1
     dup >decoder< decode-char fix-read1 ;
 
+M: decoder stream-peek1
+    [ stream-read1 ] with-input-rewind ;
+
 : fix-read ( stream string -- string )
     over cr>> [
         over cr-
@@ -86,6 +89,9 @@ M: decoder stream-read1
 M: decoder stream-read
     [ nip ] [ >decoder< [ decode-char ] 2curry (read) finish-read ] 2bi
     fix-read ;
+
+M: decoder stream-peek
+    [ stream-read ] with-input-rewind ;
 
 M: decoder stream-read-partial stream-read ;
 

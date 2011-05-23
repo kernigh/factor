@@ -3,11 +3,8 @@
 USING: accessors ascii f.dictionary f.lexer fry kernel math
 namespaces nested-comments sequences f.words f.manifest
 math.parser sequences.deep vocabs.loader combinators
-strings splitting arrays ;
+strings splitting arrays io io.streams.document ;
 IN: f.parser
-
-TUPLE: comment text ;
-C: <comment> comment
 
 : with-output-variable ( obj symbol quot -- obj )
     over [ get ] curry compose with-variable ; inline
@@ -31,19 +28,11 @@ SYMBOL: parsing-depth
 : pop-parsing ( -- seq )
     parsing-context get pop ;
 
-TUPLE: parsed tokens ;
-
 TUPLE: parsed-number < parsed n ;
 
 TUPLE: parsed-word < parsed word ;
 
 TUPLE: parsed-parsing-word < parsed word object ;
-
-TUPLE: parsed-string < parsed string delimiter ;
-
-: new-parsed ( tokens class -- parsed )
-    new
-        swap >>tokens ; inline
 
 : <parsed-word> ( token word -- number )
     [ parsed-word new-parsed ] dip
@@ -58,14 +47,9 @@ TUPLE: parsed-string < parsed string delimiter ;
     [ parsed-number new-parsed ] dip
         >>n ; inline
 
-: <parsed-string> ( token string delimiter -- parsed-string )
-    [ parsed-string new-parsed ] 2dip
-        [ >>string ] dip
-        >>delimiter ; inline
-
 GENERIC: last-token ( obj -- token/f )
 
-M: token last-token ;
+! M: token last-token ;
 M: sequence last-token [ f ] [ last last-token ] if-empty ;
 M: parsed last-token tokens>> last-token ;
 
@@ -86,72 +70,45 @@ ERROR: unknown-token token ;
         pop-parsing
     ] keep <parsed-parsing-word> push-parsing ;
 
-: single-string-object ( token -- string )
-    dup text>> CHAR: " 1string split1 [ >>text ] dip
-    CHAR: " 1string lex-til-string " " glue "\"" <parsed-string> ;
-
-ERROR: malformed-string string ;
-
-: check-complete-string ( token indices -- string )
-    2dup [ text>> length ] [ last 1 + ] bi* =
-    [ malformed-string ] unless drop ;
-
-: complete-string-object ( token indices -- string )
-    check-complete-string
-    dup text>> CHAR: " 1string split1 [ >>text ] dip
-    but-last CHAR: " <parsed-string> ;
-
-ERROR: malformed-triple-string string ;
-: triple-string-object ( token indices -- string )
-    3 head sequential? [ malformed-triple-string ] unless
-    dup text>> "\"\"\"" split1 [ >>text ] dip
-    dup "\"\"\"" tail? [
-        3 head*
-    ] [
-        "\"\"\"" lex-til-string " " glue
-    ] if
-    "\"\"\"" <parsed-string> ;
-
-: parse-string-object ( token -- object )
-    CHAR: " over text>> indices
-    dup length {
-        { 1 [ drop single-string-object ] }
-        { 2 [ complete-string-object ] }
-        [ drop triple-string-object ]
-    } case ;
-
 : lookup-token ( token -- )
-    CHAR: " over text>> member? [
-        parse-string-object push-parsing
-    ] [
-        dup text>> search [
-            dup parsing-word? [
-                process-parsing-word
-            ] [
-                <parsed-word> push-parsing
-            ] if
+    dup text search [
+B
+        dup parsing-word? [
+            process-parsing-word
         ] [
-            dup text>> string>number [
-                <parsed-number> push-parsing
-            ] [
-                push-parsing
-            ] if*
+            <parsed-word> push-parsing
+        ] if
+    ] [
+        dup text string>number [
+            <parsed-number> push-parsing
+        ] [
+            push-parsing
         ] if*
-    ] if ;
+    ] if* ;
+
+: next-token ( -- obj/f )
+    lex-token [
+        dup comment? [
+            manifest get comments>> push next-token
+        ] when
+    ] [
+        f
+    ] if* ;
 
 : token ( -- token/f )
-    lex-token [ [ push-parsing ] [ text>> ] bi ] [ f ] if* ;
+    next-token [ [ push-parsing ] [ ] bi ] [ f ] if* ;
+    ! next-token [ [ push-parsing ] [ text>> ] bi ] [ f ] if* ;
 
 : tokens-until ( string -- seq )
     new-parsing-context
     '[
         token [ _ = not ] [ f ] if*
     ] loop
-    pop-parsing [ push-all-parsing ] [ but-last ] bi
-    [ text>> ] map ;
+    pop-parsing [ push-all-parsing ] [ but-last ] bi ;
+    ! [ text>> ] map ;
 
 : parse ( -- obj/f )
-    lex-token [ lookup-token get-last-parsed ] [ f ] if* ;
+    next-token [ lookup-token get-last-parsed ] [ f ] if* ;
 
 : parse-again? ( string object -- ? )
     dup parsed-parsing-word? [
@@ -180,7 +137,7 @@ ERROR: malformed-triple-string string ;
     over parsed-comment? [ comments>> ] [ objects>> ] if push ;
 
 : (parse-factor) ( -- )
-    [ lexer get lexer-done? not ]
+    [ input-stream get lexer-done? not ]
     [ parse [ add-parse-tree ] when* ] while ;
 
 PRIVATE>

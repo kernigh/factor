@@ -28,24 +28,35 @@ SYMBOL: parsing-depth
 : pop-parsing ( -- seq )
     parsing-context get pop ;
 
+: pop-last-parsed ( -- obj/f )
+    parsing-context get
+    parsing-depth get 0 > [
+        last
+    ] when
+    [ f ] [ pop ] if-empty ;
+
+: get-last-parsed ( -- obj/f )
+    parsing-context get
+    parsing-depth get 0 > [ last ] when
+    [ f ] [ last ] if-empty ;
+
 TUPLE: parsed-number < lexed n ;
+
+: <parsed-number> ( n -- number )
+    [ pop-last-parsed parsed-number new-lexed ] dip
+        >>n ; inline
 
 TUPLE: parsed-word < lexed word ;
 
-TUPLE: parsed-parsing-word < lexed word object ;
-
-: <parsed-word> ( token word -- number )
-    [ parsed-word new-lexed ] dip
+: <parsed-word> ( word -- number )
+    [ pop-last-parsed parsed-word new-lexed ] dip
         >>word ; inline
 
-: <parsed-parsing-word> ( object token word -- number )
-    [ parsed-parsing-word new-lexed ] dip
-        >>word
-        swap >>object ; inline
+TUPLE: parsed-parsing-word < lexed word object ;
 
-: <parsed-number> ( token n -- number )
-    [ parsed-number new-lexed ] dip
-        >>n ; inline
+: <parsed-parsing-word> ( object -- number )
+    [ pop-last-parsed parsed-parsing-word new-lexed ] dip
+        >>object ; inline
 
 GENERIC: last-token ( obj -- token/f )
 
@@ -54,25 +65,20 @@ M: sequence last-token [ f ] [ last last-token ] if-empty ;
 M: lexed last-token tokens>> last-token ;
 M: integer last-token ;
 
-: get-last-parsed ( -- obj/f )
-    parsing-context get
-    parsing-depth get 0 > [ last ] when
-    [ f ] [ last ] if-empty ;
-
 ERROR: unknown-token token ;
 
-: process-parsing-word ( token parsing-word -- )
-    [
-        parsing-depth inc
-        new-parsing-context
-        [ push-parsing ]
-        [ definition>> call( -- obj ) ] bi*
-        parsing-depth dec
-        pop-parsing
-    ] keep <parsed-parsing-word> push-parsing ;
+: process-parsing-word ( parsing-word -- )
+    pop-last-parsed
+    new-parsing-context
+    parsing-depth inc
+    push-parsing
+    definition>> call( -- obj )
+    parsing-depth dec
+    <parsed-parsing-word> push-parsing ;
 
-: lookup-token ( token -- )
+: lookup-token ( string -- )
     dup search [
+        nip
         dup parsing-word? [
             process-parsing-word
         ] [
@@ -80,10 +86,10 @@ ERROR: unknown-token token ;
         ] if
     ] [
         dup string>number [
-            <parsed-number> push-parsing
+            nip <parsed-number> push-parsing
         ] [
             ! unknown token
-            push-parsing
+            drop
         ] if*
     ] if* ;
 
@@ -91,29 +97,27 @@ ERROR: unknown-token token ;
     lex-token [
         dup comment? [
             manifest get comments>> push next-token
-        ] when
+        ] [
+            dup push-parsing text
+        ] if
     ] [
         f
     ] if* ;
 
 ERROR: premature-eof ;
-ERROR: token-expected token ;
-
-: maybe-token ( -- token/f )
-    next-token [ dup push-parsing ] [ f ] if* ;
+ERROR: token-expected expected ;
 
 : token ( -- token/f )
-    maybe-token [ premature-eof ] unless* ;
+    next-token [ premature-eof ] unless* ;
 
 : tokens-until ( string -- seq )
     new-parsing-context
     dup '[
-        maybe-token [ _ = not ] [ _ token-expected ] if*
+        next-token [ _ = not ] [ _ token-expected ] if*
     ] loop
     pop-parsing [ push-all-parsing ] [ but-last ] bi ;
 
 : parse ( -- obj/f )
-B
     next-token [ lookup-token get-last-parsed ] [ f ] if* ;
 
 : parse-again? ( string object -- ? )

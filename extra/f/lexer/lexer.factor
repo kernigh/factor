@@ -16,19 +16,6 @@ IN: f.lexer
 
 TUPLE: lexer stream comment-nesting-level string-mode ;
 
-TUPLE: parsed tokens ;
-
-: new-parsed ( tokens class -- parsed )
-    new
-        swap >>tokens ; inline
-
-TUPLE: parsed-string < parsed string delimiter ;
-
-: <parsed-string> ( token string delimiter -- parsed-string )
-    [ parsed-string new-parsed ] 2dip
-        [ >>string ] dip
-        >>delimiter ; inline
-
 : new-lexer ( lexer -- lexer )
     new
         0 >>comment-nesting-level ; inline
@@ -74,18 +61,23 @@ TUPLE: file-lexer < lexer path ;
 : with-file-lexer ( path quot -- )
     [ <file-lexer> ] dip with-lexer ; inline
 
-: lexer-done? ( lexer -- ? ) stream>> stream-peek1 not ;
+TUPLE: lexed tokens ;
 
-: text ( token/f -- string/f ) dup [ text>> ] when ;
+: new-lexed ( tokens class -- parsed )
+    new
+        swap >>tokens ; inline
 
-: lex-blanks ( -- )
-    [ peek1 text blank? [ read1 ] [ f ] if ] loop>array drop ;
+TUPLE: lexed-string < lexed string delimiter ;
 
-: lex-til-eol ( -- comment )
-    [ peek1 text "\r\n" member? [ f ] [ read1 text ] if ] loop>array >string ;
+TUPLE: lexed-token < lexed string ;
 
-TUPLE: line-comment < parsed text ;
-TUPLE: nested-comment < parsed start comment finish ;
+: <lexed-string> ( token string delimiter -- lexed-string )
+    [ lexed-string new-lexed ] 2dip
+        [ >>string ] dip
+        >>delimiter ; inline
+
+TUPLE: line-comment < lexed text ;
+TUPLE: nested-comment < lexed start comment finish ;
 
 UNION: comment line-comment nested-comment ;
 
@@ -98,6 +90,17 @@ UNION: comment line-comment nested-comment ;
         swap >>finish
         swap >>comment
         swap >>start ; inline
+
+
+: lexer-done? ( lexer -- ? ) stream>> stream-peek1 not ;
+
+: text ( token/f -- string/f ) dup [ text>> ] when ;
+
+: lex-blanks ( -- )
+    [ peek1 text blank? [ read1 ] [ f ] if ] loop>array drop ;
+
+: lex-til-eol ( -- comment )
+    [ peek1 text "\r\n" member? [ f ] [ read1 text ] if ] loop>array >string ;
 
 : lex-nested-comment ( -- comments )
     input-stream get [ 1 + ] change-comment-nesting-level drop

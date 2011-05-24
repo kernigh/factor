@@ -28,30 +28,31 @@ SYMBOL: parsing-depth
 : pop-parsing ( -- seq )
     parsing-context get pop ;
 
-TUPLE: parsed-number < parsed n ;
+TUPLE: parsed-number < lexed n ;
 
-TUPLE: parsed-word < parsed word ;
+TUPLE: parsed-word < lexed word ;
 
-TUPLE: parsed-parsing-word < parsed word object ;
+TUPLE: parsed-parsing-word < lexed word object ;
 
 : <parsed-word> ( token word -- number )
-    [ parsed-word new-parsed ] dip
+    [ parsed-word new-lexed ] dip
         >>word ; inline
 
 : <parsed-parsing-word> ( object token word -- number )
-    [ parsed-parsing-word new-parsed ] dip
+    [ parsed-parsing-word new-lexed ] dip
         >>word
         swap >>object ; inline
 
 : <parsed-number> ( token n -- number )
-    [ parsed-number new-parsed ] dip
+    [ parsed-number new-lexed ] dip
         >>n ; inline
 
 GENERIC: last-token ( obj -- token/f )
 
 ! M: token last-token ;
 M: sequence last-token [ f ] [ last last-token ] if-empty ;
-M: parsed last-token tokens>> last-token ;
+M: lexed last-token tokens>> last-token ;
+M: integer last-token ;
 
 : get-last-parsed ( -- obj/f )
     parsing-context get
@@ -71,16 +72,17 @@ ERROR: unknown-token token ;
     ] keep <parsed-parsing-word> push-parsing ;
 
 : lookup-token ( token -- )
-    dup text search [
+    dup search [
         dup parsing-word? [
             process-parsing-word
         ] [
             <parsed-word> push-parsing
         ] if
     ] [
-        dup text string>number [
+        dup string>number [
             <parsed-number> push-parsing
         ] [
+            ! unknown token
             push-parsing
         ] if*
     ] if* ;
@@ -98,7 +100,7 @@ ERROR: premature-eof ;
 ERROR: token-expected token ;
 
 : maybe-token ( -- token/f )
-    next-token [ [ push-parsing ] [ ] bi ] [ f ] if* ;
+    next-token [ dup push-parsing ] [ f ] if* ;
 
 : token ( -- token/f )
     maybe-token [ premature-eof ] unless* ;
@@ -111,20 +113,21 @@ ERROR: token-expected token ;
     pop-parsing [ push-all-parsing ] [ but-last ] bi ;
 
 : parse ( -- obj/f )
+B
     next-token [ lookup-token get-last-parsed ] [ f ] if* ;
 
 : parse-again? ( string object -- ? )
     dup parsed-parsing-word? [
         2drop t
     ] [
-        last-token text>> = not
+        last-token = not
     ] if ;
 
 ! A parsing word cannot trigger the end of a parse-until.
 ! Example: { { } } -- } cannot be a parsing word
 : parse-until ( string -- seq )
     new-parsing-context
-    '[ parse [ [ _ ] dip parse-again? ] [ t ] if* ] loop
+    '[ parse [ [ _ ] dip parse-again? ] [ f ] if* ] loop
     pop-parsing [ push-all-parsing ] [ but-last ] bi ;
 
 : token-til-eol ( -- string/f )
@@ -156,14 +159,17 @@ GENERIC: preload-manifest ( manifest -- manifest )
         0 parsing-depth set @
     ] with-output-variable ; inline
 
+: parse-factor-quot ( -- quot )
+    [ [ (parse-factor) ] with-parser ] ; inline
+
 : parse-factor-file ( path -- tree )
-    [ [ (parse-factor) ] with-parser ] with-file-lexer ;
+    parse-factor-quot with-file-lexer ;
 
 : parse-factor ( string -- tree )
-    [ [ (parse-factor) ] with-parser ] with-string-lexer ;
+    parse-factor-quot with-string-lexer ;
 
 : tokens ( seq -- seq' )
-    dup parsed? [
+    dup lexed? [
         tokens>> tokens
     ] [
         dup sequence? [

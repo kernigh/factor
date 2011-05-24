@@ -1,6 +1,7 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: arrays f.vocabularies f.words f.manifest kernel f.parser ;
+USING: arrays f.vocabularies f.words f.manifest kernel f.parser
+f.lexer ;
 IN: f.cheat
 
 TUPLE: stack-effect in out ;
@@ -48,6 +49,9 @@ C: <predicate> predicate
 
 TUPLE: mixin mixin ;
 C: <mixin> mixin
+
+TUPLE: math name stack-effect ;
+C: <math> math
 
 TUPLE: generic name stack-effect ;
 C: <generic> generic
@@ -133,6 +137,8 @@ C: <exclude> exclude
 
         "syntax" "MIXIN:" [ token <mixin> ] add-parsing-word
         "syntax" "INSTANCE:" [ token token <instance> ] add-parsing-word
+
+        "syntax" "MATH:" [ token "(" call-parsing-word <math> ] add-parsing-word
 
         "syntax" "GENERIC:" [ token "(" call-parsing-word <generic> ] add-parsing-word
         "syntax" ":" [ token "(" call-parsing-word ";" parse-until <fword> ] add-parsing-word

@@ -71,10 +71,10 @@ TUPLE: lexed-string < lexed string delimiter ;
 
 TUPLE: lexed-token < lexed string ;
 
-: <lexed-string> ( token string delimiter -- lexed-string )
+: <lexed-string> ( token delimiter string -- lexed-string )
     [ lexed-string new-lexed ] 2dip
-        [ >>string ] dip
-        >>delimiter ; inline
+        [ >>delimiter ] dip
+        >>string ; inline
 
 TUPLE: line-comment < lexed text ;
 TUPLE: nested-comment < lexed start comment finish ;
@@ -94,7 +94,7 @@ UNION: comment line-comment nested-comment ;
 
 : lexer-done? ( lexer -- ? ) stream>> stream-peek1 not ;
 
-: text ( token/f -- string/f ) dup [ text>> ] when ;
+: text ( token/f -- string/f ) dup token? [ text>> ] when ;
 
 : lex-blanks ( -- )
     [ peek1 text blank? [ read1 ] [ f ] if ] loop>array drop ;
@@ -151,11 +151,7 @@ ERROR: bad-short-string ;
     [
         peek1 text CHAR: " = [
             1 read drop
-            peek1 text { CHAR: \n CHAR: \r CHAR: \t f } member? [
-                f
-            ] [
-                CHAR: "
-            ] if
+            f
         ] [
             peek1 text {
                 { CHAR: \ [ 2 read [ text ] map >string ] }
@@ -166,13 +162,14 @@ ERROR: bad-short-string ;
 
 : read-string ( string -- string )
     2 peek text >string "\"\"" = [
-        2 read drop read-long-string
+        2 read drop
+        "\"\"\"" read-long-string
     ] [
-        read-short-string
-    ] if 2array ;
+        "\"" read-short-string
+    ] if <lexed-string> ;
 
 : lex-string/token ( -- string/token )
-    "\" \n\r" read-until CHAR: " = [
+    " \n\r\"" read-until text>> CHAR: " = [
         read-string
     ] when ;
 

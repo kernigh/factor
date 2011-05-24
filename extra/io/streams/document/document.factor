@@ -82,11 +82,15 @@ M: document-reader stream-read-until
         ] when
         [
             [ nip >>previous-character drop ]
-            [ [ <token> ] dip ]
+            [ drop <token> ]
             [ drop update-line-read ] 3tri
         ] 3keep
         nip
-        CHAR: \n = [ next-line ] [ [ 1 + ] change-column# drop ] if
+        [
+            <token>
+        ] [
+            CHAR: \n = [ next-line ] [ [ 1 + ] change-column# drop ] if
+        ] 2bi
     ] [
         3drop f f
     ] if ;

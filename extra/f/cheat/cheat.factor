@@ -22,6 +22,9 @@ C: <recursive> recursive
 TUPLE: flushable ;
 C: <flushable> flushable
 
+TUPLE: foldable ;
+C: <foldable> foldable
+
 TUPLE: begin-private ;
 C: <begin-private> begin-private
 
@@ -55,6 +58,9 @@ C: <math> math
 
 TUPLE: generic name stack-effect ;
 C: <generic> generic
+
+TUPLE: generic# name arity stack-effect ;
+C: <generic#> generic#
 
 TUPLE: constructor name class ;
 C: <constructor> constructor
@@ -141,6 +147,7 @@ C: <exclude> exclude
         "syntax" "MATH:" [ token "(" call-parsing-word <math> ] add-parsing-word
 
         "syntax" "GENERIC:" [ token "(" call-parsing-word <generic> ] add-parsing-word
+        "syntax" "GENERIC#" [ token token "(" call-parsing-word <generic#> ] add-parsing-word
         "syntax" ":" [ token "(" call-parsing-word ";" parse-until <fword> ] add-parsing-word
         "syntax" "M:" [ token token ";" parse-until <fmethod> ] add-parsing-word
 
@@ -161,6 +168,7 @@ C: <exclude> exclude
         "syntax" "inline" [ <inline> ] add-parsing-word
         "syntax" "recursive" [ <recursive> ] add-parsing-word
         "syntax" "flushable" [ <flushable> ] add-parsing-word
+        "syntax" "foldable" [ <foldable> ] add-parsing-word
         "syntax" "<PRIVATE" [ <begin-private> ] add-parsing-word
         "syntax" "PRIVATE>" [ <end-private> ] add-parsing-word
 

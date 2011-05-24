@@ -60,7 +60,7 @@ TUPLE: parsed-parsing-word < lexed word object ;
 
 GENERIC: last-token ( obj -- token/f )
 
-! M: token last-token ;
+M: token last-token ;
 M: sequence last-token [ f ] [ last last-token ] if-empty ;
 M: lexed last-token tokens>> last-token ;
 M: integer last-token ;
@@ -118,13 +118,15 @@ ERROR: token-expected expected ;
     pop-parsing [ push-all-parsing ] [ but-last ] bi ;
 
 : parse ( -- obj/f )
-    next-token [ lookup-token get-last-parsed ] [ f ] if* ;
+    next-token
+    [ dup lexed-string? [ drop ] [ lookup-token ] if get-last-parsed ]
+    [ f ] if* ;
 
 : parse-again? ( string object -- ? )
     dup parsed-parsing-word? [
         2drop t
     ] [
-        last-token = not
+        last-token dup token? [ text ] when = not
     ] if ;
 
 ! A parsing word cannot trigger the end of a parse-until.

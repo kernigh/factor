@@ -99,8 +99,32 @@ M: document-reader stream-peek
     [ nip ] [ stream>> stream-peek ] 2bi
     [ <token> ] [ drop f ] if* ;
 
-M: document-reader stream-tell stream>> stream-tell ;
-M: document-reader stream-seek stream>> stream-seek ;
+TUPLE: document-stream-marker line# column# n ;
+
+: <document-stream-marker> ( line# column# n -- document-stream-marker )
+    document-stream-marker new
+        swap >>n
+        swap >>column#
+        swap >>line# ; inline
+
+M: document-reader stream-tell
+    [ line#>> ]
+    [ column#>> ]
+    [ stream>> stream-tell ] tri <document-stream-marker> ;
+
+ERROR: document-stream-seek-absolute-only seek-type stream ;
+
+: check-seek-type ( seek-type stream -- seek-type stream )
+    over seek-absolute = [ document-stream-seek-absolute-only ] unless ;
+
+M: document-reader stream-seek
+    check-seek-type
+    [ [ n>> ] 2dip stream>> stream-seek ]
+    [
+        nip
+        [ [ line#>> ] dip line#<< ]
+        [ [ column#>> ] dip column#<< ] 2bi
+    ] 3bi ;
 
 M: document-reader dispose stream>> dispose ;
 

@@ -5,7 +5,7 @@ combinators.short-circuit constructors continuations
 destructors f.dictionary fry grouping io io.encodings.utf8
 io.files io.streams.document io.streams.string
 kernel lexer make math namespaces nested-comments sequences
-splitting strings words arrays ;
+splitting strings words arrays locals ;
 IN: f.lexer
 
 : loop>sequence ( quot exemplar -- seq )
@@ -23,15 +23,6 @@ TUPLE: lexer stream comment-nesting-level string-mode ;
 : <lexer> ( stream -- lexer )
     lexer new-lexer
         swap >>stream ; inline
-
-M: lexer dispose stream>> dispose ;
-M: lexer stream-read1 stream>> stream-read1 ;
-M: lexer stream-read stream>> stream-read ;
-M: lexer stream-read-until stream>> stream-read-until ;
-M: lexer stream-peek1 stream>> stream-peek1 ;
-M: lexer stream-peek stream>> stream-peek ;
-M: lexer stream-seek stream>> stream-seek ;
-M: lexer stream-tell stream>> stream-tell ;
 
 ERROR: lexer-error error ;
 
@@ -182,3 +173,47 @@ ERROR: bad-short-string ;
         { [ dup f = ] [ drop f ] }
         [ drop lex-string/token ]
     } cond ;
+
+M: lexer dispose stream>> dispose ;
+
+M: lexer stream-read1
+    stream>> [
+        lex-token
+    ] with-input-stream* ;
+
+M: lexer stream-read
+    stream>> [
+        [ lex-token ] replicate
+    ] with-input-stream* sift f like ;
+
+:: lexer-stream-read-until ( seps -- sep/f )
+    lex-token [
+        dup text>> seps member? [
+            , seps lexer-stream-read-until
+        ] unless
+    ] [
+        f
+    ] if* ;
+
+M: lexer stream-read-until
+    stream>> swap '[
+        [ _ lexer-stream-read-until ] { } make f like swap
+    ] with-input-stream* ;
+
+M: lexer stream-peek1
+    stream>> [
+        [ lex-token ] with-input-rewind
+    ] with-input-stream* ;
+
+M: lexer stream-peek
+    stream>> [
+        '[
+            [ lex-token ] replicate
+        ] with-input-rewind
+    ] with-input-stream* sift f like ;
+
+M: lexer stream-seek
+    stream>> stream-seek ;
+
+M: lexer stream-tell
+    stream>> stream-tell ;

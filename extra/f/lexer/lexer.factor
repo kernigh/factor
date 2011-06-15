@@ -143,11 +143,11 @@ ERROR: bad-short-string ;
             f
         ] [
             peek1 text {
-                { CHAR: \ [ 2 read [ text ] map >string ] }
+                { CHAR: \ [ 2 read text ] }
                 [ drop read1 [ text ] [ bad-short-string ] if* ]
             } case
         ] if
-    ] loop>array >string ;
+    ] loop>array concat ;
 
 : read-string ( string -- string )
     2 peek text >string "\"\"" = [

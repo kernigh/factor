@@ -143,6 +143,9 @@ C: <function-alias> function-alias
 TUPLE: function return name parameters ;
 C: <function> function
 
+TUPLE: struct name slots ;
+C: <struct> struct
+
 TUPLE: gl-function return name obj parameters ;
 C: <gl-function> gl-function
 
@@ -166,6 +169,12 @@ C: <parse-time> parse-time
 
 TUPLE: constant name value ;
 C: <constant> constant
+
+TUPLE: syntax name body ;
+C: <syntax> syntax
+
+TUPLE: functor-syntax name body ;
+C: <functor-syntax> functor-syntax
 
 : add-parsing-word ( manifest vocab name quot -- manifest )
     <parsing-word> over add-word-to-vocabulary ;
@@ -268,6 +277,12 @@ C: <constant> constant
         "syntax" "<<" [ ">>" parse-until <parse-time> ] add-parsing-word
 
         "syntax" "TYPEDEF:" [ token token <typedef> ] add-parsing-word
+        "syntax" "STRUCT:" [
+            token ";" parse-until <struct>
+        ] add-parsing-word
+
+        "syntax" "SYNTAX:" [ chunk ";" parse-until <syntax> ] add-parsing-word
+        "syntax" "FUNCTOR-SYNTAX:" [ chunk ";" parse-until <functor-syntax> ] add-parsing-word
 
         "syntax" "C-TYPE:" [ token <ctype> ] add-parsing-word
         "syntax" "LIBRARY:" [ token <library> ] add-parsing-word

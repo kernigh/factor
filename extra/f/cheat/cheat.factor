@@ -119,6 +119,12 @@ C: <exclude> exclude
 TUPLE: tuple name slots ;
 C: <tuple> tuple
 
+TUPLE: boa-tuple name slots ;
+C: <boa-tuple> boa-tuple
+
+TUPLE: assoc-tuple name slots ;
+C: <assoc-tuple> assoc-tuple
+
 : add-parsing-word ( manifest vocab name quot -- manifest )
     <parsing-word> over add-word-to-vocabulary ;
 
@@ -199,6 +205,28 @@ C: <tuple> tuple
                     ] if
                 ] loop
             ] { } make <tuple>
+        ] add-parsing-word
+
+        "syntax" "T{" [
+            token
+            peek-token "f" = [
+                token drop
+                ";" parse-until <boa-tuple>
+            ] [
+                [
+                    [
+                        token dup "}" = [
+                            drop f
+                        ] [
+                            "{" = [
+                                "}" tokens-until , t
+                            ] [
+                                "bad tuple" throw
+                            ] if
+                        ] if
+                    ] loop
+                ] { } make <assoc-tuple>
+            ] if
         ] add-parsing-word
     ;
 

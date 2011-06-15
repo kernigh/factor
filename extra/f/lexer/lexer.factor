@@ -176,6 +176,11 @@ ERROR: bad-short-string ;
         [ drop lex-string/token ]
     } cond ;
 
+: lex-chunk ( -- token/f )
+    " \n\r" input-stream get stream>> stream-read-until [
+        drop f
+    ] unless ;
+
 : peek-token ( -- token/string/comment/f )
     peek1 text>> ;
 

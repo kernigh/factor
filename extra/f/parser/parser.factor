@@ -107,8 +107,11 @@ ERROR: unknown-token token ;
 ERROR: premature-eof ;
 ERROR: token-expected expected ;
 
-: token ( -- token/f )
+: token ( -- token/string/f )
     next-token [ premature-eof ] unless* ;
+
+: chunk ( -- token/f )
+    lex-chunk [ premature-eof ] unless* ;
 
 : tokens-until ( string -- seq )
     new-parsing-context

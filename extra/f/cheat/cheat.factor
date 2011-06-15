@@ -116,6 +116,12 @@ C: <rename> rename
 TUPLE: exclude vocabulary words ;
 C: <exclude> exclude
 
+TUPLE: defer name ;
+C: <defer> defer
+
+TUPLE: char ch ;
+C: <char> char
+
 TUPLE: tuple name slots ;
 C: <tuple> tuple
 
@@ -187,7 +193,9 @@ C: <assoc-tuple> assoc-tuple
         "syntax" "RENAME:" [ token token "=>" expect token <rename> ] add-parsing-word
         "syntax" "QUALIFIED:" [ token <qualified> ] add-parsing-word
         "syntax" "QUALIFIED-WITH:" [ token token <qualified-with> ] add-parsing-word
-        
+
+        "syntax" "DEFER:" [ token <defer> ] add-parsing-word
+        "syntax" "CHAR:" [ chunk <char> ] add-parsing-word
 
         "syntax" "TUPLE:" [
             token 

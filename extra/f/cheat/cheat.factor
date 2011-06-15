@@ -1,7 +1,7 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: arrays f.vocabularies f.words f.manifest kernel f.parser
-f.lexer ;
+f.lexer make ;
 IN: f.cheat
 
 TUPLE: stack-effect in out ;
@@ -116,6 +116,9 @@ C: <rename> rename
 TUPLE: exclude vocabulary words ;
 C: <exclude> exclude
 
+TUPLE: tuple name slots ;
+C: <tuple> tuple
+
 : add-parsing-word ( manifest vocab name quot -- manifest )
     <parsing-word> over add-word-to-vocabulary ;
 
@@ -179,6 +182,24 @@ C: <exclude> exclude
         "syntax" "QUALIFIED:" [ token <qualified> ] add-parsing-word
         "syntax" "QUALIFIED-WITH:" [ token token <qualified-with> ] add-parsing-word
         
+
+        "syntax" "TUPLE:" [
+            token 
+            [
+                [
+                    token
+                    dup ";" = [
+                        drop f
+                    ] [
+                        dup "{" = [
+                            drop "}" tokens-until ,
+                        ] [
+                            ,
+                        ] if t
+                    ] if
+                ] loop
+            ] { } make <tuple>
+        ] add-parsing-word
     ;
 
 M: object preload-manifest ( manifest -- manifest )

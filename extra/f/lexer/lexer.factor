@@ -83,8 +83,6 @@ UNION: comment line-comment nested-comment ;
         swap >>start ; inline
 
 
-: lexer-done? ( lexer -- ? ) stream>> stream-peek1 not ;
-
 : text ( token/f -- string/f ) dup token? [ text>> ] when ;
 
 : lex-blanks ( -- )
@@ -159,10 +157,14 @@ ERROR: bad-short-string ;
         "\"" read-short-string
     ] if <lexed-string> ;
 
-: lex-string/token ( -- string/token )
-    " \n\r\"" read-until text>> CHAR: " = [
-        read-string
-    ] when ;
+: lex-string/token ( -- string/token/f )
+    " \n\r\"" read-until [
+        text>> CHAR: " = [
+            read-string
+        ] when
+    ] [
+        drop f
+    ] if* ;
 
 : lex-token ( -- token/string/comment/f )
     lex-blanks
@@ -173,6 +175,9 @@ ERROR: bad-short-string ;
         { [ dup f = ] [ drop f ] }
         [ drop lex-string/token ]
     } cond ;
+
+: peek-token ( -- token/string/comment/f )
+    peek1 text>> ;
 
 M: lexer dispose stream>> dispose ;
 

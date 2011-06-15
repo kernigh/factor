@@ -94,7 +94,7 @@ ERROR: unknown-token token ;
     ] if* ;
 
 : next-token ( -- obj/f )
-    lex-token [
+    read1 [
         dup comment? [
             manifest get comments>> push next-token
         ] [
@@ -148,8 +148,10 @@ ERROR: token-expected expected ;
     \ manifest get
     over parsed-comment? [ comments>> ] [ objects>> ] if push ;
 
+: stream-empty? ( stream -- ? ) stream-peek1 not >boolean ;
+
 : (parse-factor) ( -- )
-    [ input-stream get lexer-done? not ]
+    [ input-stream get stream-empty? not ]
     [ parse [ add-parse-tree ] when* ] while ;
 
 PRIVATE>

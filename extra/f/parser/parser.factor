@@ -198,6 +198,9 @@ ERROR: expected expected got ;
 : expect ( string -- )
     token 2dup = [ 2drop ] [ expected ] if ;
 
+: optional ( string -- )
+    peek-token = [ token drop ] when ;
+
 : call-parsing-word ( string -- obj )
     [ expect ]
     [ search definition>> call( -- obj ) ] bi ;

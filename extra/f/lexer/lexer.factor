@@ -144,7 +144,7 @@ ERROR: bad-short-string ;
         ] [
             peek1 text {
                 { CHAR: \ [ 2 read text ] }
-                [ drop read1 [ text ] [ bad-short-string ] if* ]
+                [ drop read1 [ text 1string ] [ bad-short-string ] if* ]
             } case
         ] if
     ] loop>array concat ;

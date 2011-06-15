@@ -10,8 +10,14 @@ C: <stack-effect> stack-effect
 TUPLE: fword name stack-effect body ;
 C: <fword> fword
 
+TUPLE: local-fword name stack-effect body ;
+C: <local-fword> local-fword
+
 TUPLE: fmethod type name body ;
 C: <fmethod> fmethod
+
+TUPLE: local-fmethod type name body ;
+C: <local-fmethod> local-fmethod
 
 TUPLE: inline ;
 C: <inline> inline
@@ -131,8 +137,51 @@ C: <boa-tuple> boa-tuple
 TUPLE: assoc-tuple name slots ;
 C: <assoc-tuple> assoc-tuple
 
+TUPLE: function-alias alias return name parameters ;
+C: <function-alias> function-alias
+
+TUPLE: function return name parameters ;
+C: <function> function
+
+TUPLE: gl-function return name obj parameters ;
+C: <gl-function> gl-function
+
+TUPLE: callback return name parameters ;
+C: <callback> callback
+
+TUPLE: typedef old new ;
+C: <typedef> typedef
+
+TUPLE: ctype name ;
+C: <ctype> ctype
+
+TUPLE: alias new old ;
+C: <alias> alias
+
+TUPLE: library name ;
+C: <library> library
+
+TUPLE: parse-time code ;
+C: <parse-time> parse-time
+
+TUPLE: constant name value ;
+C: <constant> constant
+
 : add-parsing-word ( manifest vocab name quot -- manifest )
     <parsing-word> over add-word-to-vocabulary ;
+
+: function-parameters ( -- seq )
+    "(" expect
+    [
+        [
+            peek-token ")" = [
+                token drop
+                ";" expect f
+            ] [
+                token token 2array , t
+            ] if
+        ] loop
+    ] { } make ;
 
 : fake-syntax-vocabulary ( -- vocabulary )
     "syntax" <vocabulary>
@@ -164,7 +213,9 @@ C: <assoc-tuple> assoc-tuple
         "syntax" "GENERIC:" [ token "(" call-parsing-word <generic> ] add-parsing-word
         "syntax" "GENERIC#" [ token token "(" call-parsing-word <generic#> ] add-parsing-word
         "syntax" ":" [ token "(" call-parsing-word ";" parse-until <fword> ] add-parsing-word
+        "syntax" "::" [ token "(" call-parsing-word ";" parse-until <local-fword> ] add-parsing-word
         "syntax" "M:" [ token token ";" parse-until <fmethod> ] add-parsing-word
+        "syntax" "M::" [ token token ";" parse-until <local-fmethod> ] add-parsing-word
 
         "syntax" "PREDICATE:" [ token "<" expect token ";" parse-until <predicate> ]
             add-parsing-word
@@ -196,7 +247,31 @@ C: <assoc-tuple> assoc-tuple
 
         "syntax" "DEFER:" [ token <defer> ] add-parsing-word
         "syntax" "CHAR:" [ chunk <char> ] add-parsing-word
+        "syntax" "CONSTANT:" [ token parse <constant> ] add-parsing-word
 
+        "syntax" "FUNCTION:" [
+            token token function-parameters <function>
+        ] add-parsing-word
+
+        "syntax" "FUNCTION-ALIAS:" [
+            token token token function-parameters <function-alias>
+        ] add-parsing-word
+
+        "syntax" "CALLBACK:" [
+            token token function-parameters <callback>
+        ] add-parsing-word
+
+        "syntax" "GL-FUNCTION:" [
+            token token parse function-parameters <gl-function>
+        ] add-parsing-word
+
+        "syntax" "<<" [ ">>" parse-until <parse-time> ] add-parsing-word
+
+        "syntax" "TYPEDEF:" [ token token <typedef> ] add-parsing-word
+
+        "syntax" "C-TYPE:" [ token <ctype> ] add-parsing-word
+        "syntax" "LIBRARY:" [ token <library> ] add-parsing-word
+        "syntax" "ALIAS:" [ token token <alias> ] add-parsing-word
         "syntax" "TUPLE:" [
             token 
             [

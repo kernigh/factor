@@ -4,6 +4,9 @@ USING: arrays f.vocabularies f.words f.manifest kernel f.parser
 f.lexer make ;
 IN: f.cheat
 
+TUPLE: main name ;
+C: <main> main
+
 TUPLE: stack-effect in out ;
 C: <stack-effect> stack-effect
 
@@ -15,6 +18,15 @@ C: <local-fword> local-fword
 
 TUPLE: fmethod type name body ;
 C: <fmethod> fmethod
+
+TUPLE: macro name stack-effect body ;
+C: <macro> macro
+
+TUPLE: local-macro name stack-effect body ;
+C: <local-macro> local-macro
+
+TUPLE: hook name variable stack-effect ;
+C: <hook> hook
 
 TUPLE: local-fmethod type name body ;
 C: <local-fmethod> local-fmethod
@@ -225,7 +237,10 @@ C: <functor-syntax> functor-syntax
         "syntax" "::" [ token "(" call-parsing-word ";" parse-until <local-fword> ] add-parsing-word
         "syntax" "M:" [ token token ";" parse-until <fmethod> ] add-parsing-word
         "syntax" "M::" [ token token ";" parse-until <local-fmethod> ] add-parsing-word
+        "syntax" "MACRO:" [ token "(" call-parsing-word ";" parse-until <macro> ] add-parsing-word
+        "syntax" "MACRO::" [ token "(" call-parsing-word ";" parse-until <local-macro> ] add-parsing-word
 
+        "syntax" "MAIN:" [ token <main> ] add-parsing-word
         "syntax" "PREDICATE:" [ token "<" expect token ";" parse-until <predicate> ]
             add-parsing-word
 
@@ -283,6 +298,8 @@ C: <functor-syntax> functor-syntax
 
         "syntax" "SYNTAX:" [ chunk ";" parse-until <syntax> ] add-parsing-word
         "syntax" "FUNCTOR-SYNTAX:" [ chunk ";" parse-until <functor-syntax> ] add-parsing-word
+
+        "syntax" "HOOK:" [ token token "(" call-parsing-word <hook> ] add-parsing-word
 
         "syntax" "C-TYPE:" [ token <ctype> ] add-parsing-word
         "syntax" "LIBRARY:" [ token <library> ] add-parsing-word

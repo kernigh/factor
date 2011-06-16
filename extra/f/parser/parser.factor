@@ -1,10 +1,47 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors ascii f.dictionary f.lexer fry kernel math
-namespaces nested-comments sequences f.words f.manifest
-math.parser sequences.deep vocabs.loader combinators
-strings splitting arrays io io.streams.document ;
+USING: accessors arrays ascii assocs combinators f.dictionary
+f.lexer f.vocabularies f.words fry io
+io.streams.document kernel math math.parser namespaces
+nested-comments sequences sequences.deep splitting strings
+vocabs.loader ;
+QUALIFIED: sets
 IN: f.parser
+
+TUPLE: manifest
+    current-vocabulary
+    search-vocabulary-names
+    search-vocabularies
+    in
+    identifiers
+    comments
+    objects ;
+    ! qualified-vocabularies
+
+: <manifest> ( -- obj )
+    \ manifest new
+        HS{ } clone >>search-vocabulary-names
+        V{ } clone >>search-vocabularies
+        H{ } clone >>identifiers
+        ! V{ } clone >>qualified-vocabs
+        V{ } clone >>comments
+        V{ } clone >>objects ;
+
+: (search-manifest) ( string assocs -- words )
+    [ words>> at ] with map sift ;
+
+ERROR: ambiguous-word words ;
+: search-manifest ( string manifest -- word/f )
+    search-vocabularies>> (search-manifest)
+    dup length {
+        { 0 [ drop f ] }
+        { 1 [ first ] }
+        [ ambiguous-word ]
+    } case ;
+
+: search ( string -- word/f )
+    manifest get search-manifest ;
+
 
 : with-output-variable ( obj symbol quot -- obj )
     over [ get ] curry compose with-variable ; inline
@@ -201,8 +238,88 @@ ERROR: expected expected got ;
 : optional ( string -- )
     peek-token = [ token drop ] when ;
 
+: current-vocabulary ( -- string )
+    manifest get [ in>> ] [ identifiers>> ] bi at ;
+
+: current-vocabulary-name ( -- string )
+    manifest get in>> ;
+
+ERROR: identifier-redefined vocabulary word ;
+
+: check-identifier-exists ( string -- string )
+    dup
+    text current-vocabulary key? [
+        [ current-vocabulary-name ] dip identifier-redefined
+    ] when ;
+
+: add-identifier ( token -- )
+    check-identifier-exists
+    dup current-vocabulary set-at ;
+
+: identifier ( -- string )
+    token
+    dup add-identifier ;
+
+: add-search-vocabulary ( token -- )
+    text manifest get search-vocabulary-names>> sets:adjoin ;
+
+: remove-search-vocabulary ( token -- )
+    text manifest get search-vocabulary-names>> sets:delete ;
+
+: maybe-create-vocabulary ( string hashtable -- )
+    2dup key? [
+        2drop
+    ] [
+        [ H{ } clone ] 2dip set-at
+    ] if ;
+
+: add-vocabulary-to-manifest ( vocabulary manifest -- )
+    [ [ name>> ] [ search-vocabulary-names>> ] bi* sets:adjoin ]
+    [ [ ] [ search-vocabularies>> ] bi* push ] 2bi ;
+
+
+: parse-use ( -- string )
+    token
+    dup add-search-vocabulary ;
+
+: parse-unuse ( -- string )
+    token
+    dup remove-search-vocabulary ;
+
+: set-in ( string -- )
+    text
+    manifest get
+    [ identifiers>> maybe-create-vocabulary ]
+    [ in<< ] 2bi ;
+
+: parse-in ( -- string )
+    token dup set-in ;
+
 : call-parsing-word ( string -- obj )
     [ expect ]
     [ search definition>> call( -- obj ) ] bi ;
+
+GENERIC: using-vocabulary? ( obj -- ? )
+
+! M: string using-vocabulary? ( vocabulary -- ? ) manifest get search-vocabulary-names>> in? ;
+
+M: vocabulary using-vocabulary? ( vocabulary -- ? )
+    vocabulary-name using-vocabulary? ;
+
+: use-vocabulary ( vocab -- )
+    dup using-vocabulary? [
+        vocabulary-name "Already using ``" "'' vocabulary" surround
+        print
+    ] [
+        manifest get
+        [ search-vocabs>> push ]
+        [ search-vocab-names>> sets:conjoin ] 2bi
+        ! [ [ load-vocab ] dip search-vocabs>> push ]
+        ! [ [ vocabulary-name ] dip search-vocab-names>> conjoin ] 2bi
+    ] if ;
+
+: identifiers-until ( string -- seq )
+    tokens-until
+    dup [ add-identifier ] each ;
 
 "f.cheat" require

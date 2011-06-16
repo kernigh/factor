@@ -1,7 +1,7 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: arrays f.vocabularies f.words f.manifest kernel f.parser
-f.lexer make ;
+USING: arrays f.vocabularies f.words kernel f.parser
+f.lexer make sequences ;
 IN: f.cheat
 
 TUPLE: main name ;
@@ -204,13 +204,18 @@ C: <functor-syntax> functor-syntax
         ] loop
     ] { } make ;
 
+: stack-effect ( -- stack-effect )
+    "--" tokens-until ")" tokens-until <stack-effect> ;
+
 : fake-syntax-vocabulary ( -- vocabulary )
     "syntax" <vocabulary>
         "syntax" "!" [ token-til-eol <line-comment> ] add-parsing-word
-        "syntax" "USING:" [ ";" tokens-until <using> ] add-parsing-word
-        "syntax" "USE:" [ token 1array <using> ] add-parsing-word
-        "syntax" "UNUSE:" [ token <unuse> ] add-parsing-word
-        "syntax" "IN:" [ token <in> ] add-parsing-word
+        "syntax" "USING:" [
+            ";" tokens-until dup [ add-search-vocabulary ] each <using>
+        ] add-parsing-word
+        "syntax" "USE:" [ parse-use 1array <using> ] add-parsing-word
+        "syntax" "UNUSE:" [ parse-unuse <unuse> ] add-parsing-word
+        "syntax" "IN:" [ parse-in <in> ] add-parsing-word
 
         "syntax" "HEX:" [ token <fhex> ] add-parsing-word
         "syntax" "{" [ "}" parse-until <farray> ] add-parsing-word
@@ -218,42 +223,42 @@ C: <functor-syntax> functor-syntax
         "syntax" "H{" [ "}" parse-until <fhashtable> ] add-parsing-word
         "syntax" "B{" [ "}" parse-until <fbyte-array> ] add-parsing-word
         "syntax" "V{" [ "}" parse-until <fvector> ] add-parsing-word
-        "syntax" "[" (( -- )) [ \ ] parse-until <fquotation> ] <word> over add-word-to-vocabulary
+        "syntax" "[" [ \ ] parse-until <fquotation> ] add-parsing-word
         "syntax" "]" (( -- )) [ ] <word> over add-word-to-vocabulary
         "syntax" ";" (( -- )) [ ] <word> over add-word-to-vocabulary
         "syntax" "--" (( -- )) [ ] <word> over add-word-to-vocabulary
-        "syntax" "(" [ "--" tokens-until ")" tokens-until <stack-effect> ] add-parsing-word
+        "syntax" "(" [ stack-effect ] add-parsing-word
 
         "syntax" "C:" [ token token <constructor> ] add-parsing-word
 
-        "syntax" "MIXIN:" [ token <mixin> ] add-parsing-word
+        "syntax" "MIXIN:" [ identifier <mixin> ] add-parsing-word
         "syntax" "INSTANCE:" [ token token <instance> ] add-parsing-word
 
-        "syntax" "MATH:" [ token "(" call-parsing-word <math> ] add-parsing-word
+        "syntax" "MATH:" [ identifier stack-effect <math> ] add-parsing-word
 
-        "syntax" "GENERIC:" [ token "(" call-parsing-word <generic> ] add-parsing-word
-        "syntax" "GENERIC#" [ token token "(" call-parsing-word <generic#> ] add-parsing-word
-        "syntax" ":" [ token "(" call-parsing-word ";" parse-until <fword> ] add-parsing-word
-        "syntax" "::" [ token "(" call-parsing-word ";" parse-until <local-fword> ] add-parsing-word
+        "syntax" "GENERIC:" [ identifier stack-effect <generic> ] add-parsing-word
+        "syntax" "GENERIC#" [ identifier token stack-effect <generic#> ] add-parsing-word
+        "syntax" ":" [ identifier stack-effect ";" parse-until <fword> ] add-parsing-word
+        "syntax" "::" [ identifier stack-effect ";" parse-until <local-fword> ] add-parsing-word
         "syntax" "M:" [ token token ";" parse-until <fmethod> ] add-parsing-word
         "syntax" "M::" [ token token ";" parse-until <local-fmethod> ] add-parsing-word
-        "syntax" "MACRO:" [ token "(" call-parsing-word ";" parse-until <macro> ] add-parsing-word
-        "syntax" "MACRO::" [ token "(" call-parsing-word ";" parse-until <local-macro> ] add-parsing-word
+        "syntax" "MACRO:" [ identifier stack-effect ";" parse-until <macro> ] add-parsing-word
+        "syntax" "MACRO::" [ identifier stack-effect ";" parse-until <local-macro> ] add-parsing-word
 
         "syntax" "MAIN:" [ token <main> ] add-parsing-word
-        "syntax" "PREDICATE:" [ token "<" expect token ";" parse-until <predicate> ]
+        "syntax" "PREDICATE:" [ identifier "<" expect token ";" parse-until <predicate> ]
             add-parsing-word
 
-        "syntax" "SYMBOLS:" [ ";" tokens-until <symbols> ] add-parsing-word
-        "syntax" "SYMBOL:" [ token 1array <symbols> ] add-parsing-word
+        "syntax" "SYMBOLS:" [ ";" identifiers-until <symbols> ] add-parsing-word
+        "syntax" "SYMBOL:" [ identifier 1array <symbols> ] add-parsing-word
 
-        "syntax" "SINGLETONS:" [ ";" tokens-until <singletons> ] add-parsing-word
-        "syntax" "SINGLETON:" [ token 1array <singletons> ] add-parsing-word
+        "syntax" "SINGLETONS:" [ ";" identifiers-until <singletons> ] add-parsing-word
+        "syntax" "SINGLETON:" [ identifier 1array <singletons> ] add-parsing-word
 
-        "syntax" "UNION:" [ token ";" tokens-until <union> ] add-parsing-word
-        "syntax" "SLOT:" [ token <slot> ] add-parsing-word
+        "syntax" "UNION:" [ identifier ";" tokens-until <union> ] add-parsing-word
+        "syntax" "SLOT:" [ identifier <slot> ] add-parsing-word
 
-        "syntax" "ERROR:" [ token ";" tokens-until <error> ] add-parsing-word
+        "syntax" "ERROR:" [ identifier ";" tokens-until <error> ] add-parsing-word
 
         "syntax" "inline" [ <inline> ] add-parsing-word
         "syntax" "recursive" [ <recursive> ] add-parsing-word
@@ -299,7 +304,7 @@ C: <functor-syntax> functor-syntax
         "syntax" "SYNTAX:" [ chunk ";" parse-until <syntax> ] add-parsing-word
         "syntax" "FUNCTOR-SYNTAX:" [ chunk ";" parse-until <functor-syntax> ] add-parsing-word
 
-        "syntax" "HOOK:" [ token token "(" call-parsing-word <hook> ] add-parsing-word
+        "syntax" "HOOK:" [ token token stack-effect <hook> ] add-parsing-word
 
         "syntax" "C-TYPE:" [ token <ctype> ] add-parsing-word
         "syntax" "LIBRARY:" [ token <library> ] add-parsing-word

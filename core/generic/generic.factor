@@ -15,7 +15,7 @@ GENERIC: make-default-method ( generic combination -- method )
 PREDICATE: generic < word
     "combination" word-prop >boolean ;
 
-M: generic definition drop f ;
+M: generic get-definition drop f ;
 
 : make-generic ( word -- )
     [ { "unannotated-def" } reset-props ]
@@ -148,7 +148,7 @@ PREDICATE: default-method < word "default" word-prop ;
     dupd <default-method> "default-method" set-word-prop ;
 
 ! Definition protocol
-M: method definer
+M: method get-definer
     drop \ M: \ ; ;
 
 M: method forget*

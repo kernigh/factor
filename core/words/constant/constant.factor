@@ -12,6 +12,6 @@ PREDICATE: constant < word "constant" word-prop >boolean ;
 M: constant reset-word
     [ call-next-method ] [ f "constant" set-word-prop ] bi ;
 
-M: constant definer drop \ CONSTANT: f ;
+M: constant get-definer drop \ CONSTANT: f ;
 
-M: constant definition "constant" word-prop literalize 1quotation ;
+M: constant get-definition "constant" word-prop literalize 1quotation ;

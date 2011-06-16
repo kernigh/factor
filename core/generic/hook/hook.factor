@@ -20,7 +20,7 @@ M: hook-combination dispatch# drop 0 ;
 M: hook-combination mega-cache-quot
     1quotation picker [ lookup-method (execute) ] surround ;
 
-M: hook-generic definer drop \ HOOK: f ;
+M: hook-generic get-definer drop \ HOOK: f ;
 
 M: hook-generic effective-method
     [ "combination" word-prop var>> get ] keep method-for-object ;

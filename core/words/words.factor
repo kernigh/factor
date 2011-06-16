@@ -17,9 +17,9 @@ M: word ?execute execute( -- value ) ; inline
 M: word <=>
     [ [ name>> ] [ vocabulary>> ] bi 2array ] compare ;
 
-M: word definer drop \ : \ ; ;
+M: word get-definer drop \ : \ ; ;
 
-M: word definition def>> ;
+M: word get-definition def>> ;
 
 : word-prop ( word name -- value ) swap props>> at ;
 
@@ -48,12 +48,12 @@ TUPLE: undefined word ;
     [ undefined f ] ;
 
 PREDICATE: deferred < word ( obj -- ? ) def>> undefined-def = ;
-M: deferred definer drop \ DEFER: f ;
-M: deferred definition drop f ;
+M: deferred get-definer drop \ DEFER: f ;
+M: deferred get-definition drop f ;
 
 PREDICATE: primitive < word ( obj -- ? ) "primitive" word-prop ;
-M: primitive definer drop \ PRIMITIVE: f ;
-M: primitive definition drop f ;
+M: primitive get-definer drop \ PRIMITIVE: f ;
+M: primitive get-definition drop f ;
 
 : lookup ( name vocab -- word ) vocab-words at ;
 
@@ -202,7 +202,7 @@ ERROR: bad-create name vocab ;
 
 PREDICATE: parsing-word < word "parsing" word-prop ;
 
-M: parsing-word definer drop \ SYNTAX: \ ; ;
+M: parsing-word get-definer drop \ SYNTAX: \ ; ;
 
 : define-syntax ( word quot -- )
     [ drop ] [ define ] 2bi t "parsing" set-word-prop ;

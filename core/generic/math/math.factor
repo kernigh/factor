@@ -125,4 +125,4 @@ M: math-combination perform-combination
 PREDICATE: math-generic < generic ( word -- ? )
     "combination" word-prop math-combination? ;
 
-M: math-generic definer drop \ MATH: f ;
+M: math-generic get-definer drop \ MATH: f ;

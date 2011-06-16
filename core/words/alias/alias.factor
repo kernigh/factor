@@ -12,6 +12,6 @@ PREDICATE: alias < word "alias" word-prop ;
 M: alias reset-word
     [ call-next-method ] [ f "alias" set-word-prop ] bi ;
 
-M: alias definer drop \ ALIAS: f ;
+M: alias get-definer drop \ ALIAS: f ;
 
-M: alias definition def>> first 1quotation ;
+M: alias get-definition def>> first 1quotation ;

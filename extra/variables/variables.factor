@@ -37,8 +37,8 @@ SYNTAX: set:
 SYNTAX: VAR:
     CREATE-WORD define-variable ;    
 
-M: variable definer drop \ VAR: f ;
-M: variable definition drop f ;
+M: variable get-definer drop \ VAR: f ;
+M: variable get-definition drop f ;
 M: variable link-effect? drop f ;
 M: variable print-stack-effect? drop f ;
 
@@ -61,8 +61,8 @@ PREDICATE: typed-variable < variable
 SYNTAX: TYPED-VAR:
     CREATE-WORD scan-object define-typed-variable ;    
 
-M: typed-variable definer drop \ TYPED-VAR: f ;
-M: typed-variable definition "variable-type" word-prop 1quotation ;
+M: typed-variable get-definer drop \ TYPED-VAR: f ;
+M: typed-variable get-definition "variable-type" word-prop 1quotation ;
 
 TUPLE: global-box value ;
 
@@ -80,7 +80,7 @@ PREDICATE: global-variable < variable
 SYNTAX: GLOBAL:
     CREATE-WORD define-global ;
 
-M: global-variable definer drop \ GLOBAL: f ;
+M: global-variable get-definer drop \ GLOBAL: f ;
 
 INTERSECTION: typed-global-variable
     global-variable typed-variable ;
@@ -94,5 +94,5 @@ INTERSECTION: typed-global-variable
 SYNTAX: TYPED-GLOBAL:
     CREATE-WORD scan-object define-typed-global ;
 
-M: typed-global-variable definer drop \ TYPED-GLOBAL: f ;
+M: typed-global-variable get-definer drop \ TYPED-GLOBAL: f ;
 

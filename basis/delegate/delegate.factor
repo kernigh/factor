@@ -177,9 +177,9 @@ M: protocol forget*
     [ f forget-old-definitions ] [ call-next-method ] bi ;
 
 
-M: protocol definition protocol-words show-words ;
+M: protocol get-definition protocol-words show-words ;
 
-M: protocol definer drop \ PROTOCOL: \ ; ;
+M: protocol get-definer drop \ PROTOCOL: \ ; ;
 
 M: protocol group-words protocol-words ;
 

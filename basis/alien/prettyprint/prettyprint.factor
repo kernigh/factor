@@ -16,8 +16,8 @@ M: alien pprint*
 
 M: dll pprint* dll-path dup "DLL\" " "\"" pprint-string ;
 
-M: c-type-word definer drop \ C-TYPE: f ;
-M: c-type-word definition drop f ;
+M: c-type-word get-definer drop \ C-TYPE: f ;
+M: c-type-word get-definition drop f ;
 M: c-type-word declarations. drop ;
 
 <PRIVATE
@@ -44,7 +44,7 @@ PRIVATE>
 M: pointer pprint*
     <flow \ pointer: pprint-word to>> pprint* block> ;
 
-M: typedef-word definer drop \ TYPEDEF: f ;
+M: typedef-word get-definer drop \ TYPEDEF: f ;
 
 M: typedef-word synopsis*
     {
@@ -77,9 +77,9 @@ M: typedef-word synopsis*
         ")" text block>
     ] tri ; inline
 
-M: alien-function-alias-word definer
+M: alien-function-alias-word get-definer
     drop \ FUNCTION-ALIAS: \ ; ;
-M: alien-function-alias-word definition drop f ;
+M: alien-function-alias-word get-definition drop f ;
 M: alien-function-alias-word synopsis*
     {
         [ seeing-word ]
@@ -89,7 +89,7 @@ M: alien-function-alias-word synopsis*
         [ [ def>> third text ] pprint-function ]
     } cleave ;
 
-M: alien-function-word definer
+M: alien-function-word get-definer
     drop \ FUNCTION: \ ; ;
 M: alien-function-word synopsis*
     {
@@ -99,9 +99,9 @@ M: alien-function-word synopsis*
         [ [ pprint-word ] pprint-function ]
     } cleave ;
 
-M: alien-callback-type-word definer
+M: alien-callback-type-word get-definer
     drop \ CALLBACK: \ ; ;
-M: alien-callback-type-word definition drop f ;
+M: alien-callback-type-word get-definition drop f ;
 M: alien-callback-type-word synopsis*
     {
         [ seeing-word ]
@@ -117,7 +117,7 @@ M: alien-callback-type-word synopsis*
         ]
     } cleave ;
 
-M: enum-c-type-word definer
+M: enum-c-type-word get-definer
     drop \ ENUM: \ ; ;
 M: enum-c-type-word synopsis*
     {
@@ -126,5 +126,5 @@ M: enum-c-type-word synopsis*
         [ pprint-word ]
         [ c-type base-type>> dup int eq? [ drop ] [ "<" text pprint-word ] if ]
     } cleave ;
-M: enum-c-type-word definition
+M: enum-c-type-word get-definition
     c-type members>> ;

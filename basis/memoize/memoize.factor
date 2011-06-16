@@ -54,9 +54,9 @@ SYNTAX: MEMO: (:) define-memoized ;
 
 PREDICATE: memoized < word "memoize" word-prop ;
 
-M: memoized definer drop \ MEMO: \ ; ;
+M: memoized get-definer drop \ MEMO: \ ; ;
 
-M: memoized definition "memo-quot" word-prop ;
+M: memoized get-definition "memo-quot" word-prop ;
 
 M: memoized reset-word
     [ call-next-method ]

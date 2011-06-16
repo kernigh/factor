@@ -27,7 +27,7 @@ GENERIC: see* ( defspec -- )
     ] with-string-writer ;
 
 : definer. ( defspec -- )
-    definer drop pprint-word ;
+    get-definer drop pprint-word ;
 
 : comment. ( text -- )
     H{ { font-style italic } } styled-text ;
@@ -118,8 +118,8 @@ M: object see*
         12 nesting-limit set
         100 length-limit set
         <colon dup synopsis*
-        <block dup definition pprint-elements block>
-        dup definer nip [ pprint-word ] when* declarations.
+        <block dup get-definition pprint-elements block>
+        dup get-definer nip [ pprint-word ] when* declarations.
         block>
     ] with-use ;
 

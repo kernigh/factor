@@ -6,9 +6,9 @@ IN: locals.definitions
 
 PREDICATE: lambda-word < word "lambda" word-prop >boolean ;
 
-M: lambda-word definer drop \ :: \ ; ;
+M: lambda-word get-definer drop \ :: \ ; ;
 
-M: lambda-word definition
+M: lambda-word get-definition
     "lambda" word-prop body>> ;
 
 M: lambda-word reset-word
@@ -16,9 +16,9 @@ M: lambda-word reset-word
 
 INTERSECTION: lambda-macro macro lambda-word ;
 
-M: lambda-macro definer drop \ MACRO:: \ ; ;
+M: lambda-macro get-definer drop \ MACRO:: \ ; ;
 
-M: lambda-macro definition
+M: lambda-macro get-definition
     "lambda" word-prop body>> ;
 
 M: lambda-macro reset-word
@@ -26,9 +26,9 @@ M: lambda-macro reset-word
 
 INTERSECTION: lambda-method method lambda-word ;
 
-M: lambda-method definer drop \ M:: \ ; ;
+M: lambda-method get-definer drop \ M:: \ ; ;
 
-M: lambda-method definition
+M: lambda-method get-definition
     "lambda" word-prop body>> ;
 
 M: lambda-method reset-word
@@ -36,9 +36,9 @@ M: lambda-method reset-word
 
 INTERSECTION: lambda-memoized memoized lambda-word ;
 
-M: lambda-memoized definer drop \ MEMO:: \ ; ;
+M: lambda-memoized get-definer drop \ MEMO:: \ ; ;
 
-M: lambda-memoized definition
+M: lambda-memoized get-definition
     "lambda" word-prop body>> ;
 
 M: lambda-memoized reset-word

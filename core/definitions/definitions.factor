@@ -53,6 +53,6 @@ M: wrapper forget* wrapped>> forget ;
 
 : forget-all ( definitions -- ) [ forget ] each ;
 
-GENERIC: definer ( defspec -- start end )
+GENERIC: get-definer ( defspec -- start end )
 
-GENERIC: definition ( defspec -- seq )
+GENERIC: get-definition ( defspec -- seq )

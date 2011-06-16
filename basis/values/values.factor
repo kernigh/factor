@@ -36,9 +36,9 @@ SYNTAX: VALUE:
     T{ value-holder } clone [ obj>> ] curry
     (( -- value )) define-declared ;
 
-M: value-word definer drop \ VALUE: f ;
+M: value-word get-definer drop \ VALUE: f ;
 
-M: value-word definition drop f ;
+M: value-word get-definition drop f ;
 
 : set-value ( value word -- )
     def>> first obj<< ;

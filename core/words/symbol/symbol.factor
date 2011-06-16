@@ -6,9 +6,9 @@ IN: words.symbol
 PREDICATE: symbol < word ( obj -- ? )
     [ def>> ] [ [ ] curry ] bi sequence= ;
 
-M: symbol definer drop \ SYMBOL: f ;
+M: symbol get-definer drop \ SYMBOL: f ;
 
-M: symbol definition drop f ;
+M: symbol get-definition drop f ;
 
 : define-symbol ( word -- )
     dup [ ] curry (( -- value )) define-inline ;

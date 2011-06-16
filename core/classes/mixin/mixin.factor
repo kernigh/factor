@@ -106,9 +106,9 @@ M: mixin-instance where >mixin-instance< "instances" word-prop at ;
 
 M: mixin-instance set-where >mixin-instance< "instances" word-prop set-at ;
 
-M: mixin-instance definer drop \ INSTANCE: f ;
+M: mixin-instance get-definer drop \ INSTANCE: f ;
 
-M: mixin-instance definition drop f ;
+M: mixin-instance get-definition drop f ;
 
 M: mixin-instance forget*
     >mixin-instance<

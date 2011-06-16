@@ -29,9 +29,9 @@ PREDICATE: macro < word "macro" word-prop >boolean ;
 
 M: macro make-inline cannot-be-inline ;
 
-M: macro definer drop \ MACRO: \ ; ;
+M: macro get-definer drop \ MACRO: \ ; ;
 
-M: macro definition "macro" word-prop ;
+M: macro get-definition "macro" word-prop ;
 
 M: macro reset-word
     [ call-next-method ] [ f "macro" set-word-prop ] bi ;

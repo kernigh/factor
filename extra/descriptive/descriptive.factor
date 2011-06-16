@@ -40,16 +40,16 @@ SYNTAX: DESCRIPTIVE: (:) define-descriptive ;
 PREDICATE: descriptive < word
     "descriptive-definition" word-prop ;
 
-M: descriptive definer drop \ DESCRIPTIVE: \ ; ;
+M: descriptive get-definer drop \ DESCRIPTIVE: \ ; ;
 
-M: descriptive definition
+M: descriptive get-definition
     "descriptive-definition" word-prop ;
 
 SYNTAX: DESCRIPTIVE:: (::) define-descriptive ;
 
 INTERSECTION: descriptive-lambda descriptive lambda-word ;
 
-M: descriptive-lambda definer drop \ DESCRIPTIVE:: \ ; ;
+M: descriptive-lambda get-definer drop \ DESCRIPTIVE:: \ ; ;
 
-M: descriptive-lambda definition
+M: descriptive-lambda get-definition
     "lambda" word-prop body>> ;

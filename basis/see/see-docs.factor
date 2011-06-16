@@ -24,7 +24,7 @@ HELP: see-methods
 { $values { "word" "a " { $link generic } " or a " { $link class } } }
 { $contract "Prettyprints the methods defined on a generic word or class." } ;
 
-HELP: definer
+HELP: get-definer
 { $values { "defspec" "a definition specifier" } { "start" word } { "end" { $maybe word } } }
 { $contract "Outputs the parsing words which delimit the definition." }
 { $examples
@@ -41,11 +41,11 @@ HELP: definer
 }
 { $notes "This word is used in the implementation of " { $link see } "." } ;
 
-HELP: definition
+HELP: get-definition
 { $values { "defspec" "a definition specifier" } { "seq" "a sequence" } }
 { $contract "Outputs the body of a definition." }
 { $examples
-    { $example "USING: definitions math prettyprint ;" "\\ sq definition ." "[ dup * ]" }
+    { $example "USING: definitions math prettyprint ;" "\\ sq get-definition ." "[ dup * ]" }
 }
 { $notes "This word is used in the implementation of " { $link see } "." } ;
 

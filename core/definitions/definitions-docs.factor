@@ -14,8 +14,8 @@ $nl
 { $subsections forget }
 "Definitions must implement a few operations used for printing them in source form:"
 { $subsections
-    definer
-    definition
+    get-definer
+    get-definition
 }
 { $see-also "see" } ;
 

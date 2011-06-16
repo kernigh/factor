@@ -182,7 +182,7 @@ ERROR: bad-short-string ;
     ] unless ;
 
 : peek-token ( -- token/string/comment/f )
-    peek1 text>> ;
+    peek1 text ;
 
 M: lexer dispose stream>> dispose ;
 

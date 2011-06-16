@@ -16,8 +16,11 @@ C: <fword> fword
 TUPLE: local-fword name stack-effect body ;
 C: <local-fword> local-fword
 
-TUPLE: fmethod type name body ;
+TUPLE: fmethod type name stack-effect body ;
 C: <fmethod> fmethod
+
+TUPLE: local-fmethod type name stack-effect body ;
+C: <local-fmethod> local-fmethod
 
 TUPLE: macro name stack-effect body ;
 C: <macro> macro
@@ -27,9 +30,6 @@ C: <local-macro> local-macro
 
 TUPLE: hook name variable stack-effect ;
 C: <hook> hook
-
-TUPLE: local-fmethod type name body ;
-C: <local-fmethod> local-fmethod
 
 TUPLE: inline ;
 C: <inline> inline
@@ -205,7 +205,10 @@ C: <functor-syntax> functor-syntax
     ] { } make ;
 
 : stack-effect ( -- stack-effect )
-    "--" tokens-until ")" tokens-until <stack-effect> ;
+    "(" expect "--" tokens-until ")" tokens-until <stack-effect> ;
+
+: optional-stack-effect ( -- stack-effect/f )
+    peek-token "(" = [ stack-effect ] [ f ] if ;
 
 : fake-syntax-vocabulary ( -- vocabulary )
     "syntax" <vocabulary>
@@ -223,7 +226,8 @@ C: <functor-syntax> functor-syntax
         "syntax" "H{" [ "}" parse-until <fhashtable> ] add-parsing-word
         "syntax" "B{" [ "}" parse-until <fbyte-array> ] add-parsing-word
         "syntax" "V{" [ "}" parse-until <fvector> ] add-parsing-word
-        "syntax" "[" [ \ ] parse-until <fquotation> ] add-parsing-word
+        ! "syntax" "[" [ "]" parse-until <fquotation> ] add-parsing-word
+        "syntax" "[" (( -- )) [ \ ] parse-until ] <word> over add-word-to-vocabulary
         "syntax" "]" (( -- )) [ ] <word> over add-word-to-vocabulary
         "syntax" ";" (( -- )) [ ] <word> over add-word-to-vocabulary
         "syntax" "--" (( -- )) [ ] <word> over add-word-to-vocabulary
@@ -240,8 +244,12 @@ C: <functor-syntax> functor-syntax
         "syntax" "GENERIC#" [ identifier token stack-effect <generic#> ] add-parsing-word
         "syntax" ":" [ identifier stack-effect ";" parse-until <fword> ] add-parsing-word
         "syntax" "::" [ identifier stack-effect ";" parse-until <local-fword> ] add-parsing-word
-        "syntax" "M:" [ token token ";" parse-until <fmethod> ] add-parsing-word
-        "syntax" "M::" [ token token ";" parse-until <local-fmethod> ] add-parsing-word
+        "syntax" "M:" [
+            token token optional-stack-effect ";" parse-until <fmethod>
+        ] add-parsing-word
+        "syntax" "M::" [
+            token token optional-stack-effect ";" parse-until <local-fmethod>
+        ] add-parsing-word
         "syntax" "MACRO:" [ identifier stack-effect ";" parse-until <macro> ] add-parsing-word
         "syntax" "MACRO::" [ identifier stack-effect ";" parse-until <local-macro> ] add-parsing-word
 

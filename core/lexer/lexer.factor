@@ -88,9 +88,9 @@ M: lexer skip-word ( lexer -- )
 
 PREDICATE: unexpected-eof < unexpected got>> not ;
 
-: unexpected-eof ( word -- * ) f unexpected ;
+: throw-unexpected-eof ( word -- * ) f unexpected ;
 
-: scan-token ( -- str ) scan [ "token" unexpected-eof ] unless* ;
+: scan-token ( -- str ) scan [ "token" throw-unexpected-eof ] unless* ;
 
 : expect ( token -- )
     scan-token 2dup = [ 2drop ] [ unexpected ] if ;

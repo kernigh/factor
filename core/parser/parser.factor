@@ -69,7 +69,7 @@ ERROR: staging-violation word ;
 
 : scan-object ( -- object )
     scan-word {
-        { [ dup not ] [ unexpected-eof ] }
+        { [ dup not ] [ throw-unexpected-eof ] }
         { [ dup parsing-word? ] [ V{ } clone swap execute-parsing first ] }
         [ ]
     } cond  ;
@@ -77,7 +77,7 @@ ERROR: staging-violation word ;
 : parse-step ( accum end -- accum ? )
     scan-word {
         { [ 2dup eq? ] [ 2drop f ] }
-        { [ dup not ] [ drop unexpected-eof t ] }
+        { [ dup not ] [ drop throw-unexpected-eof t ] }
         { [ dup delimiter? ] [ unexpected t ] }
         { [ dup parsing-word? ] [ nip execute-parsing t ] }
         [ pick push drop t ]

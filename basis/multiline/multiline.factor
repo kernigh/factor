@@ -15,7 +15,7 @@ ERROR: bad-heredoc identifier ;
         dup ";" =
         [ drop lexer get next-line ]
         [ % "\n" % (parse-here) ] if
-    ] [ ";" unexpected-eof ] if* ;
+    ] [ ";" throw-unexpected-eof ] if* ;
 PRIVATE>
 
 : parse-here ( -- str )
@@ -39,7 +39,7 @@ SYNTAX: STRING:
             lexer get next-line
             0 end (scan-multiline-string)
         ] if*
-    ] [ end unexpected-eof ] if ;
+    ] [ end throw-unexpected-eof ] if ;
         
 :: (parse-multiline-string) ( end-text skip-n-chars -- str )
     [

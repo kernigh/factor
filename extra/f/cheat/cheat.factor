@@ -212,7 +212,6 @@ C: <functor-syntax> functor-syntax
 
 : fake-syntax-vocabulary ( -- vocabulary )
     "syntax" <vocabulary>
-        "syntax" "!" [ token-til-eol <line-comment> ] add-parsing-word
         "syntax" "USING:" [
             ";" tokens-until dup [ add-search-vocabulary ] each <using>
         ] add-parsing-word
@@ -221,16 +220,11 @@ C: <functor-syntax> functor-syntax
         "syntax" "IN:" [ parse-in <in> ] add-parsing-word
 
         "syntax" "HEX:" [ token <fhex> ] add-parsing-word
-        "syntax" "{" [ "}" parse-until <farray> ] add-parsing-word
-        "syntax" "}" (( -- )) [ ] <word> over add-word-to-vocabulary
         "syntax" "H{" [ "}" parse-until <fhashtable> ] add-parsing-word
         "syntax" "B{" [ "}" parse-until <fbyte-array> ] add-parsing-word
         "syntax" "V{" [ "}" parse-until <fvector> ] add-parsing-word
-        ! "syntax" "[" [ "]" parse-until <fquotation> ] add-parsing-word
-        "syntax" "[" (( -- )) [ \ ] parse-until ] <word> over add-word-to-vocabulary
-        "syntax" "]" (( -- )) [ ] <word> over add-word-to-vocabulary
-        "syntax" ";" (( -- )) [ ] <word> over add-word-to-vocabulary
-        "syntax" "--" (( -- )) [ ] <word> over add-word-to-vocabulary
+        "syntax" "{" [ "}" parse-until <farray> ] add-parsing-word
+        "syntax" "[" [ "]" parse-until <fquotation> ] add-parsing-word
         "syntax" "(" [ stack-effect ] add-parsing-word
 
         "syntax" "C:" [ token token <constructor> ] add-parsing-word

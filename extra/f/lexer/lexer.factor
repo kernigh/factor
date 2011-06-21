@@ -181,9 +181,6 @@ ERROR: bad-short-string ;
         drop f
     ] unless ;
 
-: peek-token ( -- token/string/comment/f )
-    peek1 text ;
-
 M: lexer dispose stream>> dispose ;
 
 M: lexer stream-read1

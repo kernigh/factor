@@ -42,19 +42,24 @@ ERROR: ambiguous-word words ;
 : search ( string -- word/f )
     manifest get search-manifest ;
 
+GENERIC: last-token ( obj -- token/f )
+
+M: token last-token ;
+M: sequence last-token [ f ] [ last last-token ] if-empty ;
+M: lexed last-token tokens>> last-token ;
+M: integer last-token ;
 
 : with-output-variable ( obj symbol quot -- obj )
     over [ get ] curry compose with-variable ; inline
 
 SYMBOL: parsing-context
-SYMBOL: parsing-depth
+SYMBOL: just-parsed
 
 : new-parsing-context ( -- )
     V{ } clone parsing-context get push ;
 
 : current-parsing-context ( -- seq )
-    parsing-context get
-    parsing-depth get 0 > [ last ] when ;
+    parsing-context get dup empty? [ last ] unless ;
 
 : push-parsing ( token -- )
     current-parsing-context push ;
@@ -65,55 +70,45 @@ SYMBOL: parsing-depth
 : pop-parsing ( -- seq )
     parsing-context get pop ;
 
-: pop-last-parsed ( -- obj/f )
-    parsing-context get
-    parsing-depth get 0 > [
-        last
-    ] when
-    [ f ] [ pop ] if-empty ;
+: pop-last-token ( -- obj/f )
+    parsing-context get last pop ;
 
-: get-last-parsed ( -- obj/f )
-    parsing-context get
-    parsing-depth get 0 > [ last ] when
-    [ f ] [ last ] if-empty ;
+: token>new-parsing-context ( -- )
+    pop-last-token
+    new-parsing-context
+    push-parsing ;
 
 TUPLE: parsed-number < lexed n ;
 
 : <parsed-number> ( n -- number )
-    [ pop-last-parsed parsed-number new-lexed ] dip
+    [ pop-parsing parsed-number new-lexed ] dip
         >>n ; inline
 
 TUPLE: parsed-word < lexed word ;
 
 : <parsed-word> ( word -- number )
-    [ pop-last-parsed parsed-word new-lexed ] dip
+    [ pop-parsing parsed-word new-lexed ] dip
         >>word ; inline
 
 TUPLE: parsed-parsing-word < lexed word object ;
 
 : <parsed-parsing-word> ( object -- number )
-    [ pop-last-parsed parsed-parsing-word new-lexed ] dip
+    [ pop-parsing parsed-parsing-word new-lexed ] dip
         >>object ; inline
-
-GENERIC: last-token ( obj -- token/f )
-
-M: token last-token ;
-M: sequence last-token [ f ] [ last last-token ] if-empty ;
-M: lexed last-token tokens>> last-token ;
-M: integer last-token ;
 
 ERROR: unknown-token token ;
 
 : process-parsing-word ( parsing-word -- )
-    pop-last-parsed
-    new-parsing-context
-    parsing-depth inc
-    push-parsing
+    token>new-parsing-context
     definition>> call( -- obj )
-    parsing-depth dec
+    pop-parsing push-all-parsing
     <parsed-parsing-word> push-parsing ;
 
-: lookup-token ( string -- )
+GENERIC: process-token ( obj -- )
+
+M: object process-token ( obj -- ) drop ;
+
+M: string process-token ( string -- )
     dup search [
         nip
         dup parsing-word? [
@@ -125,15 +120,14 @@ ERROR: unknown-token token ;
         dup string>number [
             nip <parsed-number> push-parsing
         ] [
-            ! unknown token
             drop
         ] if*
     ] if* ;
 
-: next-token ( -- obj/f )
+: read-token ( -- obj/f )
     read1 [
         dup comment? [
-            manifest get comments>> push next-token
+            manifest get comments>> push read-token
         ] [
             dup push-parsing text
         ] if
@@ -141,43 +135,57 @@ ERROR: unknown-token token ;
         f
     ] if* ;
 
+: (peek-token) ( -- token/string/f )
+    read1 [
+        dup comment? [ drop (peek-token) ] when
+    ] [
+        f
+    ] if* ;
+
+: peek-token ( -- token/string/f )
+    [ (peek-token) text ] with-input-rewind ;
+
 ERROR: premature-eof ;
 ERROR: token-expected expected ;
 
 : token ( -- token/string/f )
-    next-token [ premature-eof ] unless* ;
+    read-token [ premature-eof ] unless* ;
 
 : chunk ( -- token/f )
-    lex-chunk [ premature-eof ] unless* ;
+    lex-chunk [ premature-eof ] unless*
+    dup push-parsing text ;
 
 : tokens-until ( string -- seq )
     new-parsing-context
     dup '[
-        next-token [ _ = not ] [ _ token-expected ] if*
+        read-token [ _ = not ] [ _ token-expected ] if*
     ] loop
     pop-parsing [ push-all-parsing ] [ but-last ] bi ;
 
 : parse ( -- obj/f )
-    next-token
-    [ dup lexed-string? [ drop ] [ lookup-token ] if get-last-parsed ]
-    [ f ] if* ;
+    new-parsing-context
+    read-token
+    [ process-token current-parsing-context ] [ f ] if* ;
 
-: parse-again? ( string object -- ? )
-    dup parsed-parsing-word? [
-        2drop t
-    ] [
-        last-token dup token? [ text ] when = not
-    ] if ;
-
-! A parsing word cannot trigger the end of a parse-until.
-! Example: { { } } -- } cannot be a parsing word
 : parse-until ( string -- seq )
     new-parsing-context
-    '[ parse [ [ _ ] dip parse-again? ] [ f ] if* ] loop
+    dup '[
+        parse [
+            just-parsed get [
+                just-parsed off
+                drop t
+            ] [
+                last-token text _ =
+                [
+                    [
+                        just-parsed on
+                        pop-parsing push-all-parsing
+                    ] when
+                ] [ not ] bi
+            ] if
+        ] [ _ token-expected ] if*
+    ] loop
     pop-parsing [ push-all-parsing ] [ but-last ] bi ;
-
-: token-til-eol ( -- string/f )
-    lex-til-eol ;
 
 <PRIVATE
 
@@ -204,7 +212,7 @@ GENERIC: preload-manifest ( manifest -- manifest )
         \ manifest
     ] dip '[
         V{ } clone parsing-context set
-        0 parsing-depth set @
+        @
     ] with-output-variable ; inline
 
 : parse-factor-quot ( -- quot )
@@ -277,7 +285,6 @@ ERROR: identifier-redefined vocabulary word ;
     [ [ name>> ] [ search-vocabulary-names>> ] bi* sets:adjoin ]
     [ [ ] [ search-vocabularies>> ] bi* push ] 2bi ;
 
-
 : parse-use ( -- string )
     token
     dup add-search-vocabulary ;
@@ -295,13 +302,10 @@ ERROR: identifier-redefined vocabulary word ;
 : parse-in ( -- string )
     token dup set-in ;
 
-: call-parsing-word ( string -- obj )
-    [ expect ]
-    [ search definition>> call( -- obj ) ] bi ;
-
 GENERIC: using-vocabulary? ( obj -- ? )
 
-! M: string using-vocabulary? ( vocabulary -- ? ) manifest get search-vocabulary-names>> in? ;
+M: string using-vocabulary? ( vocabulary -- ? )
+    manifest get search-vocabulary-names>> sets:in? ;
 
 M: vocabulary using-vocabulary? ( vocabulary -- ? )
     vocabulary-name using-vocabulary? ;
@@ -314,8 +318,6 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
         manifest get
         [ search-vocabs>> push ]
         [ search-vocab-names>> sets:conjoin ] 2bi
-        ! [ [ load-vocab ] dip search-vocabs>> push ]
-        ! [ [ vocabulary-name ] dip search-vocab-names>> conjoin ] 2bi
     ] if ;
 
 : identifiers-until ( string -- seq )

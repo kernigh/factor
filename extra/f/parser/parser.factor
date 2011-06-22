@@ -21,7 +21,7 @@ TUPLE: manifest
     ! qualified-vocabularies
 
 : <manifest> ( -- obj )
-    \ manifest new
+    manifest new
         HS{ } clone >>search-vocabulary-names
         V{ } clone >>search-vocabularies
         H{ } clone >>identifiers
@@ -80,6 +80,14 @@ M: integer last-token ;
         pop
     ] if ;
 
+: pop-last-parsed ( -- obj/f )
+    manifest get parse-stack>>
+    dup last vector? [
+        last pop
+    ] [
+        pop
+    ] if ;
+
 : token>new-parse-vector ( -- )
     pop-last-token
     new-parse-vector
@@ -97,6 +105,7 @@ GENERIC: process-token ( obj -- )
 M: object process-token ( obj -- ) drop ;
 
 : read-token ( -- obj/f )
+    f manifest get just-parsed<<
     read1 [
         dup comment? [
             manifest get comments>> push read-token
@@ -138,25 +147,20 @@ ERROR: token-expected expected ;
 : parse ( -- obj/f )
     new-parse-vector
     read-token
-    [ process-token current-parse-vector ] [ f ] if* ;
+    [ process-token pop-parsing first ] [ f ] if* ;
 
 : parse-until ( string -- seq )
     new-parse-vector
     dup '[
         parse [
+            dup push-parsing
             manifest get just-parsed>> [
                 f manifest get just-parsed<<
                 drop t
             ] [
                 last-token text _ =
-                [
-                    [
-                        t manifest get just-parsed<<
-                    ] when
-                    pop-parsing push-all-parsing
-                ] [
-                    not
-                ] bi
+                [ [ t manifest get just-parsed<< ] when ]
+                [ not ] bi
             ] if
         ] [ _ token-expected ] if*
     ] loop
@@ -166,7 +170,7 @@ ERROR: token-expected expected ;
 <PRIVATE
 
 : add-parse-tree ( comment/token -- )
-    \ manifest get
+    manifest get
     over comment? [ comments>> ] [ objects>> ] if push ;
 
 : stream-empty? ( stream -- ? ) stream-peek1 not >boolean ;
@@ -182,7 +186,7 @@ GENERIC: preload-manifest ( manifest -- manifest )
 : with-parser ( quot -- manifest )
     [
         <manifest> preload-manifest
-        \ manifest
+        manifest
     ] dip '[
         @
     ] with-output-variable ; inline

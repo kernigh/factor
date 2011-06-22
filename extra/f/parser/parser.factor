@@ -4,7 +4,7 @@ USING: accessors arrays ascii assocs combinators f.dictionary
 f.lexer f.vocabularies f.words fry io
 io.streams.document kernel math math.parser namespaces
 nested-comments sequences sequences.deep splitting strings
-vocabs.loader ;
+vocabs.loader vectors ;
 QUALIFIED: sets
 IN: f.parser
 
@@ -15,6 +15,8 @@ TUPLE: manifest
     in
     identifiers
     comments
+    parse-stack
+    just-parsed
     objects ;
     ! qualified-vocabularies
 
@@ -25,6 +27,7 @@ TUPLE: manifest
         H{ } clone >>identifiers
         ! V{ } clone >>qualified-vocabs
         V{ } clone >>comments
+        V{ } clone >>parse-stack
         V{ } clone >>objects ;
 
 : (search-manifest) ( string assocs -- words )
@@ -52,77 +55,46 @@ M: integer last-token ;
 : with-output-variable ( obj symbol quot -- obj )
     over [ get ] curry compose with-variable ; inline
 
-SYMBOL: parsing-context
-SYMBOL: just-parsed
+: new-parse-vector ( -- )
+    V{ } clone manifest get parse-stack>> push ;
 
-: new-parsing-context ( -- )
-    V{ } clone parsing-context get push ;
-
-: current-parsing-context ( -- seq )
-    parsing-context get dup empty? [ last ] unless ;
+: current-parse-vector ( -- seq )
+    manifest get parse-stack>> dup empty? [
+        dup last vector? [ last ] when 
+    ] unless ;
 
 : push-parsing ( token -- )
-    current-parsing-context push ;
+    current-parse-vector push ;
 
 : push-all-parsing ( token -- )
-    current-parsing-context push-all ;
+    current-parse-vector push-all ;
 
 : pop-parsing ( -- seq )
-    parsing-context get pop ;
+    manifest get parse-stack>> pop ;
 
 : pop-last-token ( -- obj/f )
-    parsing-context get last pop ;
+    manifest get parse-stack>>
+    dup last vector? [
+        last pop
+    ] [
+        pop
+    ] if ;
 
-: token>new-parsing-context ( -- )
+: token>new-parse-vector ( -- )
     pop-last-token
-    new-parsing-context
+    new-parse-vector
     push-parsing ;
-
-TUPLE: parsed-number < lexed n ;
-
-: <parsed-number> ( n -- number )
-    [ pop-parsing parsed-number new-lexed ] dip
-        >>n ; inline
-
-TUPLE: parsed-word < lexed word ;
-
-: <parsed-word> ( word -- number )
-    [ pop-parsing parsed-word new-lexed ] dip
-        >>word ; inline
-
-TUPLE: parsed-parsing-word < lexed word object ;
-
-: <parsed-parsing-word> ( object -- number )
-    [ pop-parsing parsed-parsing-word new-lexed ] dip
-        >>object ; inline
 
 ERROR: unknown-token token ;
 
 : process-parsing-word ( parsing-word -- )
-    token>new-parsing-context
+    token>new-parse-vector
     definition>> call( -- obj )
-    pop-parsing push-all-parsing
-    <parsed-parsing-word> push-parsing ;
+    push-parsing ;
 
 GENERIC: process-token ( obj -- )
 
 M: object process-token ( obj -- ) drop ;
-
-M: string process-token ( string -- )
-    dup search [
-        nip
-        dup parsing-word? [
-            process-parsing-word
-        ] [
-            <parsed-word> push-parsing
-        ] if
-    ] [
-        dup string>number [
-            nip <parsed-number> push-parsing
-        ] [
-            drop
-        ] if*
-    ] if* ;
 
 : read-token ( -- obj/f )
     read1 [
@@ -156,45 +128,46 @@ ERROR: token-expected expected ;
     dup push-parsing text ;
 
 : tokens-until ( string -- seq )
-    new-parsing-context
+    new-parse-vector
     dup '[
         read-token [ _ = not ] [ _ token-expected ] if*
     ] loop
-    pop-parsing [ push-all-parsing ] [ but-last ] bi ;
+    pop-parsing [ push-all-parsing ] [ but-last ] bi
+    [ text ] map ;
 
 : parse ( -- obj/f )
-    new-parsing-context
+    new-parse-vector
     read-token
-    [ process-token current-parsing-context ] [ f ] if* ;
+    [ process-token current-parse-vector ] [ f ] if* ;
 
 : parse-until ( string -- seq )
-    new-parsing-context
+    new-parse-vector
     dup '[
         parse [
-            just-parsed get [
-                just-parsed off
+            manifest get just-parsed>> [
+                f manifest get just-parsed<<
                 drop t
             ] [
                 last-token text _ =
                 [
                     [
-                        just-parsed on
-                        pop-parsing push-all-parsing
+                        t manifest get just-parsed<<
                     ] when
-                ] [ not ] bi
+                    pop-parsing push-all-parsing
+                ] [
+                    not
+                ] bi
             ] if
         ] [ _ token-expected ] if*
     ] loop
+
     pop-parsing [ push-all-parsing ] [ but-last ] bi ;
 
 <PRIVATE
 
-: parsed-comment? ( obj -- ? )
-    dup parsed-parsing-word? [ object>> comment? ] [ drop f ] if ;
-
 : add-parse-tree ( comment/token -- )
     \ manifest get
-    over parsed-comment? [ comments>> ] [ objects>> ] if push ;
+    over comment? [ comments>> ] [ objects>> ] if push ;
 
 : stream-empty? ( stream -- ? ) stream-peek1 not >boolean ;
 
@@ -211,7 +184,6 @@ GENERIC: preload-manifest ( manifest -- manifest )
         <manifest> preload-manifest
         \ manifest
     ] dip '[
-        V{ } clone parsing-context set
         @
     ] with-output-variable ; inline
 
@@ -223,6 +195,15 @@ GENERIC: preload-manifest ( manifest -- manifest )
 
 : parse-factor ( string -- tree )
     parse-factor-quot with-string-lexer ;
+
+
+
+
+
+
+
+
+
 
 : tokens ( seq -- seq' )
     dup lexed? [
@@ -260,8 +241,14 @@ ERROR: identifier-redefined vocabulary word ;
         [ current-vocabulary-name ] dip identifier-redefined
     ] when ;
 
+ERROR: no-IN:-form ;
+
+: check-in-exists ( -- )
+    manifest get in>> [ no-IN:-form ] unless ;
+
 : add-identifier ( token -- )
     check-identifier-exists
+    check-in-exists
     dup current-vocabulary set-at ;
 
 : identifier ( -- string )

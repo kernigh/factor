@@ -1,192 +1,169 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: arrays f.vocabularies f.words kernel f.parser
-f.lexer make sequences ;
+USING: accessors arrays classes.tuple classes.tuple.parser
+combinators f.lexer f.parser f.vocabularies f.words fry kernel
+make sequences words generalizations effects strings math.parser ;
+QUALIFIED: parser
+QUALIFIED: f.words
 IN: f.cheat
 
-TUPLE: main name ;
-C: <main> main
+
+
+<<
+SYNTAX: TOKEN:
+    parse-tuple-definition
+    [ [ drop \ lexed ] dip define-tuple-class ]
+    [
+        [ 2drop name>> "<" ">" surround parser:create-in ]
+        [ nip length swap '[ [ pop-parsing ] _ ndip _ boa ] ]
+        [ 2drop [ all-slots rest [ name>> ] map ] [ name>> 1array ] bi <effect> ] 3tri define-inline
+    ] 3bi ;
+>>
+
+TOKEN: number n ;
+
+TOKEN: single-word name ;
+
+M: string process-token ( string -- )
+    dup search [
+        nip
+        dup f.words:parsing-word? [
+            process-parsing-word
+        ] [
+            <single-word> push-parsing
+        ] if
+    ] [
+        dup string>number [
+            nip <number> push-parsing
+        ] [
+            drop
+            ! <single-word> push-parsing
+        ] if*
+    ] if* ;
+
+TOKEN: main name ;
+
+TUPLE: identifier-stack-effect identifier stack-effect ;
+C: <identifier-stack-effect> identifier-stack-effect
 
 TUPLE: stack-effect in out ;
 C: <stack-effect> stack-effect
 
-TUPLE: fword name stack-effect body ;
-C: <fword> fword
+TOKEN: fword name stack-effect body ;
 
-TUPLE: local-fword name stack-effect body ;
-C: <local-fword> local-fword
+TOKEN: local-fword name stack-effect body ;
 
-TUPLE: fmethod type name stack-effect body ;
-C: <fmethod> fmethod
+TOKEN: fmethod type name stack-effect body ;
 
-TUPLE: local-fmethod type name stack-effect body ;
-C: <local-fmethod> local-fmethod
+TOKEN: local-fmethod type name stack-effect body ;
 
-TUPLE: macro name stack-effect body ;
-C: <macro> macro
+TOKEN: macro name stack-effect body ;
 
-TUPLE: local-macro name stack-effect body ;
-C: <local-macro> local-macro
+TOKEN: local-macro name stack-effect body ;
 
-TUPLE: hook name variable stack-effect ;
-C: <hook> hook
+TOKEN: hook name variable stack-effect ;
 
-TUPLE: inline ;
-C: <inline> inline
+TOKEN: inline ;
 
-TUPLE: recursive ;
-C: <recursive> recursive
+TOKEN: recursive ;
 
-TUPLE: flushable ;
-C: <flushable> flushable
+TOKEN: flushable ;
 
-TUPLE: foldable ;
-C: <foldable> foldable
+TOKEN: foldable ;
 
-TUPLE: begin-private ;
-C: <begin-private> begin-private
+TOKEN: begin-private ;
 
-TUPLE: end-private ;
-C: <end-private> end-private
+TOKEN: end-private ;
 
+TOKEN: instance instance mixin ;
 
-TUPLE: instance instance mixin ;
-C: <instance> instance
+TOKEN: using vocabularies ;
 
-! TUPLE: comment text ;
-! C: <comment> comment
+TOKEN: unuse vocabulary ;
 
-TUPLE: using vocabularies ;
-C: <using> using
+TOKEN: in vocabulary ;
 
-TUPLE: unuse vocabulary ;
-C: <unuse> unuse
+TOKEN: predicate class superclass body ;
 
-TUPLE: in vocabulary ;
-C: <in> in
+TOKEN: mixin mixin ;
 
-TUPLE: predicate class superclass body ;
-C: <predicate> predicate
+TOKEN: math name stack-effect ;
 
-TUPLE: mixin mixin ;
-C: <mixin> mixin
+TOKEN: generic name stack-effect ;
 
-TUPLE: math name stack-effect ;
-C: <math> math
+TOKEN: generic# name arity stack-effect ;
 
-TUPLE: generic name stack-effect ;
-C: <generic> generic
+TOKEN: constructor name class ;
 
-TUPLE: generic# name arity stack-effect ;
-C: <generic#> generic#
+TOKEN: symbols sequence ;
 
-TUPLE: constructor name class ;
-C: <constructor> constructor
+TOKEN: singletons sequence ;
 
-TUPLE: symbols sequence ;
-C: <symbols> symbols
+TOKEN: error name slots ;
 
-TUPLE: singletons sequence ;
-C: <singletons> singletons
+TOKEN: union class members ;
 
-TUPLE: error name slots ;
-C: <error> error
+TOKEN: slot name ;
 
-TUPLE: union class members ;
-C: <union> union
+TOKEN: fhashtable object ;
 
-TUPLE: slot name ;
-C: <slot> slot
+TOKEN: farray object ;
 
-TUPLE: fhashtable object ;
-C: <fhashtable> fhashtable
+TOKEN: fvector object ;
 
-TUPLE: farray object ;
-C: <farray> farray
+TOKEN: fquotation object ;
 
-TUPLE: fvector object ;
-C: <fvector> fvector
+TOKEN: fbyte-array object ;
 
-TUPLE: fquotation object ;
-C: <fquotation> fquotation
+TOKEN: fhex object ;
 
-TUPLE: fbyte-array object ;
-C: <fbyte-array> fbyte-array
+TOKEN: literal object ;
 
-TUPLE: fhex object ;
-C: <fhex> fhex
+TOKEN: qualified vocabulary ;
 
-TUPLE: literal object ;
-C: <literal> literal
+TOKEN: qualified-with vocabulary prefix ;
 
-TUPLE: qualified vocabulary ;
-C: <qualified> qualified
+TOKEN: from vocabulary words ;
 
-TUPLE: qualified-with vocabulary prefix ;
-C: <qualified-with> qualified-with
+TOKEN: rename word vocabulary new-name ;
 
-TUPLE: from vocabulary words ;
-C: <from> from
+TOKEN: exclude vocabulary words ;
 
-TUPLE: rename word vocabulary new-name ;
-C: <rename> rename
+TOKEN: defer name ;
 
-TUPLE: exclude vocabulary words ;
-C: <exclude> exclude
+TOKEN: char ch ;
 
-TUPLE: defer name ;
-C: <defer> defer
+TOKEN: tuple name slots ;
 
-TUPLE: char ch ;
-C: <char> char
+TOKEN: boa-tuple name slots ;
 
-TUPLE: tuple name slots ;
-C: <tuple> tuple
+TOKEN: assoc-tuple name slots ;
 
-TUPLE: boa-tuple name slots ;
-C: <boa-tuple> boa-tuple
+TOKEN: function-alias alias return name parameters ;
 
-TUPLE: assoc-tuple name slots ;
-C: <assoc-tuple> assoc-tuple
+TOKEN: function return name parameters ;
 
-TUPLE: function-alias alias return name parameters ;
-C: <function-alias> function-alias
+TOKEN: struct name slots ;
 
-TUPLE: function return name parameters ;
-C: <function> function
+TOKEN: gl-function return name obj parameters ;
 
-TUPLE: struct name slots ;
-C: <struct> struct
+TOKEN: callback return name parameters ;
 
-TUPLE: gl-function return name obj parameters ;
-C: <gl-function> gl-function
+TOKEN: typedef old new ;
 
-TUPLE: callback return name parameters ;
-C: <callback> callback
+TOKEN: ctype name ;
 
-TUPLE: typedef old new ;
-C: <typedef> typedef
+TOKEN: alias new old ;
 
-TUPLE: ctype name ;
-C: <ctype> ctype
+TOKEN: library name ;
 
-TUPLE: alias new old ;
-C: <alias> alias
+TOKEN: parse-time code ;
 
-TUPLE: library name ;
-C: <library> library
+TOKEN: constant name value ;
 
-TUPLE: parse-time code ;
-C: <parse-time> parse-time
+TOKEN: syntax name body ;
 
-TUPLE: constant name value ;
-C: <constant> constant
-
-TUPLE: syntax name body ;
-C: <syntax> syntax
-
-TUPLE: functor-syntax name body ;
-C: <functor-syntax> functor-syntax
+TOKEN: functor-syntax name body ;
 
 : add-parsing-word ( manifest vocab name quot -- manifest )
     <parsing-word> over add-word-to-vocabulary ;
@@ -204,8 +181,27 @@ C: <functor-syntax> functor-syntax
         ] loop
     ] { } make ;
 
+DEFER: stack-effect
+
+: stack-effect-part ( -- seq )
+    [
+        [
+            peek-token {
+                { [ dup "--" = ] [ drop f ] }
+                { [ dup ")" = ] [ drop f ] }
+                { [ dup ":" tail? ] [ drop token stack-effect <identifier-stack-effect> , t ] }
+                [ drop token , t ]
+            } cond
+        ] loop
+    ] { } make ;
+
 : stack-effect ( -- stack-effect )
-    "(" expect "--" tokens-until ")" tokens-until <stack-effect> ;
+    "(" expect
+    stack-effect-part
+    "--" expect
+    stack-effect-part
+    ")" expect 
+    <stack-effect> ;
 
 : optional-stack-effect ( -- stack-effect/f )
     peek-token "(" = [ stack-effect ] [ f ] if ;

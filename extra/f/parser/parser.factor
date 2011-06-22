@@ -59,9 +59,7 @@ M: integer last-token ;
     V{ } clone manifest get parse-stack>> push ;
 
 : current-parse-vector ( -- seq )
-    manifest get parse-stack>> dup empty? [
-        dup last vector? [ last ] when 
-    ] unless ;
+    manifest get parse-stack>> last ;
 
 : push-parsing ( token -- )
     current-parse-vector push ;
@@ -73,20 +71,8 @@ M: integer last-token ;
     manifest get parse-stack>> pop ;
 
 : pop-last-token ( -- obj/f )
-    manifest get parse-stack>>
-    dup last vector? [
-        last pop
-    ] [
-        pop
-    ] if ;
-
-: pop-last-parsed ( -- obj/f )
-    manifest get parse-stack>>
-    dup last vector? [
-        last pop
-    ] [
-        pop
-    ] if ;
+    manifest get parse-stack>> last pop ;
+    ! dup last vector? [ last pop ] [ pop ] if ;
 
 : token>new-parse-vector ( -- )
     pop-last-token

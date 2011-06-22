@@ -30,11 +30,11 @@ M: string process-token ( string -- )
         dup f.words:parsing-word? [
             process-parsing-word
         ] [
-            <single-word> push-parsing
+            <single-word> new-parse-vector push-parsing
         ] if
     ] [
         dup string>number [
-            nip <number> push-parsing
+            nip <number> new-parse-vector push-parsing
         ] [
             drop
             ! <single-word> push-parsing

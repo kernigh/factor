@@ -24,7 +24,7 @@ M: lambda-macro get-definition
 M: lambda-macro reset-word
     [ call-next-method ] [ f "lambda" set-word-prop ] bi ;
 
-INTERSECTION: lambda-method method lambda-word ;
+INTERSECTION: lambda-method method-type lambda-word ;
 
 M: lambda-method get-definer drop \ M:: \ ; ;
 

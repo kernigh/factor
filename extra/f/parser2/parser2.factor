@@ -1,7 +1,7 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs combinators f.lexer f.vocabularies fry
-io kernel namespaces sequences strings vectors math ;
+io kernel namespaces sequences strings vectors math splitting ;
 QUALIFIED: f.words
 QUALIFIED: sets
 IN: f.parser2
@@ -285,3 +285,14 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
     tokens-until
     dup [ add-identifier ] each ;
 
+
+: ensure-in ( -- ) manifest get in>> [ no-IN:-form ] unless ;
+
+: private-on ( -- )
+    ensure-in
+    manifest get in>>
+    ".private" ?tail drop ".private" append set-in ;
+
+: private-off ( -- )
+    ensure-in
+    manifest get in>> ".private" ?tail drop set-in ;

@@ -153,6 +153,8 @@ TOKEN: syntax name body ;
 
 TOKEN: functor-syntax name body ;
 
+TOKEN: locals-assignment identifiers ;
+
 : add-parsing-word ( manifest vocab name quot -- manifest )
     <parsing-word> over add-word-to-vocabulary ;
 
@@ -216,6 +218,14 @@ DEFER: stack-effect
 
         "syntax" "C:" [ token token <constructor> ] add-parsing-word
 
+        "syntax" ":>" [
+            peek-token "(" = [
+                "(" expect ")" tokens-until <locals-assignment>
+            ] [
+                peek-token 1array <locals-assignment>
+            ] if
+        ] add-parsing-word
+
         "syntax" "MIXIN:" [ identifier <mixin> ] add-parsing-word
         "syntax" "INSTANCE:" [ token token <instance> ] add-parsing-word
 
@@ -253,8 +263,8 @@ DEFER: stack-effect
         "syntax" "recursive" [ <recursive> ] add-parsing-word
         "syntax" "flushable" [ <flushable> ] add-parsing-word
         "syntax" "foldable" [ <foldable> ] add-parsing-word
-        "syntax" "<PRIVATE" [ <begin-private> ] add-parsing-word
-        "syntax" "PRIVATE>" [ <end-private> ] add-parsing-word
+        "syntax" "<PRIVATE" [ private-on <begin-private> ] add-parsing-word
+        "syntax" "PRIVATE>" [ private-off <end-private> ] add-parsing-word
 
         "syntax" "\\" [ token <literal> ] add-parsing-word
         "syntax" "FROM:" [ token "=>" expect ";" tokens-until <from> ] add-parsing-word

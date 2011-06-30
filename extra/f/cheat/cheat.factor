@@ -1,8 +1,9 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays classes.tuple classes.tuple.parser
-combinators f.lexer f.parser f.vocabularies f.words fry kernel
-make sequences words generalizations effects strings math.parser ;
+combinators effects f.lexer f.parser2 f.vocabularies f.words fry
+generalizations kernel make math.parser nested-comments
+sequences strings words ;
 QUALIFIED: parser
 QUALIFIED: f.words
 IN: f.cheat
@@ -15,7 +16,7 @@ SYNTAX: TOKEN:
     [ [ drop \ lexed ] dip define-tuple-class ]
     [
         [ 2drop name>> "<" ">" surround parser:create-in ]
-        [ nip length swap '[ [ pop-parsing ] _ ndip _ boa ] ]
+        [ nip length swap '[ [ pop-parsed ] _ ndip _ boa ] ]
         [ 2drop [ all-slots rest [ name>> ] map ] [ name>> 1array ] bi <effect> ] 3tri define-inline
     ] 3bi ;
 >>
@@ -24,30 +25,17 @@ TOKEN: number n ;
 
 TOKEN: single-word name ;
 
-M: string process-token ( string -- )
-    dup search [
-        nip
-        dup f.words:parsing-word? [
-            process-parsing-word
-        ] [
-            <single-word> new-parse-vector push-parsing
-        ] if
-    ] [
-        dup string>number [
-            nip <number> new-parse-vector push-parsing
-        ] [
-            drop
-            ! <single-word> push-parsing
-        ] if*
-    ] if* ;
-
 TOKEN: main name ;
+
+! TUPLE: identifier-stack-effect identifier stack-effect ;
+! C: <identifier-stack-effect> identifier-stack-effect
+
+! TUPLE: stack-effect in out ;
+! C: <stack-effect> stack-effect
 
 TUPLE: identifier-stack-effect identifier stack-effect ;
 C: <identifier-stack-effect> identifier-stack-effect
-
-TUPLE: stack-effect in out ;
-C: <stack-effect> stack-effect
+TOKEN: stack-effect in out ;
 
 TOKEN: fword name stack-effect body ;
 
@@ -184,24 +172,27 @@ TOKEN: functor-syntax name body ;
 DEFER: stack-effect
 
 : stack-effect-part ( -- seq )
+    new-parse
     [
-        [
-            peek-token {
-                { [ dup "--" = ] [ drop f ] }
-                { [ dup ")" = ] [ drop f ] }
-                { [ dup ":" tail? ] [ drop token stack-effect <identifier-stack-effect> , t ] }
-                [ drop token , t ]
-            } cond
-        ] loop
-    ] { } make ;
+        peek-token {
+            { [ dup "--" = ] [ drop f ] }
+            { [ dup ")" = ] [ drop f ] }
+            { [ dup ":" tail? ] [ drop token stack-effect <identifier-stack-effect> drop t ] }
+            [ drop token drop t ]
+        } cond
+    ] loop
+    pop-parsed [ push-all-parsed ] keep
+    [ text ] map ;
 
 : stack-effect ( -- stack-effect )
+    new-parse
     "(" expect
     stack-effect-part
     "--" expect
     stack-effect-part
     ")" expect 
-    <stack-effect> ;
+    <stack-effect>
+    dup push-parsed ;
 
 : optional-stack-effect ( -- stack-effect/f )
     peek-token "(" = [ stack-effect ] [ f ] if ;

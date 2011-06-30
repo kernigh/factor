@@ -1,12 +1,31 @@
-! Copyright (C) 2010 Doug Coleman.
+! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays ascii assocs combinators f.dictionary
-f.lexer f.vocabularies f.words fry io
-io.streams.document kernel math math.parser namespaces
-nested-comments sequences sequences.deep splitting strings
-vocabs.loader vectors ;
+USING: accessors assocs combinators f.lexer f.vocabularies fry
+io kernel namespaces sequences strings vectors math ;
+QUALIFIED: f.words
 QUALIFIED: sets
-IN: f.parser
+IN: f.parser2
+
+: with-output-variable ( obj symbol quot -- obj )
+    over [ get ] curry compose with-variable ; inline
+
+: (peek-token) ( -- token/string/f )
+    read1 [
+        dup comment? [ drop (peek-token) ] when
+    ] [
+        f
+    ] if* ;
+
+: peek-token ( -- token/string/f )
+    [ (peek-token) text ] with-input-rewind ;
+
+GENERIC: last-token ( obj -- token/f )
+
+! M: token last-token ;
+M: object last-token ;
+M: sequence last-token [ f ] [ last last-token ] if-empty ;
+M: lexed last-token tokens>> last-token ;
+M: integer last-token ;
 
 TUPLE: manifest
     current-vocabulary
@@ -15,19 +34,17 @@ TUPLE: manifest
     in
     identifiers
     comments
-    parse-stack
+    parsed
     just-parsed
     objects ;
-    ! qualified-vocabularies
 
 : <manifest> ( -- obj )
     manifest new
         HS{ } clone >>search-vocabulary-names
         V{ } clone >>search-vocabularies
         H{ } clone >>identifiers
-        ! V{ } clone >>qualified-vocabs
         V{ } clone >>comments
-        V{ } clone >>parse-stack
+        V{ } clone >>parsed
         V{ } clone >>objects ;
 
 : (search-manifest) ( string assocs -- words )
@@ -45,136 +62,122 @@ ERROR: ambiguous-word words ;
 : search ( string -- word/f )
     manifest get search-manifest ;
 
-GENERIC: last-token ( obj -- token/f )
+: parse-stack ( -- obj )
+    manifest get parsed>> ;
 
-M: token last-token ;
-M: sequence last-token [ f ] [ last last-token ] if-empty ;
-M: lexed last-token tokens>> last-token ;
-M: integer last-token ;
+: current-parse-vector ( -- obj )
+    parse-stack dup empty? [ last ] unless ;
 
-: with-output-variable ( obj symbol quot -- obj )
-    over [ get ] curry compose with-variable ; inline
-
-: new-parse-vector ( -- )
-    V{ } clone manifest get parse-stack>> push ;
-
-: current-parse-vector ( -- seq )
-    manifest get parse-stack>> dup empty? [ last ] unless ;
-
-: push-parsing ( token -- )
+: push-parsed ( obj -- )
     current-parse-vector push ;
 
-: push-all-parsing ( token -- )
+: push-all-parsed ( obj -- )
     current-parse-vector push-all ;
 
-: pop-parsing ( -- seq )
-    manifest get parse-stack>> pop ;
+: new-parse ( -- )
+    V{ } clone parse-stack push ;
 
-: pop-last-token ( -- obj/f )
-    manifest get parse-stack>>
-    last pop ;
+: last-parsed ( -- obj )
+    parse-stack last ;
+
+: pop-parsed ( -- obj )
+    parse-stack pop ;
 
 : push-comment ( comment -- )
     manifest get comments>> push ;
 
-ERROR: unknown-token token ;
+: do-parsing-word ( word -- )
+    definition>> call( -- obj ) push-parsed ;
 
-: process-parsing-word ( parsing-word -- )
-    pop-last-token
-    new-parse-vector
-    push-parsing
-    definition>> call( -- obj )
-B
-    push-parsing
-    pop-parsing push-all-parsing ;
+: maybe-call-parsing-word ( string -- )
+    dup text search [
+        dup f.words:parsing-word? [
+            [ 1vector parse-stack push ]
+            [ do-parsing-word ] bi*
+        ] [
+            drop push-parsed
+        ] if
+    ] [
+        push-parsed
+    ] if* ;
 
-GENERIC: process-token ( obj -- )
+: just-parsed? ( -- ? )
+    manifest get just-parsed>> ;
 
-M: object process-token ( obj -- ) drop ;
+: just-parsed-on ( -- ) t manifest get just-parsed<< ;
+: just-parsed-off ( -- ) f manifest get just-parsed<< ;
 
-: read-token ( -- obj/f )
-    f manifest get just-parsed<<
+: read-token ( -- token/f )
+    just-parsed-off
     read1 [
         dup comment? [
             push-comment read-token
-        ] [
-            dup push-parsing text
-        ] if
+        ] when
     ] [
         f
     ] if* ;
 
-: (peek-token) ( -- token/string/f )
-    read1 [
-        dup comment? [ drop (peek-token) ] when
+: parse ( -- obj/f )
+    read-token [
+        maybe-call-parsing-word
+        last-parsed
     ] [
         f
     ] if* ;
 
-: peek-token ( -- token/string/f )
-    [ (peek-token) text ] with-input-rewind ;
-
-ERROR: premature-eof ;
 ERROR: token-expected expected ;
 
-: token ( -- token/string/f )
-    read-token [ premature-eof ] unless* ;
+: parse-until ( string -- obj )
+    new-parse
+    dup '[
+        parse [
+            just-parsed? [
+                just-parsed-off
+                drop t
+            ] [
+                last-token text _ = [
+                    [ just-parsed-on ] when
+                ] keep not
+            ] if
+        ] [
+            _ token-expected
+        ] if*
+    ] loop
+    pop-parsed [ push-all-parsed ] keep but-last ;
+
+ERROR: premature-eof ;
+
+: token ( -- string/f )
+    read-token [
+        [ push-parsed ] [ text ] bi
+    ] [
+        premature-eof
+    ] if* ;
+
+: tokens-until ( string -- sequence )
+    new-parse
+    dup '[
+        read-token [ dup push-parsed text _ = not ] [ _ token-expected ] if*
+    ] loop
+    pop-parsed [ push-all-parsed ] keep
+    but-last [ text ] map ;
 
 : chunk ( -- token/f )
     lex-chunk [ premature-eof ] unless*
-    dup push-parsing text ;
-
-: tokens-until ( string -- seq )
-    new-parse-vector
-    dup '[
-        read-token [ _ = not ] [ _ token-expected ] if*
-    ] loop
-    pop-parsing [ text ] map ;
-
-: parse ( -- obj/f )
-    new-parse-vector
-    read-token [
-        process-token
-        pop-parsing [ push-parsing ] keep
-    ] [
-        pop-parsing drop f
-    ] if* ;
-
-: parse-until ( string -- seq )
-    new-parse-vector
-        dup '[
-            parse [
-                manifest get just-parsed>> [
-                    f manifest get just-parsed<<
-                    drop t
-                ] [
-                    last-token text _ =
-                    [ [ t manifest get just-parsed<< ] when ]
-                    [ not ] bi
-                ] if
-            ] [
-                _ token-expected
-            ] if*
-        ] loop
-    pop-parsing [ push-all-parsing ] keep but-last ;
-
-<PRIVATE
+    dup push-parsed text ;
 
 : add-parse-tree ( comment/token -- )
-    manifest get
-    over comment? [ comments>> push ] [ 2drop ] if ;
+    dup comment? [ push-comment ]
+    [ pop-parsed drop manifest get objects>> push ] if ;
 
 : stream-empty? ( stream -- ? ) stream-peek1 not >boolean ;
 
 : (parse-factor) ( -- )
     [ input-stream get stream-empty? not ]
-    [ parse [ add-parse-tree ] when* ] while
-    manifest get dup parse-stack>> pop >>objects drop ;
-
-PRIVATE>
+    [ parse [ add-parse-tree ] when* ] while ;
 
 GENERIC: preload-manifest ( manifest -- manifest )
-    
+
 : with-parser ( quot -- manifest )
     [
         <manifest> preload-manifest
@@ -192,32 +195,6 @@ GENERIC: preload-manifest ( manifest -- manifest )
 : parse-factor ( string -- tree )
     parse-factor-quot with-string-lexer ;
 
-
-
-
-
-
-: tokens ( seq -- seq' )
-    dup lexed? [
-        tokens>> tokens
-    ] [
-        dup sequence? [
-            [ tokens ] map
-        ] [
-            dup token? [ tokens ] unless
-        ] if
-    ] if ;
-
-: tree>tokens ( tree -- tokens )
-    objects>> [ tokens ] map flatten ;
-
-ERROR: expected expected got ;
-
-: expect ( string -- )
-    token 2dup = [ 2drop ] [ expected ] if ;
-
-: optional ( string -- )
-    peek-token = [ token drop ] when ;
 
 : current-vocabulary ( -- string )
     manifest get [ in>> ] [ identifiers>> ] bi at ;
@@ -272,6 +249,11 @@ ERROR: no-IN:-form ;
     token
     dup remove-search-vocabulary ;
 
+ERROR: expected expected got ;
+
+: expect ( string -- )
+    token 2dup = [ 2drop ] [ expected ] if ;
+
 : set-in ( string -- )
     text
     manifest get
@@ -303,4 +285,3 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
     tokens-until
     dup [ add-identifier ] each ;
 
-"f.cheat" require

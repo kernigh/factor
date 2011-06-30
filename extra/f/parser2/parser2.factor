@@ -125,6 +125,14 @@ ERROR: ambiguous-word words ;
         f
     ] if* ;
 
+TUPLE: parsing-error-tuple word line column error ;
+
+: parsing-error ( error -- * )
+    parsing-error-tuple new
+        swap >>error
+
+        throw ; inline
+
 ERROR: token-expected expected ;
 
 : parse-until ( string -- obj )

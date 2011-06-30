@@ -8,8 +8,6 @@ QUALIFIED: parser
 QUALIFIED: f.words
 IN: f.cheat
 
-
-
 <<
 SYNTAX: TOKEN:
     parse-tuple-definition
@@ -71,17 +69,21 @@ TOKEN: unuse vocabulary ;
 
 TOKEN: in vocabulary ;
 
-TOKEN: predicate class superclass body ;
+TOKEN: predicate class superclass stack-effect body ;
 
 TOKEN: mixin mixin ;
 
 TOKEN: math name stack-effect ;
 
+TOKEN: memo name stack-effect body ;
+
+TOKEN: local-memo name stack-effect body ;
+
 TOKEN: generic name stack-effect ;
 
 TOKEN: generic# name arity stack-effect ;
 
-TOKEN: constructor name class ;
+TOKEN: constructor name class stack-effect ;
 
 TOKEN: symbols sequence ;
 
@@ -155,6 +157,16 @@ TOKEN: functor-syntax name body ;
 
 TOKEN: locals-assignment identifiers ;
 
+TOKEN: literal-syntax word ;
+
+TOKEN: literal-quotation objects ;
+
+TOKEN: literal-array objects ;
+
+TOKEN: flags objects ;
+
+TOKEN: postponed word ;
+
 : add-parsing-word ( manifest vocab name quot -- manifest )
     <parsing-word> over add-word-to-vocabulary ;
 
@@ -215,8 +227,13 @@ DEFER: stack-effect
         "syntax" "{" [ "}" parse-until <farray> ] add-parsing-word
         "syntax" "[" [ "]" parse-until <fquotation> ] add-parsing-word
         "syntax" "(" [ stack-effect ] add-parsing-word
+        "syntax" "$" [ token <literal-syntax> ] add-parsing-word
+        "syntax" "$[" [ "]" parse-until <literal-quotation> ] add-parsing-word
+        "syntax" "${" [ "}" parse-until <literal-array> ] add-parsing-word
+        "syntax" "flags{" [ "}" parse-until <flags> ] add-parsing-word
+        "syntax" "POSTPONE:" [ chunk <postponed> ] add-parsing-word
 
-        "syntax" "C:" [ token token <constructor> ] add-parsing-word
+        "syntax" "C:" [ token token optional-stack-effect <constructor> ] add-parsing-word
 
         "syntax" ":>" [
             peek-token "(" = [
@@ -230,6 +247,8 @@ DEFER: stack-effect
         "syntax" "INSTANCE:" [ token token <instance> ] add-parsing-word
 
         "syntax" "MATH:" [ identifier stack-effect <math> ] add-parsing-word
+        "syntax" "MEMO:" [ identifier stack-effect ";" parse-until <memo> ] add-parsing-word
+        "syntax" "MEMO::" [ identifier stack-effect ";" parse-until <local-memo> ] add-parsing-word
 
         "syntax" "GENERIC:" [ identifier stack-effect <generic> ] add-parsing-word
         "syntax" "GENERIC#" [ identifier token stack-effect <generic#> ] add-parsing-word
@@ -245,7 +264,7 @@ DEFER: stack-effect
         "syntax" "MACRO::" [ identifier stack-effect ";" parse-until <local-macro> ] add-parsing-word
 
         "syntax" "MAIN:" [ token <main> ] add-parsing-word
-        "syntax" "PREDICATE:" [ identifier "<" expect token ";" parse-until <predicate> ]
+        "syntax" "PREDICATE:" [ identifier "<" expect token optional-stack-effect ";" parse-until <predicate> ]
             add-parsing-word
 
         "syntax" "SYMBOLS:" [ ";" identifiers-until <symbols> ] add-parsing-word

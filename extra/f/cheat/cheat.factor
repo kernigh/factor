@@ -320,7 +320,7 @@ DEFER: stack-effect
             token
             peek-token "f" = [
                 token drop
-                ";" parse-until <boa-tuple>
+                "}" parse-until <boa-tuple>
             ] [
                 [
                     [

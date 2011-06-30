@@ -82,7 +82,6 @@ UNION: comment line-comment nested-comment ;
         swap >>comment
         swap >>start ; inline
 
-
 : text ( token/f -- string/f ) dup token? [ text>> ] when ;
 
 : lex-blanks ( -- )

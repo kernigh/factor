@@ -127,7 +127,7 @@ ERROR: bad-short-string ;
                 f
             ] [
                 peek1 text {
-                    { CHAR: \ [ 2 read [ text ] map % ] }
+                    { CHAR: \ [ 2 read text % ] }
                     [ drop read1 [ text , ] [ bad-long-string ] if* ]
                 } case
                 t
@@ -170,6 +170,7 @@ ERROR: bad-short-string ;
     2 peek
     text {
         { [ dup "!" head? ] [ drop lex-til-eol rest <line-comment> ] }
+        { [ dup "#!" head? ] [ drop lex-til-eol rest <line-comment> ] }
         { [ dup "(*" head? ] [ drop lex-nested-comment ensure-nesting ] }
         { [ dup f = ] [ drop f ] }
         [ drop lex-string/token ]

@@ -187,6 +187,15 @@ ERROR: premature-eof ;
     lex-chunk [ premature-eof ] unless*
     dup push-parsed text ;
 
+: chunks-until ( string -- seq )
+    new-parse
+    dup '[
+        chunk [ _ = not ] [ _ token-expected ] if*
+    ] loop
+    pop-parsed [ push-all-parsed ] keep
+    but-last [ text ] map ;
+    
+
 : add-parse-tree ( comment/token -- )
     dup comment? [ push-comment ]
     [ pop-parsed drop manifest get objects>> push ] if ;
@@ -236,10 +245,17 @@ ERROR: no-IN:-form ;
 : check-in-exists ( -- )
     manifest get in>> [ no-IN:-form ] unless ;
 
-: add-identifier ( token -- )
+: remove-identifier ( string -- )
+    check-in-exists
+    current-vocabulary delete-at ;
+
+: add-identifier ( string -- )
     check-identifier-exists
     check-in-exists
     dup current-vocabulary set-at ;
+
+: forget-identifier ( -- string )
+    token dup remove-identifier ;
 
 : identifier ( -- string )
     token

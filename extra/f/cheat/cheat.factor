@@ -85,6 +85,8 @@ TOKEN: generic# name arity stack-effect ;
 
 TOKEN: constructor name class stack-effect ;
 
+TOKEN: long-constructor name stack-effect body ;
+
 TOKEN: symbols sequence ;
 
 TOKEN: singletons sequence ;
@@ -114,6 +116,8 @@ TOKEN: qualified vocabulary ;
 TOKEN: qualified-with vocabulary prefix ;
 
 TOKEN: from vocabulary words ;
+
+TOKEN: forget name ;
 
 TOKEN: rename word vocabulary new-name ;
 
@@ -163,6 +167,10 @@ TOKEN: literal-quotation objects ;
 
 TOKEN: literal-array objects ;
 
+TOKEN: let quotation ;
+
+TOKEN: lambda bindings quotation ;
+
 TOKEN: flags objects ;
 
 TOKEN: postponed word ;
@@ -170,6 +178,14 @@ TOKEN: postponed word ;
 TOKEN: article objects ;
 
 TOKEN: about name ;
+
+TOKEN: call stack-effect ;
+
+TOKEN: execute stack-effect ;
+
+TOKEN: ebnf text ;
+TOKEN: functor text ;
+TOKEN: peg name stack-effect body ;
 
 : add-parsing-word ( manifest vocab name quot -- manifest )
     <parsing-word> over add-word-to-vocabulary ;
@@ -206,15 +222,18 @@ DEFER: stack-effect
     pop-parsed [ push-all-parsed ] keep
     [ text ] map ;
 
-: stack-effect ( -- stack-effect )
-    new-parse
-    "(" expect
+: (stack-effect) ( -- stack-effect )
     stack-effect-part
     "--" expect
     stack-effect-part
     ")" expect 
-    <stack-effect>
-    dup push-parsed ;
+    <stack-effect> ;
+
+: open-stack-effect ( -- stack-effect )
+    new-parse (stack-effect) dup push-parsed ;
+
+: stack-effect ( -- stack-effect )
+    new-parse "(" expect (stack-effect) dup push-parsed ;
 
 : optional-stack-effect ( -- stack-effect/f )
     peek-token "(" = [ stack-effect ] [ f ] if ;
@@ -242,6 +261,9 @@ DEFER: stack-effect
         "syntax" "POSTPONE:" [ chunk <postponed> ] add-parsing-word
         "syntax" "ARTICLE:" [ ";" parse-until <article> ] add-parsing-word
         "syntax" "ABOUT:" [ token <about> ] add-parsing-word
+
+        "syntax" "[let" [ "]" parse-until <let> ] add-parsing-word
+        "syntax" "[|" [ "|" tokens-until "]" parse-until <lambda> ] add-parsing-word
 
         "syntax" "C:" [ token token optional-stack-effect <constructor> ] add-parsing-word
 
@@ -276,6 +298,7 @@ DEFER: stack-effect
         "syntax" "MAIN:" [ token <main> ] add-parsing-word
         "syntax" "PREDICATE:" [ identifier "<" expect token optional-stack-effect ";" parse-until <predicate> ]
             add-parsing-word
+        "syntax" "FORGET:" [ forget-identifier <forget> ] add-parsing-word
 
         "syntax" "SYMBOLS:" [ ";" identifiers-until <symbols> ] add-parsing-word
         "syntax" "SYMBOL:" [ identifier 1array <symbols> ] add-parsing-word
@@ -288,6 +311,12 @@ DEFER: stack-effect
 
         "syntax" "ERROR:" [ identifier ";" tokens-until <error> ] add-parsing-word
 
+
+        "syntax" "EBNF:" [ ";EBNF" chunks-until <ebnf> ] add-parsing-word
+        "syntax" "FUNCTOR:" [ ";FUNCTOR" tokens-until <ebnf> ] add-parsing-word
+        "syntax" "PEG:" [ identifier stack-effect ";" parse-until <peg> ] add-parsing-word
+        "syntax" "call(" [ open-stack-effect <call> ] add-parsing-word
+        "syntax" "execute(" [ open-stack-effect <execute> ] add-parsing-word
         "syntax" "inline" [ <inline> ] add-parsing-word
         "syntax" "recursive" [ <recursive> ] add-parsing-word
         "syntax" "flushable" [ <flushable> ] add-parsing-word
@@ -367,7 +396,7 @@ DEFER: stack-effect
                             drop f
                         ] [
                             "{" = [
-                                "}" tokens-until , t
+                                "}" parse-until , t
                             ] [
                                 "bad tuple" throw
                             ] if
@@ -375,6 +404,10 @@ DEFER: stack-effect
                     ] loop
                 ] { } make <assoc-tuple>
             ] if
+        ] add-parsing-word
+
+        "syntax" "CONSTRUCTOR:" [
+            identifier stack-effect ";" parse-until <long-constructor>
         ] add-parsing-word
     ;
 

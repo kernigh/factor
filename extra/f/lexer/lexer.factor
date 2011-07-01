@@ -67,19 +67,17 @@ TUPLE: lexed-token < lexed string ;
         [ >>delimiter ] dip
         >>string ; inline
 
-TUPLE: line-comment < lexed text ;
+TUPLE: line-comment < lexed ;
 TUPLE: nested-comment < lexed start comment finish ;
 
 UNION: comment line-comment nested-comment ;
 
-: <line-comment> ( text -- line-comment )
-    line-comment new
-        swap >>text ; inline
+: <line-comment> ( sequence -- line-comment )
+    line-comment new-lexed ; inline
 
 : <nested-comment> ( start comment finish -- nested-comment )
-    nested-comment new
+    [ nested-comment new-lexed ] dip
         swap >>finish
-        swap >>comment
         swap >>start ; inline
 
 : text ( token/f -- string/f ) dup token? [ text>> ] when ;
@@ -88,7 +86,9 @@ UNION: comment line-comment nested-comment ;
     [ peek1 text blank? [ read1 ] [ f ] if ] loop>array drop ;
 
 : lex-til-eol ( -- comment )
-    [ peek1 text "\r\n" member? [ f ] [ read1 text ] if ] loop>array >string ;
+    ! [ peek1 text "\r\n" member? [ f ] [ read1 text ] if ] loop>array >string ;
+    "\r\n" read-until drop ;
+    
 
 : lex-nested-comment ( -- comments )
     input-stream get [ 1 + ] change-comment-nesting-level drop
@@ -169,8 +169,8 @@ ERROR: bad-short-string ;
     lex-blanks
     2 peek
     text {
-        { [ dup "!" head? ] [ drop lex-til-eol rest <line-comment> ] }
-        { [ dup "#!" head? ] [ drop lex-til-eol rest <line-comment> ] }
+        { [ dup "!" head? ] [ drop 1 read lex-til-eol 2array <line-comment> ] }
+        { [ dup "#!" head? ] [ drop 2 read lex-til-eol 2array <line-comment> ] }
         { [ dup "(*" head? ] [ drop lex-nested-comment ensure-nesting ] }
         { [ dup f = ] [ drop f ] }
         [ drop lex-string/token ]

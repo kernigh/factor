@@ -68,7 +68,9 @@ ERROR: ambiguous-word words ;
     manifest get parsed>> ;
 
 : current-parse-vector ( -- obj )
-    parse-stack dup empty? [ last ] unless ;
+    parse-stack dup empty? [
+        dup last vector? [ last ] when
+    ] unless ;
 
 : push-parsed ( obj -- )
     current-parse-vector push ;
@@ -85,8 +87,12 @@ ERROR: ambiguous-word words ;
 : pop-parsed ( -- obj )
     parse-stack pop ;
 
+: pop-all-parsed ( -- obj )
+    parse-stack
+    V{ } clone manifest get parsed<< ;
+
 : push-comment ( comment -- )
-    manifest get comments>> push ;
+    push-parsed ;
 
 : do-parsing-word ( word -- )
     definition>> call( -- obj ) push-parsed ;
@@ -195,16 +201,14 @@ ERROR: premature-eof ;
     pop-parsed [ push-all-parsed ] keep
     but-last [ text ] map ;
     
-
-: add-parse-tree ( comment/token -- )
-    dup comment? [ push-comment ]
-    [ pop-parsed drop manifest get objects>> push ] if ;
+: add-parse-tree ( -- )
+    pop-all-parsed manifest get objects>> push-all ;
 
 : stream-empty? ( stream -- ? ) stream-peek1 not >boolean ;
 
 : (parse-factor) ( -- )
     [ input-stream get stream-empty? not ]
-    [ parse [ add-parse-tree ] when* ] while ;
+    [ parse [ add-parse-tree ] when ] while ;
 
 GENERIC: preload-manifest ( manifest -- manifest )
 

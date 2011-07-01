@@ -1,11 +1,13 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors destructors io kernel math sequences splitting
-fry ;
+fry strings combinators ;
 IN: io.streams.document
 
 ! Readers
-TUPLE: document-reader stream line# column# previous-character ;
+TUPLE: document-stream < disposable stream line# column# previous-character ;
+TUPLE: document-reader < document-stream ;
+TUPLE: document-writer < document-stream ;
 
 TUPLE: token text line# column# ;
 
@@ -20,7 +22,7 @@ TUPLE: token text line# column# ;
     [ 1 + ] change-line#
     0 >>column# drop ;
 
-: update-line-read1 ( stream character -- )
+: update-line1 ( stream character -- )
     >>previous-character next-line ;
 
 : update-column ( stream character -- )
@@ -31,20 +33,20 @@ TUPLE: token text line# column# ;
     [ length 1 - '[ _ + ] change-line# drop ]
     [ last length '[ _ + ] change-column# drop ] 2bi ;
 
-: update-stream-read1 ( stream character -- )
+: update-stream1 ( stream character -- )
     over previous-character>> CHAR: \r = [
-        update-line-read1
+        update-line1
     ] [
         dup CHAR: \n = [
-            update-line-read1
+            update-line1
         ] [
             update-column
         ] if
     ] if ;
 
-: update-stream-read ( stream string -- )
+: update-stream ( stream string -- )
     over previous-character>> CHAR: \r = [
-        [ last update-line-read1 ]
+        [ last update-line1 ]
         [ update-line-read ] 2bi
     ] [
         update-line-read
@@ -55,7 +57,7 @@ M: document-reader stream-element-type drop +character+ ;
 M: document-reader stream-read1
     dup stream>> stream-read1 [
         [ <token> ]
-        [ update-stream-read1 ]
+        [ update-stream1 ]
         2bi
     ] [
         drop f
@@ -68,7 +70,7 @@ M: document-reader stream-peek1
 M: document-reader stream-read
     [ nip ] [ stream>> stream-read ] 2bi [
         [ <token> ]
-        [ update-stream-read ]
+        [ update-stream ]
         2bi
     ] [
         drop f
@@ -126,13 +128,78 @@ M: document-reader stream-seek
         [ [ column#>> ] dip column#<< ] 2bi
     ] 3bi ;
 
-M: document-reader dispose stream>> dispose ;
+ERROR: backwards-line-seek token stream line-to line-from ;
+ERROR: backwards-column-seek token stream column-to column-from ;
 
-: <document-reader> ( stream -- stream' )
-    document-reader new
+: check-backwards-line-seek ( token stream -- token stream )
+    2dup [ line#>> ] bi@ 2dup <
+    [ backwards-line-seek ] [ 2drop ] if ;
+
+: check-backwards-column-seek ( token stream -- token stream )
+    2dup [ column#>> ] bi@ 2dup <
+    [ backwards-column-seek ] [ 2drop ] if ;
+
+: same-line? ( token stream -- ? )
+    check-backwards-line-seek
+    [ line#>> ] bi@ = ;
+
+: seek-lines ( token stream -- )
+    2dup same-line? [
+        2drop
+    ] [
+        {
+            [ [ line#>> ] bi@ - CHAR: \n <string> ]
+            [ nip stream>> stream-write ]
+            [ [ line#>> ] dip line#<< ]
+            [ nip 0 >>column# drop ]
+        } 2cleave
+    ] if ;
+
+: seek-columns ( token stream -- )
+    check-backwards-column-seek
+    [ [ column#>> ] bi@ - CHAR: \s <string> ]
+    [ nip stream>> stream-write ]
+    [ [ column#>> ] dip column#<< ] 2tri ;
+
+: seek-forward ( token stream -- token stream )
+    [ seek-lines ]
+    [ seek-columns ]
+    [ ] 2tri ;
+
+M: document-stream dispose* stream>> dispose ;
+
+: new-document-stream ( stream document-stream-class -- stream' )
+    new-disposable
         swap >>stream
         0 >>line#
         0 >>column# ; inline
+
+: <document-reader> ( stream -- stream' )
+    document-reader new-document-stream ; inline
+
+: <document-writer> ( stream -- stream' )
+    document-writer new-document-stream ; inline
+
+: document-stream-write ( string stream -- )
+    [ stream>> stream-write ]
+    [ swap update-stream ] 2bi ;
+
+: document-stream-write1 ( string stream -- )
+    [ stream>> stream-write1 ]
+    [ swap update-stream1 ] 2bi ;
+
+: seek-token ( token strema -- string stream )
+    over token? [ seek-forward [ text>> ] dip ] when ;
+
+M: document-writer stream-write
+    seek-token document-stream-write ;
+    
+M: document-writer stream-write1
+    seek-token document-stream-write1 ;
+
+M: document-writer stream-nl
+    [ next-line ]
+    [ stream>> stream-nl ] bi ;
 
 : with-document-reader ( stream quot -- )
     [ <document-reader> ] dip with-input-stream ; inline

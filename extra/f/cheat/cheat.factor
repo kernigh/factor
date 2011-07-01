@@ -167,6 +167,10 @@ TOKEN: flags objects ;
 
 TOKEN: postponed word ;
 
+TOKEN: article objects ;
+
+TOKEN: about name ;
+
 : add-parsing-word ( manifest vocab name quot -- manifest )
     <parsing-word> over add-word-to-vocabulary ;
 
@@ -236,6 +240,8 @@ DEFER: stack-effect
         "syntax" "${" [ "}" parse-until <literal-array> ] add-parsing-word
         "syntax" "flags{" [ "}" parse-until <flags> ] add-parsing-word
         "syntax" "POSTPONE:" [ chunk <postponed> ] add-parsing-word
+        "syntax" "ARTICLE:" [ ";" parse-until <article> ] add-parsing-word
+        "syntax" "ABOUT:" [ token <about> ] add-parsing-word
 
         "syntax" "C:" [ token token optional-stack-effect <constructor> ] add-parsing-word
 

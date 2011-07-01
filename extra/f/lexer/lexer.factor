@@ -120,20 +120,20 @@ ERROR: bad-short-string ;
 
 : read-long-string ( -- string )
     [
-        3 peek text "\"\"\"" sequence= [
-            3 read drop
-            peek1 text { CHAR: \n CHAR: \r CHAR: \t f } member? [
+        [
+            3 peek text "\"\"\"" sequence= [
+                3 read text %
+                [ peek1 text CHAR: " = [ read1 , t ] [ f ] if ] loop
                 f
             ] [
-                "\"\"\""
+                peek1 text {
+                    { CHAR: \ [ 2 read [ text ] map % ] }
+                    [ drop read1 [ text , ] [ bad-long-string ] if* ]
+                } case
+                t
             ] if
-        ] [
-            peek1 text {
-                { CHAR: \ [ 2 read [ text ] map >string ] }
-                [ drop read1 [ text ] [ bad-long-string ] if* ]
-            } case
-        ] if
-    ] loop>array >string ;
+        ] loop
+    ] "" make ;
 
 : read-short-string ( -- string )
     [

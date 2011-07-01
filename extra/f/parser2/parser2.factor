@@ -35,6 +35,7 @@ TUPLE: manifest
     identifiers
     comments
     parsed
+    parsing-word-stack
     just-parsed
     objects ;
 
@@ -45,6 +46,7 @@ TUPLE: manifest
         H{ } clone >>identifiers
         V{ } clone >>comments
         V{ } clone >>parsed
+        V{ } clone >>parsing-word-stack
         V{ } clone >>objects ;
 
 : (search-manifest) ( string assocs -- words )
@@ -92,8 +94,12 @@ ERROR: ambiguous-word words ;
 : maybe-call-parsing-word ( string -- )
     dup text search [
         dup f.words:parsing-word? [
-            [ 1vector parse-stack push ]
+            [
+                [ manifest get parsing-word-stack>> push ]
+                [ 1vector parse-stack push ] bi
+            ]
             [ do-parsing-word ] bi*
+            manifest get parsing-word-stack>> pop drop
         ] [
             drop push-parsed
         ] if
@@ -125,6 +131,20 @@ ERROR: ambiguous-word words ;
         f
     ] if* ;
 
+TUPLE: parsing-error-tuple words word-names line# column# error ;
+
+: parsing-error ( error -- * )
+    parsing-error-tuple new
+        swap >>error
+        manifest get parsing-word-stack>>
+            {
+                [ >>words ]
+                [ [ text ] map >>word-names ]
+                [ first line#>> >>line# ]
+                [ first column#>> >>column# ]
+            } cleave
+        throw ; inline
+
 ERROR: token-expected expected ;
 
 : parse-until ( string -- obj )
@@ -140,7 +160,8 @@ ERROR: token-expected expected ;
                 ] keep not
             ] if
         ] [
-            _ token-expected
+            ! _ token-expected
+            _ \ token-expected boa parsing-error
         ] if*
     ] loop
     pop-parsed [ push-all-parsed ] keep but-last ;
@@ -252,7 +273,7 @@ ERROR: no-IN:-form ;
 ERROR: expected expected got ;
 
 : expect ( string -- )
-    token 2dup = [ 2drop ] [ expected ] if ;
+    token 2dup = [ 2drop ] [ \ expected boa parsing-error ] if ;
 
 : set-in ( string -- )
     text

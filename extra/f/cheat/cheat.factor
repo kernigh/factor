@@ -171,17 +171,21 @@ TOKEN: postponed word ;
     <parsing-word> over add-word-to-vocabulary ;
 
 : function-parameters ( -- seq )
-    "(" expect
-    [
+    peek-token ";" = [
+        token drop f
+    ] [
+        "(" expect
         [
-            peek-token ")" = [
-                token drop
-                ";" expect f
-            ] [
-                token token 2array , t
-            ] if
-        ] loop
-    ] { } make ;
+            [
+                peek-token ")" = [
+                    token drop
+                    ";" expect f
+                ] [
+                    token token 2array , t
+                ] if
+            ] loop
+        ] { } make
+    ] if ;
 
 DEFER: stack-effect
 

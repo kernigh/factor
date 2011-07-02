@@ -1,10 +1,17 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs combinators f.lexer f.vocabularies fry
-io kernel namespaces sequences strings vectors math splitting ;
+USING: accessors assocs checksums checksums.crc32 combinators
+f.lexer f.vocabularies fry io kernel math namespaces sequences
+splitting strings vectors vocabs.refresh.monitor ;
 QUALIFIED: f.words
 QUALIFIED: sets
 IN: f.parser2
+
+SYMBOL: manifests
+manifests [ H{ } clone ] initialize
+
+: get-manifest ( string -- manifest/f )
+    manifests get-global at ;
 
 : with-output-variable ( obj symbol quot -- obj )
     over [ get ] curry compose with-variable ; inline
@@ -21,33 +28,37 @@ IN: f.parser2
 
 GENERIC: last-token ( obj -- token/f )
 
-! M: token last-token ;
 M: object last-token ;
 M: sequence last-token [ f ] [ last last-token ] if-empty ;
 M: lexed last-token tokens>> last-token ;
 M: integer last-token ;
 
 TUPLE: manifest
+    path
+    checksum
     current-vocabulary
     search-vocabulary-names
     search-vocabularies
     in
     identifiers
-    comments
     parsed
     parsing-word-stack
     just-parsed
     objects ;
 
-: <manifest> ( -- obj )
+GENERIC: preload-manifest ( manifest -- manifest )
+
+: <manifest> ( path checksum -- obj )
     manifest new
+        swap >>checksum
+        swap >>path
         HS{ } clone >>search-vocabulary-names
         V{ } clone >>search-vocabularies
         H{ } clone >>identifiers
-        V{ } clone >>comments
         V{ } clone >>parsed
         V{ } clone >>parsing-word-stack
-        V{ } clone >>objects ;
+        V{ } clone >>objects
+    preload-manifest ; inline
 
 : (search-manifest) ( string assocs -- words )
     [ words>> at ] with map sift ;
@@ -206,29 +217,26 @@ ERROR: premature-eof ;
 
 : stream-empty? ( stream -- ? ) stream-peek1 not >boolean ;
 
-: (parse-factor) ( -- )
+: parse-factor-stream ( -- )
     [ input-stream get stream-empty? not ]
     [ parse [ add-parse-tree ] when ] while ;
 
-GENERIC: preload-manifest ( manifest -- manifest )
+: with-manifest ( quot -- manifest )
+    [ manifest ] dip '[ @ ] with-output-variable ; inline
 
-: with-parser ( quot -- manifest )
-    [
-        <manifest> preload-manifest
-        manifest
-    ] dip '[
-        @
-    ] with-output-variable ; inline
-
-: parse-factor-quot ( -- quot )
-    [ [ (parse-factor) ] with-parser ] ; inline
+: should-parse? ( path -- ? )
+    [ crc32 checksum-file ]
+    [ path>vocab get-manifest checksum>> ] bi = not ;
 
 : parse-factor-file ( path -- tree )
-    parse-factor-quot with-file-lexer ;
+    dup dup crc32 checksum-file <manifest> '[
+        _ [ parse-factor-stream ] with-manifest
+    ] with-file-lexer ;
 
 : parse-factor ( string -- tree )
-    parse-factor-quot with-string-lexer ;
-
+    f dup crc32 checksum-bytes <manifest> '[
+        _ [ parse-factor-stream ] with-manifest
+    ] with-string-lexer ;
 
 : current-vocabulary ( -- string )
     manifest get [ in>> ] [ identifiers>> ] bi at ;

@@ -34,7 +34,7 @@ SLOT: i
 
 : sequence-read ( n stream -- seq/f )
     dup sequence-bounds-check?
-    [ prepare-read [ [ subseq ] [ drop ] 2bi ] keep i<< ]
+    [ [ prepare-read [ subseq ] [ drop ] 2bi ] keep i<< ]
     [ 2drop f ] if ; inline
 
 : sequence-peek ( n stream -- seq/f )

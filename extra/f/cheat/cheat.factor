@@ -241,7 +241,7 @@ DEFER: stack-effect
 : fake-syntax-vocabulary ( -- vocabulary )
     "syntax" <vocabulary>
         "syntax" "USING:" [
-            ";" tokens-until dup [ add-search-vocabulary ] each <using>
+            ";" tokens-until dup [ use-vocabulary ] each <using>
         ] add-parsing-word
         "syntax" "USE:" [ parse-use 1array <using> ] add-parsing-word
         "syntax" "UNUSE:" [ parse-unuse <unuse> ] add-parsing-word

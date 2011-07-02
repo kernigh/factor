@@ -13,6 +13,9 @@ manifests [ H{ } clone ] initialize
 : get-manifest ( string -- manifest/f )
     manifests get-global at ;
 
+: set-manifest ( manifest vocab -- )
+    manifests get-global set-at ;
+
 : with-output-variable ( obj symbol quot -- obj )
     over [ get ] curry compose with-variable ; inline
 
@@ -274,11 +277,10 @@ ERROR: no-IN:-form ;
     token
     dup add-identifier ;
 
-: add-search-vocabulary ( token -- )
-    text manifest get search-vocabulary-names>> sets:adjoin ;
+ERROR: expected expected got ;
 
-: remove-search-vocabulary ( token -- )
-    text manifest get search-vocabulary-names>> sets:delete ;
+: expect ( string -- )
+    token 2dup = [ 2drop ] [ \ expected boa parsing-error ] if ;
 
 : maybe-create-vocabulary ( string hashtable -- )
     2dup key? [
@@ -286,23 +288,6 @@ ERROR: no-IN:-form ;
     ] [
         [ H{ } clone ] 2dip set-at
     ] if ;
-
-: add-vocabulary-to-manifest ( vocabulary manifest -- )
-    [ [ name>> ] [ search-vocabulary-names>> ] bi* sets:adjoin ]
-    [ [ ] [ search-vocabularies>> ] bi* push ] 2bi ;
-
-: parse-use ( -- string )
-    token
-    dup add-search-vocabulary ;
-
-: parse-unuse ( -- string )
-    token
-    dup remove-search-vocabulary ;
-
-ERROR: expected expected got ;
-
-: expect ( string -- )
-    token 2dup = [ 2drop ] [ \ expected boa parsing-error ] if ;
 
 : set-in ( string -- )
     text
@@ -321,20 +306,41 @@ M: string using-vocabulary? ( vocabulary -- ? )
 M: vocabulary using-vocabulary? ( vocabulary -- ? )
     vocabulary-name using-vocabulary? ;
 
+: add-search-vocabulary ( token manifest -- )
+    search-vocabulary-names>> sets:adjoin ;
+
+: remove-search-vocabulary ( token manifest -- )
+    search-vocabulary-names>> sets:delete ;
+
+: add-vocabulary-to-manifest ( vocabulary manifest -- )
+    [ [ name>> ] [ search-vocabulary-names>> ] bi* sets:adjoin ]
+    [ [ ] [ search-vocabularies>> ] bi* push ] 2bi ;
+
 : use-vocabulary ( vocab -- )
     dup using-vocabulary? [
         vocabulary-name "Already using ``" "'' vocabulary" surround
         print
     ] [
+        dup get-manifest [
+            dup vocab-source-path [
+                [ parse-factor-file ] keep set-manifest
+            ] when*
+        ] unless
+
         manifest get
-        [ search-vocabs>> push ]
-        [ search-vocab-names>> sets:conjoin ] 2bi
+        [ add-search-vocabulary ]
+        [ swap set-manifest ] 2bi
     ] if ;
+
+: parse-use ( -- string )
+    token [ manifest get add-search-vocabulary ] [ ] bi ;
+
+: parse-unuse ( -- string )
+    token [ manifest get remove-search-vocabulary ] [ ] bi ;
 
 : identifiers-until ( string -- seq )
     tokens-until
     dup [ add-identifier ] each ;
-
 
 : ensure-in ( -- ) manifest get in>> [ no-IN:-form ] unless ;
 

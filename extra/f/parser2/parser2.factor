@@ -128,6 +128,7 @@ ERROR: ambiguous-word words ;
     manifest get just-parsed>> ;
 
 : just-parsed-on ( -- ) t manifest get just-parsed<< ;
+
 : just-parsed-off ( -- ) f manifest get just-parsed<< ;
 
 : read-token ( -- token/f )
@@ -217,26 +218,26 @@ ERROR: premature-eof ;
 
 : stream-empty? ( stream -- ? ) stream-peek1 not >boolean ;
 
-: parse-factor-stream ( -- )
-    [ input-stream get stream-empty? not ]
-    [ parse [ add-parse-tree ] when ] while ;
-
 : with-manifest ( quot -- manifest )
     [ manifest ] dip '[ @ ] with-output-variable ; inline
+
+: parse-factor-stream ( manifest -- tree )
+    [
+        [ input-stream get stream-empty? not ]
+        [ parse [ add-parse-tree ] when ] while
+    ] with-manifest ;
 
 : should-parse? ( path -- ? )
     [ crc32 checksum-file ]
     [ path>vocab get-manifest checksum>> ] bi = not ;
 
 : parse-factor-file ( path -- tree )
-    dup dup crc32 checksum-file <manifest> '[
-        _ [ parse-factor-stream ] with-manifest
-    ] with-file-lexer ;
+    dup dup crc32 checksum-file <manifest>
+    '[ _ parse-factor-stream ] with-file-lexer ;
 
 : parse-factor ( string -- tree )
-    f dup crc32 checksum-bytes <manifest> '[
-        _ [ parse-factor-stream ] with-manifest
-    ] with-string-lexer ;
+    f dup crc32 checksum-bytes <manifest>
+    '[ _ parse-factor-stream ] with-string-lexer ;
 
 : current-vocabulary ( -- string )
     manifest get [ in>> ] [ identifiers>> ] bi at ;

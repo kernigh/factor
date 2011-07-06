@@ -2,19 +2,12 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs checksums checksums.crc32 combinators
 f.lexer f.vocabularies fry io kernel math namespaces sequences
-splitting strings vectors vocabs.refresh.monitor ;
+splitting strings vectors vocabs.refresh.monitor vocabs.loader
+vocabs io.files f.manifests ;
 QUALIFIED: f.words
 QUALIFIED: sets
 IN: f.parser2
 
-SYMBOL: manifests
-manifests [ H{ } clone ] initialize
-
-: get-manifest ( string -- manifest/f )
-    manifests get-global at ;
-
-: set-manifest ( manifest vocab -- )
-    manifests get-global set-at ;
 
 : with-output-variable ( obj symbol quot -- obj )
     over [ get ] curry compose with-variable ; inline
@@ -36,47 +29,7 @@ M: sequence last-token [ f ] [ last last-token ] if-empty ;
 M: lexed last-token tokens>> last-token ;
 M: integer last-token ;
 
-TUPLE: manifest
-    path
-    checksum
-    current-vocabulary
-    search-vocabulary-names
-    search-vocabularies
-    in
-    identifiers
-    parsed
-    parsing-word-stack
-    just-parsed
-    objects ;
-
-GENERIC: preload-manifest ( manifest -- manifest )
-
-: <manifest> ( path checksum -- obj )
-    manifest new
-        swap >>checksum
-        swap >>path
-        HS{ } clone >>search-vocabulary-names
-        V{ } clone >>search-vocabularies
-        H{ } clone >>identifiers
-        V{ } clone >>parsed
-        V{ } clone >>parsing-word-stack
-        V{ } clone >>objects
-    preload-manifest ; inline
-
-: (search-manifest) ( string assocs -- words )
-    [ words>> at ] with map sift ;
-
-ERROR: ambiguous-word words ;
-: search-manifest ( string manifest -- word/f )
-    search-vocabularies>> (search-manifest)
-    dup length {
-        { 0 [ drop f ] }
-        { 1 [ first ] }
-        [ ambiguous-word ]
-    } case ;
-
-: search ( string -- word/f )
-    manifest get search-manifest ;
+GENERIC: resolve ( object -- object' )
 
 : parse-stack ( -- obj )
     manifest get parsed>> ;
@@ -112,7 +65,7 @@ ERROR: ambiguous-word words ;
     definition>> call( -- obj ) push-parsed ;
 
 : maybe-call-parsing-word ( string -- )
-    dup text search [
+    dup text manifest get search-syntax [
         dup f.words:parsing-word? [
             [
                 [ manifest get parsing-word-stack>> push ]
@@ -228,11 +181,12 @@ ERROR: premature-eof ;
     [
         [ input-stream get stream-empty? not ]
         [ parse [ add-parse-tree ] when ] while
+        ! manifest get [ [ resolve ] map ] change-objects drop
     ] with-manifest ;
 
 : should-parse? ( path -- ? )
     [ crc32 checksum-file ]
-    [ path>vocab get-manifest checksum>> ] bi = not ;
+    [ path>vocab get-manifest factor-checksum>> ] bi = not ;
 
 : parse-factor-file ( path -- tree )
     dup dup crc32 checksum-file <manifest>
@@ -301,35 +255,23 @@ ERROR: expected expected got ;
 GENERIC: using-vocabulary? ( obj -- ? )
 
 M: string using-vocabulary? ( vocabulary -- ? )
-    manifest get search-vocabulary-names>> sets:in? ;
+    manifest get using>> sets:in? ;
 
 M: vocabulary using-vocabulary? ( vocabulary -- ? )
     vocabulary-name using-vocabulary? ;
 
 : add-search-vocabulary ( token manifest -- )
-    search-vocabulary-names>> sets:adjoin ;
+    using>> sets:adjoin ;
 
 : remove-search-vocabulary ( token manifest -- )
-    search-vocabulary-names>> sets:delete ;
-
-: add-vocabulary-to-manifest ( vocabulary manifest -- )
-    [ [ name>> ] [ search-vocabulary-names>> ] bi* sets:adjoin ]
-    [ [ ] [ search-vocabularies>> ] bi* push ] 2bi ;
-
+    using>> sets:delete ;
+    
 : use-vocabulary ( vocab -- )
     dup using-vocabulary? [
         vocabulary-name "Already using ``" "'' vocabulary" surround
         print
     ] [
-        dup get-manifest [
-            dup vocab-source-path [
-                [ parse-factor-file ] keep set-manifest
-            ] when*
-        ] unless
-
-        manifest get
-        [ add-search-vocabulary ]
-        [ swap set-manifest ] 2bi
+        manifest get add-search-vocabulary
     ] if ;
 
 : parse-use ( -- string )
@@ -338,17 +280,42 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
 : parse-unuse ( -- string )
     token [ manifest get remove-search-vocabulary ] [ ] bi ;
 
+: body ( -- seq )
+    ";" parse-until ;
+
 : identifiers-until ( string -- seq )
     tokens-until
     dup [ add-identifier ] each ;
 
 : ensure-in ( -- ) manifest get in>> [ no-IN:-form ] unless ;
 
+: trim-private ( string -- string )
+    ".private" ?tail drop ;
+    
+: append-private ( string -- string' )
+    trim-private ".private" append ;
+
 : private-on ( -- )
     ensure-in
     manifest get in>>
-    ".private" ?tail drop ".private" append set-in ;
+    append-private set-in ;
 
 : private-off ( -- )
     ensure-in
-    manifest get in>> ".private" ?tail drop set-in ;
+    manifest get in>> trim-private set-in ;
+
+"f.cheat" require
+
+
+USE: nested-comments
+
+        (*
+        dup get-manifest [
+            manifest get add-search-vocabulary
+        ] [
+            dup vocab-source-path [
+                [ parse-factor-file ] keep set-manifest
+            ] when*
+            drop
+        ] if
+        *)

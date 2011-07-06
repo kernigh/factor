@@ -6,10 +6,12 @@ IN: f.syntax
 
 SYMBOL: syntax-vocabularies
 
-: parse-syntax-vocabularies ( -- seq )
+: syntax-file-paths ( -- seq )
     vocabs [ vocab-syntax-path ] map sift
-    [ exists? ] filter
-    [ parse-factor-file ] map ;
+    [ exists? ] filter ;    
+
+: parse-syntax-vocabularies ( -- seq )
+    syntax-file-paths [ parse-factor-file ] map ;
 
 : set-syntax-vocabularies ( -- )
     parse-syntax-vocabularies \ syntax-vocabularies set-global ;

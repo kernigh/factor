@@ -62,6 +62,9 @@ PRIVATE>
 
 : vocab-docs-path ( vocab -- path/f )
     dup "-docs.factor" vocab-dir+ vocab-append-path ;
+    
+: vocab-syntax-path ( vocab -- path/f )
+    dup "-syntax.factor" vocab-dir+ vocab-append-path ;
 
 SYMBOL: load-help?
 

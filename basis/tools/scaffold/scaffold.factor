@@ -263,6 +263,16 @@ PRIVATE>
         ] if
     ] with-scaffold ;
 
+: scaffold-syntax ( string -- )
+    ensure-vocab-exists
+    [
+        dup "-syntax.factor" vocab/suffix>path scaffolding? [
+            set-scaffold-main-file
+        ] [
+            2drop
+        ] if
+    ] with-scaffold ;
+
 : scaffold-undocumented ( string -- )
     [ interesting-words. ] [ link-vocab ] bi ;
 

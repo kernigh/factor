@@ -361,6 +361,6 @@ USE: nested-comments
         ] if
         
         
-        "math" parse-vocab [ using>> members sift [ vocab-source-path [ exists? ] [ f ] if* ] filter [ [ parse-vocab ] keep ] { } map>assoc ] closure keys
+        "math" parse-vocab [ using>> members sift [ vocab-source-path [ exists? ] [ f ] if* ] filter [ [ parse-vocab ] keep ] { } map>assoc ] closure keys  (* hharr *)
         *)
-        
+! omg"""double rainbow all the way"""

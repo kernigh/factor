@@ -13,7 +13,10 @@ M: lexed write-parsed
 M: io:token write-parsed
     write ;
 
+M: integer write-parsed
+    write1 ;
+
 : write-src ( tree path -- )
     utf8 <file-writer> <document-writer> [
-        [ write-parsed ] each nl
+        [ dup nested-comment? [ B ] when write-parsed ] each nl
     ] with-output-stream ;

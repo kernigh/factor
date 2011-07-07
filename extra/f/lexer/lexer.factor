@@ -78,8 +78,8 @@ UNION: comment line-comment nested-comment ;
 : <line-comment> ( sequence -- line-comment )
     line-comment new-lexed ; inline
 
-: <nested-comment> ( start comment finish -- nested-comment )
-    3array nested-comment new-lexed ; inline
+: <nested-comment> ( sequence -- nested-comment )
+    nested-comment new-lexed ; inline
     
 : text ( token/f -- string/f ) dup token? [ text>> ] when ;
 
@@ -98,17 +98,17 @@ UNION: comment line-comment nested-comment ;
     
 : lex-nested-comment ( -- comments )
     inc-comment
-    2 read
-    tell-input
     [
-        2 peek text {
-            { "(*" [ lex-nested-comment ] }
-            { "*)" [ dec-comment f ] }
-            [ drop read1 text ]
-        } case
-    ] loop>array
-    >string tell/string>token
-    2 read <nested-comment> ;
+        2 read ,
+        [
+            2 peek text {
+                { "(*" [ lex-nested-comment , t ] }
+                { "*)" [ dec-comment f ] }
+                [ drop 1 read , t ]
+            } case
+        ] loop
+        2 read ,
+    ] { } make <nested-comment> ;
 
 ERROR: bad-comment-nesting ;
 
@@ -127,8 +127,10 @@ ERROR: bad-short-string ;
     [
         [
             3 peek text "\"\"\"" sequence= [
-                3 read text %
-                [ peek1 text CHAR: " = [ read1 text , t ] [ f ] if ] loop
+                3 read text
+                [ peek1 text CHAR: " = [ read1 text ] [ f ] if ] loop>array
+                append 3 cut* tell-input [ 3 - ] change-column# swap tell/string>token
+                [ % ] [ , ] bi*
                 f
             ] [
                 peek1 text {

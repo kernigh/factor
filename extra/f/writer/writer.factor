@@ -27,6 +27,7 @@ M: io:token write-object
     
 : write-src-file ( tree path -- )
     utf8 <file-writer> <document-writer> [
+        0 over rebase-line
         write-object nl
     ] with-output-stream ;
 

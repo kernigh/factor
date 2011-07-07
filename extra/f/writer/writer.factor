@@ -25,16 +25,14 @@ M: lexed write-object
 M: io:token write-object
     write-parsed ;
     
-: write-src-file ( tree path -- )
-    utf8 <file-writer> <document-writer> [
+: write-factor ( object stream -- )
+    <document-writer> [
         0 over rebase-line
         write-object nl
     ] with-output-stream ;
+    
+: write-src-file ( tree path -- )
+    utf8 <file-writer> write-factor ;
 
 : write-src-string ( tree -- obj )
-    <string-writer> [
-        <document-writer> [
-            0 over rebase-line
-            write-object nl
-        ] with-output-stream
-    ] keep >string ;
+    <string-writer> [ write-factor ] keep >string ;

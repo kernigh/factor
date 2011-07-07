@@ -339,19 +339,3 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
     manifest get in>> trim-private set-in ;
 
 "f.cheat" require
-
-
-        (*
-        dup get-manifest [
-            manifest get add-search-vocabulary
-        ] [
-            dup vocab-source-path [
-                [ parse-factor-file ] keep set-manifest
-            ] when*
-            drop
-        ] if
-        
-        
-        "math" parse-vocab [ using>> members sift [ vocab-source-path [ exists? ] [ f ] if* ] filter [ [ parse-vocab ] keep ] { } map>assoc ] closure keys  (* hharr *)
-        *)
-! omg"""double rainbow all the way"""

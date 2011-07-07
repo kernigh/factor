@@ -30,4 +30,3 @@ M: sequence calculate-offset
 
 : rebase-line ( n object -- )
     [ calculate-offset ] keep rebase-line-offset ;
-

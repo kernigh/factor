@@ -3,7 +3,7 @@
 USING: accessors assocs checksums checksums.crc32 combinators
 f.lexer f.manifests f.vocabularies fry io io.files kernel math
 namespaces nested-comments sequences sets splitting strings
-vectors vocabs vocabs.loader vocabs.refresh.monitor ;
+vectors vocabs vocabs.loader vocabs.refresh.monitor arrays ;
 QUALIFIED: f.words
 QUALIFIED: sets
 IN: f.parser2
@@ -290,7 +290,7 @@ ERROR: expected expected got ;
     token dup set-in ;
 
 GENERIC: using-vocabulary? ( obj -- ? )
-
+    
 M: string using-vocabulary? ( vocabulary -- ? )
     manifest get used>> sets:in? ;
 
@@ -302,8 +302,7 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
     
 : use-vocabulary ( vocab -- )
     dup using-vocabulary? [
-        vocabulary-name "Already using ``" "'' vocabulary" surround
-        print
+        drop
     ] [
         manifest get add-search-vocabulary
     ] if ;
@@ -320,6 +319,9 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
 : identifiers-until ( string -- seq )
     tokens-until
     dup [ add-identifier ] each ;
+
+: method-identifier ( -- pair )
+    token token 2array dup add-identifier ;
 
 : ensure-in ( -- ) manifest get in>> [ no-IN:-form ] unless ;
 

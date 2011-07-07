@@ -42,9 +42,9 @@ TOKEN: fword name stack-effect body ;
 
 TOKEN: local-fword name stack-effect body ;
 
-TOKEN: fmethod type name stack-effect body ;
+TOKEN: fmethod signature stack-effect body ;
 
-TOKEN: local-fmethod type name stack-effect body ;
+TOKEN: local-fmethod signature stack-effect body ;
 
 TOKEN: macro name stack-effect body ;
 
@@ -304,10 +304,10 @@ DEFER: stack-effect
         ":" [ identifier stack-effect body <fword> ] add-dummy-parsing-word
         "::" [ identifier stack-effect body <local-fword> ] add-dummy-parsing-word
         "M:" [
-            token token optional-stack-effect body <fmethod>
+            method-identifier optional-stack-effect body <fmethod>
         ] add-dummy-parsing-word
         "M::" [
-            token token optional-stack-effect body <local-fmethod>
+            method-identifier optional-stack-effect body <local-fmethod>
         ] add-dummy-parsing-word
         "MACRO:" [ identifier stack-effect body <macro> ] add-dummy-parsing-word
         "MACRO::" [ identifier stack-effect body <local-macro> ] add-dummy-parsing-word

@@ -190,6 +190,8 @@ TOKEN: ebnf text ;
 TOKEN: functor text ;
 TOKEN: peg name stack-effect body ;
 
+TOKEN: typed name stack-effect body ;
+TOKEN: local-typed name stack-effect body ;
 
 : function-parameters ( -- seq )
     peek-token ";" = [
@@ -210,13 +212,20 @@ TOKEN: peg name stack-effect body ;
 
 DEFER: stack-effect
 
+: stack-effect/token ( -- obj )
+    peek-token "(" = [
+        stack-effect
+    ] [
+        token
+    ] if ;
+
 : stack-effect-part ( -- seq )
     new-parse
     [
         peek-token {
             { [ dup "--" = ] [ drop f ] }
             { [ dup ")" = ] [ drop f ] }
-            { [ dup ":" tail? ] [ drop token stack-effect <identifier-stack-effect> drop t ] }
+            { [ dup ":" tail? ] [ drop token stack-effect/token <identifier-stack-effect> drop t ] }
             [ drop token drop t ]
         } cond
     ] loop
@@ -265,7 +274,10 @@ DEFER: stack-effect
         "POSTPONE:" [ chunk <postponed> ] add-dummy-parsing-word
         "ARTICLE:" [ body <article> ] add-dummy-parsing-word
         "ABOUT:" [ token <about> ] add-dummy-parsing-word
-
+        
+        "TYPED:" [ identifier stack-effect body <typed> ] add-dummy-parsing-word
+        "TYPED::" [ identifier stack-effect body <local-typed> ] add-dummy-parsing-word
+        
         "[let" [ "]" parse-until <let> ] add-dummy-parsing-word
         "[|" [ "|" tokens-until "]" parse-until <lambda> ] add-dummy-parsing-word
 

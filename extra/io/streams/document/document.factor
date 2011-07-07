@@ -18,6 +18,11 @@ TUPLE: token text line# column# ;
         [ line#>> >>line# ]
         [ column#>> >>column# ] bi ; inline
 
+: tell/string>token ( tell string -- token )
+    token new
+        swap >>text
+        swap [ line#>> >>line# ] [ column#>> >>column# ] bi ; inline
+        
 : next-line ( stream -- )
     [ 1 + ] change-line#
     0 >>column# drop ;
@@ -30,7 +35,7 @@ TUPLE: token text line# column# ;
 
 : update-line-read ( stream string -- )
     string-lines
-    [ length 1 - '[ _ + ] change-line# drop ]
+    [ length 1 - dup 0 > [ '[ _ + ] change-line# 0 >>column# drop ] [ 2drop ] if ]
     [ last length '[ _ + ] change-column# drop ] 2bi ;
 
 : update-stream1 ( stream character -- )

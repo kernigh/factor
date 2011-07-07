@@ -1,7 +1,8 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors f.cheat f.lexer f.parser2 io.streams.document
-kernel sequences math.parser combinators ;
+USING: accessors combinators f.cheat f.lexer f.manifests
+f.parser2 io.streams.document kernel math.parser sequences
+namespaces ;
 QUALIFIED-WITH: io.streams.document io
 IN: f.resolver
 
@@ -21,7 +22,7 @@ M: fword resolve
 M: io:token resolve
     dup text {
         { [ dup string>number ] [ <resolved-number> ] }
-        { [ dup search ] [ <resolved-word> ] }
+        { [ dup manifest get search-identifiers ] [ <resolved-word> ] }
         [ undefined-token ]
     } cond ;
     

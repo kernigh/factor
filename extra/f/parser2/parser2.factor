@@ -1,13 +1,12 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs checksums checksums.crc32 combinators
-f.lexer f.vocabularies fry io kernel math namespaces sequences
-splitting strings vectors vocabs.refresh.monitor vocabs.loader
-vocabs io.files f.manifests ;
+f.lexer f.manifests f.vocabularies fry io io.files kernel math
+namespaces nested-comments sequences sets splitting strings
+vectors vocabs vocabs.loader vocabs.refresh.monitor ;
 QUALIFIED: f.words
 QUALIFIED: sets
 IN: f.parser2
-
 
 : with-output-variable ( obj symbol quot -- obj )
     over [ get ] curry compose with-variable ; inline
@@ -105,11 +104,12 @@ GENERIC: resolve ( object -- object' )
         f
     ] if* ;
 
-TUPLE: parsing-error-tuple words word-names line# column# error ;
+TUPLE: parsing-error-tuple manifest words word-names line# column# error ;
 
 : parsing-error ( error -- * )
     parsing-error-tuple new
         swap >>error
+        manifest get >>manifest
         manifest get parsing-word-stack>>
             {
                 [ >>words ]
@@ -180,7 +180,7 @@ ERROR: premature-eof ;
 : parse-factor-stream ( manifest -- tree )
     [
         [ input-stream get stream-empty? not ]
-        [ parse [ add-parse-tree ] when ] while
+        [ parse drop add-parse-tree ] while
         ! manifest get [ [ resolve ] map ] change-objects drop
     ] with-manifest ;
 
@@ -188,26 +188,42 @@ ERROR: premature-eof ;
     [ crc32 checksum-file ]
     [ path>vocab get-manifest factor-checksum>> ] bi = not ;
 
-: parse-factor-file ( path -- tree )
+: parse-factor-file ( path -- manifest )
     dup dup crc32 checksum-file <manifest>
     '[ _ parse-factor-stream ] with-file-lexer ;
+    
+: parse-vocab ( string -- manifest/f )
+    vocab-source-path [ parse-factor-file ] [ f ] if* ;
 
-: parse-factor ( string -- tree )
+: parse-syntax ( string -- manifest )
+    vocab-syntax-path [ parse-factor-file ] [ f ] if* ;
+    
+: parse-factor ( string -- manifest )
     f dup crc32 checksum-bytes <manifest>
     '[ _ parse-factor-stream ] with-string-lexer ;
 
-: current-vocabulary ( -- string )
+: current-vocabulary ( -- vocabulary )
     manifest get [ in>> ] [ identifiers>> ] bi at ;
 
+: nest-at ( key hashtable -- value-hashtable )
+    2dup ?at [
+        2nip
+    ] [
+        drop [ H{ } clone dup ] 2dip set-at
+    ] if ;
+
+: get-identifiers ( string -- hashtable )
+    manifest get identifiers>> nest-at ;
+    
 : current-vocabulary-name ( -- string )
     manifest get in>> ;
 
-ERROR: identifier-redefined vocabulary word ;
+ERROR: identifier-redefined word vocabulary ;
 
 : check-identifier-exists ( string -- string )
     dup
     text current-vocabulary key? [
-        [ current-vocabulary-name ] dip identifier-redefined
+        current-vocabulary-name identifier-redefined
     ] when ;
 
 ERROR: no-IN:-form ;
@@ -219,17 +235,45 @@ ERROR: no-IN:-form ;
     check-in-exists
     current-vocabulary delete-at ;
 
-: add-identifier ( string -- )
-    check-identifier-exists
+: add-non-unique-identifier ( string -- )
     check-in-exists
     dup current-vocabulary set-at ;
+    
+: add-identifier ( string -- )
+    check-identifier-exists
+    add-non-unique-identifier ;
 
+: lookup-identifier ( identifier vocabulary-name -- obj/f )
+    manifest get identifiers>> ?at [
+        at
+    ] [
+        2drop f
+    ] if ;
+    
+: add-unique-identifier-to ( identifier vocabulary-name -- )
+    2dup lookup-identifier [
+        identifier-redefined
+    ] [
+        get-identifiers conjoin
+    ] if ;
+
+: add-non-unique-identifier-to ( identifier vocabulary-name -- )
+    get-identifiers conjoin ;
+    
 : forget-identifier ( -- string )
     token dup remove-identifier ;
 
 : identifier ( -- string )
     token
     dup add-identifier ;
+
+: define-slot-identifier ( string -- )
+    {
+        [ "accessors" add-non-unique-identifier-to ]
+        [ ">>" prepend "accessors" add-non-unique-identifier-to ]
+        [ ">>" append "accessors" add-non-unique-identifier-to ]
+        [ "change-" prepend "accessors" add-non-unique-identifier-to ]
+    } cleave ;
 
 ERROR: expected expected got ;
 
@@ -255,16 +299,13 @@ ERROR: expected expected got ;
 GENERIC: using-vocabulary? ( obj -- ? )
 
 M: string using-vocabulary? ( vocabulary -- ? )
-    manifest get using>> sets:in? ;
+    manifest get used>> sets:in? ;
 
 M: vocabulary using-vocabulary? ( vocabulary -- ? )
     vocabulary-name using-vocabulary? ;
 
 : add-search-vocabulary ( token manifest -- )
-    using>> sets:adjoin ;
-
-: remove-search-vocabulary ( token manifest -- )
-    using>> sets:delete ;
+    used>> sets:adjoin ;
     
 : use-vocabulary ( vocab -- )
     dup using-vocabulary? [
@@ -278,8 +319,8 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
     token [ manifest get add-search-vocabulary ] [ ] bi ;
 
 : parse-unuse ( -- string )
-    token [ manifest get remove-search-vocabulary ] [ ] bi ;
-
+    token ;
+    
 : body ( -- seq )
     ";" parse-until ;
 
@@ -318,4 +359,8 @@ USE: nested-comments
             ] when*
             drop
         ] if
+        
+        
+        "math" parse-vocab [ using>> members sift [ vocab-source-path [ exists? ] [ f ] if* ] filter [ [ parse-vocab ] keep ] { } map>assoc ] closure keys
         *)
+        

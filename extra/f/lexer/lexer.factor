@@ -14,7 +14,7 @@ IN: f.lexer
 : loop>array ( quot -- seq )
     { } loop>sequence ; inline
 
-TUPLE: lexer stream comment-nesting-level string-mode ;
+TUPLE: lexer stream comment-nesting-level ;
 
 : new-lexer ( lexer -- lexer )
     new
@@ -27,13 +27,16 @@ TUPLE: lexer stream comment-nesting-level string-mode ;
 ERROR: lexer-error error ;
 
 : with-lexer ( lexer quot -- )
-    [ [ <document-reader> ] change-stream ] dip
+    [ drop \ lexer ] 2keep
     '[
-        _
-        [ input-stream get stream>> dispose ]
-        [ ] cleanup
-    ] with-input-stream ; inline
-
+        _ [ <document-reader> ] change-stream
+        [
+            _
+            [ input-stream get stream>> dispose ]
+            [ ] cleanup
+        ] with-input-stream
+    ] with-variable ; inline
+        
 TUPLE: string-lexer < lexer ;
 
 : <string-lexer> ( string -- lexer )
@@ -58,17 +61,17 @@ TUPLE: lexed tokens ;
     new
         swap >>tokens ; inline
 
-TUPLE: lexed-string < lexed string delimiter ;
+TUPLE: lexed-string < lexed name text ;
 
 TUPLE: lexed-token < lexed string ;
 
-: <lexed-string> ( token delimiter string -- lexed-string )
-    [ lexed-string new-lexed ] 2dip
-        [ >>delimiter ] dip
-        >>string ; inline
+: <lexed-string> ( tokens -- lexed-string )
+    [ lexed-string new-lexed ] keep
+        [ first >>name ]
+        [ third >>text ] bi ; inline
 
 TUPLE: line-comment < lexed ;
-TUPLE: nested-comment < lexed start comment finish ;
+TUPLE: nested-comment < lexed ;
 
 UNION: comment line-comment nested-comment ;
 
@@ -76,10 +79,8 @@ UNION: comment line-comment nested-comment ;
     line-comment new-lexed ; inline
 
 : <nested-comment> ( start comment finish -- nested-comment )
-    [ nested-comment new-lexed ] dip
-        swap >>finish
-        swap >>start ; inline
-
+    3array nested-comment new-lexed ; inline
+    
 : text ( token/f -- string/f ) dup token? [ text>> ] when ;
 
 : lex-blanks ( -- )
@@ -88,28 +89,31 @@ UNION: comment line-comment nested-comment ;
 : lex-til-eol ( -- comment )
     ! [ peek1 text "\r\n" member? [ f ] [ read1 text ] if ] loop>array >string ;
     "\r\n" read-until drop ;
-    
 
+: inc-comment ( -- )
+    lexer get [ 1 + ] change-comment-nesting-level drop ;
+    
+: dec-comment ( -- )
+    lexer get [ 1 - ] change-comment-nesting-level drop ;
+    
 : lex-nested-comment ( -- comments )
-    input-stream get [ 1 + ] change-comment-nesting-level drop
+    inc-comment
     2 read
+    tell-input
     [
         2 peek text {
             { "(*" [ lex-nested-comment ] }
-            { "*)" [
-                input-stream get
-                [ 1 - ] change-comment-nesting-level drop
-                f
-            ] }
+            { "*)" [ dec-comment f ] }
             [ drop read1 text ]
         } case
     ] loop>array
+    >string tell/string>token
     2 read <nested-comment> ;
 
 ERROR: bad-comment-nesting ;
 
 : ensure-nesting ( -- )
-    input-stream get comment-nesting-level>> 0 = [
+    lexer get comment-nesting-level>> 0 = [
         bad-comment-nesting
     ] unless ;
 
@@ -118,12 +122,13 @@ TUPLE: string-word name string delimiter ;
 ERROR: bad-long-string ;
 ERROR: bad-short-string ;
 
-: read-long-string ( -- string )
+: read-long-string ( -- string end )
+    tell-input
     [
         [
             3 peek text "\"\"\"" sequence= [
                 3 read text %
-                [ peek1 text CHAR: " = [ read1 , t ] [ f ] if ] loop
+                [ peek1 text CHAR: " = [ read1 text , t ] [ f ] if ] loop
                 f
             ] [
                 peek1 text {
@@ -133,34 +138,42 @@ ERROR: bad-short-string ;
                 t
             ] if
         ] loop
-    ] "" make ;
+    ] { } make unclip-last [ >string tell/string>token ] dip ;
 
-: read-short-string ( -- string )
+: read-short-string ( -- string end )
+    tell-input
     [
-        peek1 text CHAR: " = [
-            1 read drop
-            f
-        ] [
-            peek1 text {
-                { CHAR: \ [ 2 read text ] }
-                [ drop read1 [ text 1string ] [ bad-short-string ] if* ]
-            } case
-        ] if
-    ] loop>array concat ;
+        [
+            peek1 text CHAR: " = [
+                1 read ,
+                f
+            ] [
+                peek1 text {
+                    { CHAR: \ [ 2 read text % ] }
+                    [ drop read1 dup [ bad-short-string ] unless text , ]
+                } case
+                t
+            ] if
+        ] loop
+    ] { } make unclip-last [ >string tell/string>token ] dip ;
 
-: read-string ( string -- string )
+: read-string ( string delimiter -- lexed-string )
     2 peek text >string "\"\"" = [
         2 read drop
-        "\"\"\"" read-long-string
+        [ drop "\"\"\"" ] change-text
+        read-long-string
     ] [
-        "\"" read-short-string
-    ] if <lexed-string> ;
+        [ 1string ] change-text
+        read-short-string
+    ] if 4array <lexed-string> ;
 
 : lex-string/token ( -- string/token/f )
     " \n\r\"" read-until [
-        text>> CHAR: " = [
+        dup text>> CHAR: " = [
             read-string
-        ] when
+        ] [
+            drop
+        ] if
     ] [
         drop f
     ] if* ;

@@ -20,12 +20,7 @@ M: lexed rebase-line-offset
 M: io:token rebase-line-offset
     [ + ] change-line# drop ;
     
-GENERIC: calculate-offset ( n object -- offset )
-
-M: lexed calculate-offset
-    check-bounds first-token line#>> - ;
-
-M: sequence calculate-offset
+: calculate-offset ( n object -- offset )
     check-bounds first-token line#>> - ;
 
 : rebase-line ( n object -- )

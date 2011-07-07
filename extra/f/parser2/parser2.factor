@@ -21,13 +21,6 @@ IN: f.parser2
 : peek-token ( -- token/string/f )
     [ (peek-token) text ] with-input-rewind ;
 
-GENERIC: last-token ( obj -- token/f )
-
-M: object last-token ;
-M: sequence last-token [ f ] [ last last-token ] if-empty ;
-M: lexed last-token tokens>> last-token ;
-M: integer last-token ;
-
 GENERIC: resolve ( object -- object' )
 
 : parse-stack ( -- obj )

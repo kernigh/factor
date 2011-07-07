@@ -1,7 +1,8 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors f.lexer io io.encodings.utf8 io.files
-io.streams.document sequences ;
+io.streams.document io.streams.string kernel sequences strings
+f.recalculate ;
 QUALIFIED-WITH: io.streams.document io
 IN: f.writer
 
@@ -13,7 +14,26 @@ M: lexed write-parsed
 M: io:token write-parsed
     write ;
 
-: write-src ( tree path -- )
+GENERIC: write-object ( obj -- )
+
+M: sequence write-object
+    [ write-parsed ] each ;
+
+M: lexed write-object
+    write-parsed ;
+    
+M: io:token write-object
+    write-parsed ;
+    
+: write-src-file ( tree path -- )
     utf8 <file-writer> <document-writer> [
-        [ write-parsed ] each nl
+        write-object nl
     ] with-output-stream ;
+
+: write-src-string ( tree -- obj )
+    <string-writer> [
+        <document-writer> [
+            0 over rebase-line
+            write-object nl
+        ] with-output-stream
+    ] keep >string ;

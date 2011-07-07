@@ -6,6 +6,7 @@ destructors f.dictionary fry grouping io io.encodings.utf8
 io.files io.streams.document io.streams.string
 kernel lexer make math namespaces nested-comments sequences
 splitting strings words arrays locals ;
+QUALIFIED-WITH: io.streams.document io
 IN: f.lexer
 
 : loop>sequence ( quot exemplar -- seq )
@@ -81,6 +82,18 @@ UNION: comment line-comment nested-comment ;
 : <nested-comment> ( sequence -- nested-comment )
     nested-comment new-lexed ; inline
     
+GENERIC: first-token ( obj -- token/f )
+GENERIC: last-token ( obj -- token/f )
+
+M: io:token first-token ;
+M: io:token last-token ;
+
+M: sequence first-token [ f ] [ first first-token ] if-empty ;
+M: sequence last-token [ f ] [ last last-token ] if-empty ;
+
+M: lexed first-token tokens>> [ f ] [ first first-token ] if-empty ;
+M: lexed last-token tokens>> [ f ] [ last last-token ] if-empty ;
+
 : text ( token/f -- string/f ) dup token? [ text>> ] when ;
 
 : lex-blanks ( -- )

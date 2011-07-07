@@ -341,8 +341,6 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
 "f.cheat" require
 
 
-USE: nested-comments
-
         (*
         dup get-manifest [
             manifest get add-search-vocabulary

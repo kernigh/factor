@@ -189,6 +189,7 @@ TOKEN: execute stack-effect ;
 TOKEN: ebnf text ;
 TOKEN: functor text ;
 TOKEN: peg name stack-effect body ;
+TOKEN: com-interface stuff ;
 
 TOKEN: typed name stack-effect body ;
 TOKEN: local-typed name stack-effect body ;
@@ -425,6 +426,8 @@ DEFER: stack-effect
         "CONSTRUCTOR:" [
             identifier stack-effect ";" parse-until <long-constructor>
         ] add-dummy-parsing-word
+        
+        "COM-INTERFACE:" [ ";" tokens-until <com-interface> ] add-dummy-parsing-word
     ;
 
 M: object preload-syntax-vocabularies ( manifest -- manifest )

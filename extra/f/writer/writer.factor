@@ -18,5 +18,5 @@ M: integer write-parsed
 
 : write-src ( tree path -- )
     utf8 <file-writer> <document-writer> [
-        [ dup nested-comment? [ B ] when write-parsed ] each nl
+        [ write-parsed ] each nl
     ] with-output-stream ;

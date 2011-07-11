@@ -1,9 +1,10 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs checksums checksums.crc32 combinators
-f.lexer f.manifests f.vocabularies fry io io.files kernel math
-namespaces nested-comments sequences sets splitting strings
-vectors vocabs vocabs.loader vocabs.refresh.monitor arrays ;
+USING: accessors arrays assocs checksums checksums.crc32
+combinators f.lexer f.manifests fry io io.files io.pathnames
+kernel math namespaces nested-comments prettyprint sequences
+sets splitting strings vectors vocabs vocabs.loader
+vocabs.refresh.monitor ;
 QUALIFIED: f.words
 QUALIFIED: sets
 IN: f.parser2
@@ -41,7 +42,8 @@ GENERIC: resolve ( object -- object' )
     V{ } clone parse-stack push ;
 
 : last-parsed ( -- obj )
-    parse-stack last ;
+    parse-stack last
+    dup sequence? [ last ] when ;
 
 : pop-parsed ( -- obj )
     parse-stack pop ;
@@ -165,147 +167,52 @@ ERROR: premature-eof ;
 : add-parse-tree ( -- )
     pop-all-parsed manifest get objects>> push-all ;
 
-: stream-empty? ( stream -- ? ) stream-peek1 not >boolean ;
-
-: with-manifest ( quot -- manifest )
+: output-manifest ( quot -- manifest )
     [ manifest ] dip '[ @ ] with-output-variable ; inline
 
-: parse-factor-stream ( manifest -- tree )
+: parse-factor-stream ( manifest -- manifest )
     [
-        [ input-stream get stream-empty? not ]
-        [ parse drop add-parse-tree ] while
-        ! manifest get [ [ resolve ] map ] change-objects drop
-    ] with-manifest ;
+        [
+            parse drop
+            parse-stack empty? [ f ] [ add-parse-tree t ] if
+        ] loop
+    ] output-manifest ;
 
 : should-parse? ( path -- ? )
     [ crc32 checksum-file ]
     [ path>vocab get-manifest factor-checksum>> ] bi = not ;
 
-: parse-factor-file ( path -- manifest )
-    dup dup crc32 checksum-file <manifest>
-    '[ _ parse-factor-stream ] with-file-lexer ;
+: path>manifest ( path -- manifest/f )
+    [
+        dup exists? [
+            <pathname>
+            "Parsing " write dup .
+            dup dup crc32 checksum-file <manifest>
+            '[ _ parse-factor-stream ] with-file-lexer
+        ] [
+            drop f
+        ] if
+    ] [
+        f
+    ] if* ;
     
 : parse-vocab ( string -- manifest/f )
-    vocab-source-path [ parse-factor-file ] [ f ] if* ;
+    vocab-source-path [ path>manifest ] [ f ] if* ;
 
 : parse-syntax ( string -- manifest )
-    vocab-syntax-path [ parse-factor-file ] [ f ] if* ;
+    vocab-syntax-path [ path>manifest ] [ f ] if* ;
     
 : parse-factor ( string -- manifest )
     f dup crc32 checksum-bytes <manifest>
     '[ _ parse-factor-stream ] with-string-lexer ;
-
-: current-vocabulary ( -- vocabulary )
-    manifest get [ in>> ] [ identifiers>> ] bi at ;
-
-: nest-at ( key hashtable -- value-hashtable )
-    2dup ?at [
-        2nip
-    ] [
-        drop [ H{ } clone dup ] 2dip set-at
-    ] if ;
-
-: get-identifiers ( string -- hashtable )
-    manifest get identifiers>> nest-at ;
-    
-: current-vocabulary-name ( -- string )
-    manifest get in>> ;
-
-ERROR: identifier-redefined word vocabulary ;
-
-: check-identifier-exists ( string -- string )
-    dup
-    text current-vocabulary key? [
-        current-vocabulary-name identifier-redefined
-    ] when ;
-
-ERROR: no-IN:-form ;
-
-: check-in-exists ( -- )
-    manifest get in>> [ no-IN:-form ] unless ;
-
-: remove-identifier ( string -- )
-    check-in-exists
-    current-vocabulary delete-at ;
-
-: add-non-unique-identifier ( string -- )
-    check-in-exists
-    dup current-vocabulary set-at ;
-    
-: add-identifier ( string -- )
-    check-identifier-exists
-    add-non-unique-identifier ;
-
-: lookup-identifier ( identifier vocabulary-name -- obj/f )
-    manifest get identifiers>> ?at [
-        at
-    ] [
-        2drop f
-    ] if ;
-    
-: add-unique-identifier-to ( identifier vocabulary-name -- )
-    2dup lookup-identifier [
-        identifier-redefined
-    ] [
-        get-identifiers conjoin
-    ] if ;
-
-: add-non-unique-identifier-to ( identifier vocabulary-name -- )
-    get-identifiers conjoin ;
-    
-: forget-identifier ( -- string )
-    token dup remove-identifier ;
-
-: identifier ( -- string )
-    token
-    dup add-identifier ;
-
-: define-slot-identifier ( string -- )
-    {
-        [ "accessors" add-non-unique-identifier-to ]
-        [ ">>" prepend "accessors" add-non-unique-identifier-to ]
-        [ ">>" append "accessors" add-non-unique-identifier-to ]
-        [ "change-" prepend "accessors" add-non-unique-identifier-to ]
-    } cleave ;
 
 ERROR: expected expected got ;
 
 : expect ( string -- )
     token 2dup = [ 2drop ] [ \ expected boa parsing-error ] if ;
 
-: maybe-create-vocabulary ( string hashtable -- )
-    2dup key? [
-        2drop
-    ] [
-        [ H{ } clone ] 2dip set-at
-    ] if ;
-
-: set-in ( string -- )
-    text
-    manifest get
-    [ identifiers>> maybe-create-vocabulary ]
-    [ in<< ] 2bi ;
-
-: parse-in ( -- string )
-    token dup set-in ;
-
-GENERIC: using-vocabulary? ( obj -- ? )
-    
-M: string using-vocabulary? ( vocabulary -- ? )
-    manifest get used>> sets:in? ;
-
-M: vocabulary using-vocabulary? ( vocabulary -- ? )
-    vocabulary-name using-vocabulary? ;
-
 : add-search-vocabulary ( token manifest -- )
     used>> sets:adjoin ;
-    
-: use-vocabulary ( vocab -- )
-    dup using-vocabulary? [
-        drop
-    ] [
-        manifest get add-search-vocabulary
-    ] if ;
 
 : parse-use ( -- string )
     token [ manifest get add-search-vocabulary ] [ ] bi ;
@@ -315,29 +222,5 @@ M: vocabulary using-vocabulary? ( vocabulary -- ? )
     
 : body ( -- seq )
     ";" parse-until ;
-
-: identifiers-until ( string -- seq )
-    tokens-until
-    dup [ add-identifier ] each ;
-
-: method-identifier ( -- pair )
-    token token 2array dup add-identifier ;
-
-: ensure-in ( -- ) manifest get in>> [ no-IN:-form ] unless ;
-
-: trim-private ( string -- string )
-    ".private" ?tail drop ;
-    
-: append-private ( string -- string' )
-    trim-private ".private" append ;
-
-: private-on ( -- )
-    ensure-in
-    manifest get in>>
-    append-private set-in ;
-
-: private-off ( -- )
-    ensure-in
-    manifest get in>> trim-private set-in ;
 
 "f.cheat" require

@@ -4,34 +4,30 @@ USING: accessors assocs assocs.private checksums
 checksums.crc32 combinators kernel math namespaces sequences ;
 IN: f.manifests
 
-GENERIC: preload-syntax-vocabularies ( manifest -- manifest )
+GENERIC: preload-syntax-namespaces ( manifest -- manifest )
 
 TUPLE: manifest
     path
-    factor-checksum
-    syntax-checksum
-    help-checksum
-    tests-checksum
-    syntax-vocabularies
+    checksum
+    objects
+    using
     used
-    in
-    identifiers
     parsed
     parsing-word-stack
     just-parsed
-    objects ;
-
+    syntax-namespaces ;
+    
 : <manifest> ( path checksum -- obj )
     manifest new
-        swap >>factor-checksum
+        swap >>checksum
         swap >>path
+        V{ } clone >>objects
+        V{ } clone >>using
         V{ } clone >>used
-        H{ } clone >>identifiers
         V{ } clone >>parsed
         V{ } clone >>parsing-word-stack
-        V{ } clone >>objects
-        V{ } clone >>syntax-vocabularies
-    preload-syntax-vocabularies ; inline
+        V{ } clone >>syntax-namespaces
+    preload-syntax-namespaces ; inline
     
 SYMBOL: manifests
 manifests [ H{ } clone ] initialize
@@ -45,12 +41,8 @@ manifests [ H{ } clone ] initialize
 : manifest-uptodate? ( manifest -- ? )
     [ path>> crc32 checksum-file ] [ checksum>> ] bi = ;
     
-: manifests>vocabularies ( manifests -- vocabularies )
-    [ identifiers>> ] map
-    ;
-    
-: add-vocabulary-to-syntax ( vocabulary manifest -- )
-    syntax-vocabularies>> push ;
+: add-namespace-to-syntax ( vocabulary manifest -- )
+    syntax-namespaces>> push ;
 
 ERROR: key-exists value key assoc ;
 
@@ -64,9 +56,6 @@ ERROR: key-exists value key assoc ;
     [ [ [ assoc-size ] bi@ + ] [ drop ] 2bi new-assoc ] 2keep
     [ assoc-union-unique! ] bi@ ;
 
-: manifest>vocabularies ( manifest -- hashtable )
-    used>> [ get-manifest identifiers>> ] map
-    ;
     
 ERROR: ambiguous-word words ;
 
@@ -77,11 +66,13 @@ ERROR: ambiguous-word words ;
         [ ambiguous-word ]
     } case ;
 
-: search-vocabularies ( string vocabularies -- words )
+: search-namespaces ( string namespaces -- words )
     [ words>> at ] with map sift check-ambiguities ;
 
 : search-syntax ( string manifest -- word/f )
-    syntax-vocabularies>> search-vocabularies ;
-    
-: search-identifiers ( string manifest -- word/f )
-    manifest>vocabularies search-vocabularies ;
+    syntax-namespaces>> search-namespaces ;
+
+: use-namespace ( string -- )
+    manifest get
+    [ using>> push ]
+    [ used>> push ] 2bi ;

@@ -1,26 +1,63 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs kernel strings f.dictionary f.words ;
+USING: accessors assocs combinators f.dictionary f.parser2
+f.words io.files kernel namespaces sequences strings vocabs
+vocabs.loader ;
 IN: f.vocabularies
 
-TUPLE: vocabulary < identity-tuple name words ;
+SYMBOL: vocabularies
+vocabularies [ H{ } clone ] initialize
+
+TUPLE: vocabulary
+    name
+    syntax
+    source
+    docs
+    tests ;
 
 : <vocabulary> ( name -- vocabulary )
     vocabulary new
-        swap >>name
-        H{ } clone >>words ;
+        swap >>name ; inline
 
-: add-word-to-vocabulary ( word vocabulary -- )
-    [ [ ] [ name>> ] bi ] [ words>> ] bi* set-at ;
+: lookup-vocabulary ( name -- vocabulary )
+    dup vocabularies get ?at [
+        nip
+    ] [
+        <vocabulary> [ swap vocabularies get-global set-at ] keep
+    ] if ;
+    
+: load-syntax ( name -- )
+    [ vocab-syntax-path path>manifest ]
+    [ lookup-vocabulary ] bi syntax<< ;
 
-: add-parsing-word ( vocabulary name quot -- )
-    <parsing-word> dup vocabulary>> add-word-to-vocabulary ;
+: load-source ( name -- )
+    [ vocab-source-path path>manifest ]
+    [ lookup-vocabulary ] bi source<< ;
+    
+: load-docs ( name -- )
+    [ vocab-docs-path path>manifest ]
+    [ lookup-vocabulary ] bi docs<< ;
+    
+: load-tests ( name -- )
+    [ vocab-tests-path path>manifest ]
+    [ lookup-vocabulary ] bi tests<< ;
+  
+: load-vocabulary ( name -- )
+    {
+        [ load-syntax ] [ load-source ] [ load-docs ] [ load-tests ]
+    } cleave ;    
 
-GENERIC: vocabulary-name ( object -- string )
-M: vocabulary vocabulary-name name>> ;
-M: string vocabulary-name ;
+: load-all-syntax ( -- )
+    vocabs [ load-syntax ] each ;
 
-GENERIC: vocabulary-words ( object -- sequence )
-M: f vocabulary-words ;
-M: object vocabulary-words lookup-vocabulary vocabulary-words ;
-M: vocabulary vocabulary-words words>> ;
+: load-all-source ( -- )
+    vocabs [ load-source ] each ;
+
+: load-all-docs ( -- )
+    vocabs [ load-docs ] each ;
+
+: load-all-tests ( -- )
+    vocabs [ load-tests ] each ;
+
+: load-all ( -- )
+    vocabs [ load-vocabulary ] each ;

@@ -57,14 +57,17 @@ PRIVATE>
 : vocab-append-path ( vocab path -- newpath )
     swap find-vocab-root dup [ prepend-path ] [ 2drop f ] if ;
 
+: vocab-syntax-path ( vocab -- path/f )
+    dup "-syntax.factor" vocab-dir+ vocab-append-path ;
+
 : vocab-source-path ( vocab -- path/f )
     dup ".factor" vocab-dir+ vocab-append-path ;
 
 : vocab-docs-path ( vocab -- path/f )
     dup "-docs.factor" vocab-dir+ vocab-append-path ;
     
-: vocab-syntax-path ( vocab -- path/f )
-    dup "-syntax.factor" vocab-dir+ vocab-append-path ;
+: vocab-tests-path ( vocab -- path/f )
+    dup "-tests.factor" vocab-dir+ vocab-append-path ;
 
 SYMBOL: load-help?
 

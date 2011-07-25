@@ -132,7 +132,7 @@ TOKEN: defer name ;
 
 TOKEN: char ch ;
 
-TOKEN: tuple name slots ;
+TOKEN: tuple name superclass slots ;
 
 TOKEN: boa-tuple name slots ;
 
@@ -392,7 +392,12 @@ DEFER: stack-effect
         "LIBRARY:" [ token <library> ] add-dummy-parsing-word
         "ALIAS:" [ token token <alias> ] add-dummy-parsing-word
         "TUPLE:" [
-            token 
+            token
+            peek-token "<" = [
+                token drop token
+            ] [
+                f
+            ] if
             [
                 [
                     token

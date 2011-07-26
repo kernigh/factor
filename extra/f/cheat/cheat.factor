@@ -74,9 +74,9 @@ TOKEN: unuse vocabulary ;
 
 TOKEN: in vocabulary ;
 
-TOKEN: predicate class superclass stack-effect body ;
+TOKEN: predicate name superclass stack-effect body ;
 
-TOKEN: mixin mixin ;
+TOKEN: mixin name ;
 
 TOKEN: math name stack-effect ;
 
@@ -98,7 +98,7 @@ TOKEN: singletons sequence ;
 
 TOKEN: error name slots ;
 
-TOKEN: union class members ;
+TOKEN: union name members ;
 
 TOKEN: slot name ;
 

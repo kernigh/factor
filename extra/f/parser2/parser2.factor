@@ -180,7 +180,7 @@ ERROR: premature-eof ;
 
 : should-parse? ( path -- ? )
     [ crc32 checksum-file ]
-    [ path>vocab get-manifest factor-checksum>> ] bi = not ;
+    [ path>vocab get-manifest checksum>> ] bi = not ;
 
 : path>manifest ( path -- manifest/f )
     [

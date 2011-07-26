@@ -22,7 +22,7 @@ M: fword resolve
 M: io:token resolve
     dup text {
         { [ dup string>number ] [ <resolved-number> ] }
-        { [ dup manifest get search-identifiers ] [ <resolved-word> ] }
+        ! { [ dup manifest get search-identifiers ] [ <resolved-word> ] }
         [ undefined-token ]
     } cond ;
     

@@ -101,14 +101,14 @@ M: f like drop [ f ] when-empty ; inline
 INSTANCE: f immutable-sequence
 
 ! Integer sequences
-TUPLE: iota { n integer read-only } ;
+TUPLE: iota-tuple { n integer read-only } ;
 
-: iota ( n -- iota ) \ iota boa ; inline
+: iota ( n -- iota ) \ iota-tuple boa ; inline
 
-M: iota length n>> ; inline
-M: iota nth-unsafe drop ; inline
+M: iota-tuple length n>> ; inline
+M: iota-tuple nth-unsafe drop ; inline
 
-INSTANCE: iota immutable-sequence
+INSTANCE: iota-tuple immutable-sequence
 
 <PRIVATE
 
@@ -210,14 +210,14 @@ TUPLE: slice
 
 TUPLE: slice-error from to seq reason ;
 
-: slice-error ( from to seq ? string -- from to seq )
+: ?slice-error ( from to seq ? string -- from to seq )
     [ \ slice-error boa throw ] curry when ; inline
 
 : check-slice ( from to seq -- from to seq )
     3dup
-    [ 2drop 0 < "start < 0" slice-error ]
-    [ [ drop ] 2dip length > "end > sequence" slice-error ]
-    [ drop > "start > end" slice-error ]
+    [ 2drop 0 < "start < 0" ?slice-error ]
+    [ [ drop ] 2dip length > "end > sequence" ?slice-error ]
+    [ drop > "start > end" ?slice-error ]
     3tri ; inline
 
 : <slice> ( from to seq -- slice )

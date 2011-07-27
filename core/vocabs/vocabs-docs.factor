@@ -8,8 +8,8 @@ $nl
 { $subsections dictionary }
 "Vocabularies form a class."
 { $subsections
-    vocab
-    vocab?
+    #vocab
+    #vocab?
 }
 "Various vocabulary words are overloaded to accept a " { $emphasis "vocabulary specifier" } ", which is a string naming the vocabulary, the " { $link vocab } " instance itself, or a " { $link vocab-link } ":"
 { $subsections

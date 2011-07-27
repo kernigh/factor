@@ -114,10 +114,10 @@ FUNCTION: HRESULT CoInitializeEx ( void* reserved, DWORD dwCoInit ) ;
 : succeeded? ( hresult -- ? )
     0 HEX: 7FFFFFFF between? ;
 
-TUPLE: ole32-error code message ;
+TUPLE: #ole32-error code message ;
 
 : <ole32-error> ( code -- error )
-    dup n>win32-error-string \ ole32-error boa ;
+    dup n>win32-error-string #ole32-error boa ;
 
 : ole32-error ( hresult -- )
     dup succeeded? [ drop ] [ <ole32-error> throw ] if ;

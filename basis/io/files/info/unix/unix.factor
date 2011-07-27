@@ -115,7 +115,7 @@ GENERIC# file-mode? 1 ( obj mask -- ? )
 
 M: integer file-mode? mask? ;
 M: string file-mode? [ stat-mode ] dip mask? ;
-M: file-info file-mode? [ permissions>> ] dip mask? ;
+M: #file-info file-mode? [ permissions>> ] dip mask? ;
 
 PRIVATE>
 

@@ -274,7 +274,7 @@ C: <vocab-author> vocab-author
 : $all-authors ( element -- )
     drop "Authors" $heading all-authors $authors ;
 
-INSTANCE: vocab topic
+INSTANCE: #vocab topic
 
 INSTANCE: vocab-link topic
 

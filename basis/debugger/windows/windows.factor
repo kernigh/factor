@@ -43,7 +43,7 @@ M: windows signal-error.
     "Windows exception 0x" write
     third [ >hex write ] [ seh-name. ] bi nl ;
 
-M: ole32-error error.
+M: #ole32-error error.
     "COM error 0x" write
     dup code>> HEX: ffff,ffff bitand >hex write ": " write
     message>> write ;

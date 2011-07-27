@@ -15,14 +15,14 @@ GENERIC: invoke-command ( target command -- )
 
 GENERIC: command-name ( command -- str )
 
-TUPLE: command-map blurb commands ;
+TUPLE: #command-map blurb commands ;
 
 GENERIC: command-description ( command -- str/f )
 
 GENERIC: command-word ( command -- word )
 
 : <command-map> ( blurb commands -- command-map )
-    { } like \ command-map boa ;
+    { } like #command-map boa ;
 
 : commands ( class -- hash )
     dup "commands" word-prop [ ] [

@@ -202,7 +202,7 @@ TUPLE: code-block
 { size read-only }
 { entry-point read-only } ;
 
-TUPLE: code-blocks { blocks sliced-groups } { cache hashtable } ;
+TUPLE: #code-blocks { blocks sliced-groups } { cache hashtable } ;
 
 <PRIVATE
 
@@ -220,7 +220,7 @@ TUPLE: code-blocks { blocks sliced-groups } { cache hashtable } ;
     } spread code-block boa ; inline
 
 : <code-blocks> ( seq -- code-blocks )
-    6 <sliced-groups> H{ } clone \ code-blocks boa ;
+    6 <sliced-groups> H{ } clone \ #code-blocks boa ;
 
 SYMBOL: code-heap-start
 SYMBOL: code-heap-end
@@ -231,19 +231,19 @@ SYMBOL: code-heap-end
 : (lookup-return-address) ( addr seq -- code-block )
     [ entry-point>> <=> ] with search nip ;
 
-HINTS: (lookup-return-address) code-blocks ;
+HINTS: (lookup-return-address) #code-blocks ;
 
 PRIVATE>
 
-M: code-blocks length blocks>> length ; inline
+M: #code-blocks length blocks>> length ; inline
 
 FROM: sequences.private => nth-unsafe ;
 
-M: code-blocks nth-unsafe
+M: #code-blocks nth-unsafe
     [ cache>> ] [ blocks>> ] bi
     '[ _ nth-unsafe <code-block> ] cache ; inline
 
-INSTANCE: code-blocks immutable-sequence
+INSTANCE: #code-blocks immutable-sequence
 
 : code-blocks ( -- blocks )
     (code-blocks) <code-blocks> ;

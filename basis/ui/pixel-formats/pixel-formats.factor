@@ -18,28 +18,28 @@ SYMBOLS:
     sample-alpha
     color-float ;
 
-TUPLE: pixel-format-attribute { value integer } ;
+TUPLE: #pixel-format-attribute { value integer } ;
 
-TUPLE: color-bits < pixel-format-attribute ;
-TUPLE: red-bits < pixel-format-attribute ;
-TUPLE: green-bits < pixel-format-attribute ;
-TUPLE: blue-bits < pixel-format-attribute ;
-TUPLE: alpha-bits < pixel-format-attribute ;
+TUPLE: color-bits < #pixel-format-attribute ;
+TUPLE: red-bits < #pixel-format-attribute ;
+TUPLE: green-bits < #pixel-format-attribute ;
+TUPLE: blue-bits < #pixel-format-attribute ;
+TUPLE: alpha-bits < #pixel-format-attribute ;
 
-TUPLE: accum-bits < pixel-format-attribute ;
-TUPLE: accum-red-bits < pixel-format-attribute ;
-TUPLE: accum-green-bits < pixel-format-attribute ;
-TUPLE: accum-blue-bits < pixel-format-attribute ;
-TUPLE: accum-alpha-bits < pixel-format-attribute ;
+TUPLE: accum-bits < #pixel-format-attribute ;
+TUPLE: accum-red-bits < #pixel-format-attribute ;
+TUPLE: accum-green-bits < #pixel-format-attribute ;
+TUPLE: accum-blue-bits < #pixel-format-attribute ;
+TUPLE: accum-alpha-bits < #pixel-format-attribute ;
 
-TUPLE: depth-bits < pixel-format-attribute ;
+TUPLE: depth-bits < #pixel-format-attribute ;
 
-TUPLE: stencil-bits < pixel-format-attribute ;
+TUPLE: stencil-bits < #pixel-format-attribute ;
 
-TUPLE: aux-buffers < pixel-format-attribute ;
+TUPLE: aux-buffers < #pixel-format-attribute ;
 
-TUPLE: sample-buffers < pixel-format-attribute ;
-TUPLE: samples < pixel-format-attribute ;
+TUPLE: sample-buffers < #pixel-format-attribute ;
+TUPLE: samples < #pixel-format-attribute ;
 
 HOOK: (make-pixel-format) ui-backend ( world attributes -- pixel-format-handle )
 HOOK: (free-pixel-format) ui-backend ( pixel-format -- )
@@ -76,7 +76,7 @@ M: object >PFA
     drop { } ;
 M: word >PFA
     TABLE at [ { } ] unless* ;
-M: pixel-format-attribute >PFA
+M: #pixel-format-attribute >PFA
     dup class TABLE at
     [ swap value>> suffix ]
     [ drop { } ] if* ;

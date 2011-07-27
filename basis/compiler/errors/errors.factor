@@ -29,7 +29,7 @@ M: linkage-error-tuple error-type drop +linkage-error+ ;
 : compiler-error ( error -- )
     dup asset>> compiler-errors get-global set-at ;
 
-T{ error-type
+T{ #error-type
    { type +compiler-error+ }
    { word ":errors" }
    { plural "compiler errors" }
@@ -47,7 +47,7 @@ T{ error-type
 : linkage-error ( error word class -- )
     '[ _ boa ] dip <linkage-error> dup asset>> linkage-errors get set-at ; inline
 
-T{ error-type
+T{ #error-type
    { type +linkage-error+ }
    { word ":linkage" }
    { plural "linkage errors" }

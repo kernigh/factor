@@ -9,7 +9,7 @@ vocabs.loader ;
 IN: io.files.info.unix
 SPECIALIZED-ARRAY: timeval
 
-TUPLE: unix-file-system-info < file-system-info
+TUPLE: unix-file-system-info < #file-system-info
 block-size preferred-block-size
 blocks blocks-free blocks-available
 files files-free files-available
@@ -48,7 +48,7 @@ M: unix file-system-info
     [ file-system-statvfs statvfs>file-system-info ] bi
     file-system-calculations ;
 
-TUPLE: unix-file-info < file-info uid gid dev ino
+TUPLE: unix-file-info < #file-info uid gid dev ino
 nlink rdev blocks blocksize ;
 
 HOOK: new-file-info os ( -- file-info )

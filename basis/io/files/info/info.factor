@@ -20,7 +20,7 @@ HOOK: link-info os ( path -- info )
 ! File systems
 HOOK: file-systems os ( -- array )
 
-TUPLE: file-system-info device-name mount-point type
+TUPLE: #file-system-info device-name mount-point type
 available-space free-space used-space total-space ;
 
 HOOK: file-system-info os ( path -- file-system-info )

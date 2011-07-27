@@ -84,11 +84,11 @@ ERROR: no-next-method method ;
 : (call-next-method) ( method -- )
     dup next-method-quot [ call ] [ no-next-method ] ?if ;
 
-TUPLE: check-method-error class generic ;
+TUPLE: #check-method class generic ;
 
 : check-method ( class generic -- class generic )
     2dup [ class? ] [ generic? ] bi* and [
-        \ check-method-error boa throw
+        #check-method boa throw
     ] unless ; inline
 
 : remake-generic ( generic -- )

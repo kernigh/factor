@@ -5,7 +5,7 @@ classes.private classes.algebra classes.algebra.private
 namespaces arrays math quotations definitions ;
 IN: classes.union
 
-PREDICATE: union-class < class
+PREDICATE: union-class < #class
     "metaclass" word-prop union-class eq? ;
 
 <PRIVATE

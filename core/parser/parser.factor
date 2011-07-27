@@ -160,7 +160,7 @@ print-use-hook [ [ ] ] initialize
 
 : reset-removed-classes ( -- )
     removed-classes
-    filter-moved [ class? ] filter [ forget-class ] each ;
+    filter-moved [ #class? ] filter [ forget-class ] each ;
 
 : fix-class-words ( -- )
     #! If a class word had a compound definition which was

@@ -89,7 +89,7 @@ PRIVATE>
 
 M: generic article-content word-with-methods ;
 
-M: class article-content word-with-methods ;
+M: #class article-content word-with-methods ;
 
 M: word article-parent "help-parent" word-prop ;
 

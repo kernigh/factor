@@ -19,8 +19,8 @@ SYMBOLS:
 SINGLETON: void
 
 TUPLE: abstract-c-type
-{ class class initial: object }
-{ boxed-class class initial: object }
+{ class #class initial: object }
+{ boxed-class #class initial: object }
 { boxer-quot callable }
 { unboxer-quot callable }
 { getter callable }

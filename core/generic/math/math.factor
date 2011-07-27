@@ -6,7 +6,7 @@ sequences.private classes classes.builtin classes.algebra
 definitions math.order math.private assocs ;
 IN: generic.math
 
-PREDICATE: math-class < class
+PREDICATE: math-class < #class
     dup null bootstrap-word eq? [
         drop f
     ] [

@@ -68,14 +68,14 @@ PRIVATE>
 
 GENERIC# add-mixin-instance 1 ( class mixin -- )
 
-M: class add-mixin-instance
+M: #class add-mixin-instance
     [ 2drop ] [ (add-mixin-instance) ] if-mixin-member? ;
 
 : remove-mixin-instance ( class mixin -- )
     [ (remove-mixin-instance) ] [ 2drop ] if-mixin-member? ;
 
 M: mixin-class metaclass-changed
-    over class? [ 2drop ] [ remove-mixin-instance ] if ;
+    over #class? [ 2drop ] [ remove-mixin-instance ] if ;
 
 : define-mixin-class ( class -- )
     dup mixin-class? [

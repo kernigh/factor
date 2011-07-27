@@ -66,7 +66,7 @@ UNION: fixed-length array byte-array string ;
 : literal-class ( obj -- class )
     #! Handle forgotten tuples and singleton classes properly
     dup singleton-class? [
-        class dup class? [
+        class dup #class? [
             drop tuple
         ] unless
     ] unless ;

@@ -78,7 +78,7 @@ IN: stack-checker.known-words
 } [ "shuffle" set-word-prop ] assoc-each
 
 : check-declaration ( declaration -- declaration )
-    dup { [ array? ] [ [ class? ] all? ] } 1&&
+    dup { [ array? ] [ [ #class? ] all? ] } 1&&
     [ bad-declaration-error ] unless ;
 
 : infer-declare ( -- )

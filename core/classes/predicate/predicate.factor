@@ -5,7 +5,7 @@ classes.algebra.private kernel namespaces make words sequences
 quotations arrays kernel.private assocs combinators ;
 IN: classes.predicate
 
-PREDICATE: predicate-class < class
+PREDICATE: predicate-class < #class
     "metaclass" word-prop predicate-class eq? ;
 
 <PRIVATE

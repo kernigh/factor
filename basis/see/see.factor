@@ -207,7 +207,7 @@ M: builtin-class see-class*
     drop "! Built-in class" comment. ;
 
 : see-class ( class -- )
-    dup class? [
+    dup #class? [
         [
             [ seeing-word ] [ see-class* ] bi
         ] with-use
@@ -215,9 +215,9 @@ M: builtin-class see-class*
 
 M: word see*
     [ see-class ]
-    [ [ class? ] [ symbol? not ] bi and [ nl nl ] when ]
+    [ [ #class? ] [ symbol? not ] bi and [ nl nl ] when ]
     [
-        dup [ class? ] [ symbol? ] bi and
+        dup [ #class? ] [ symbol? ] bi and
         [ drop ] [ call-next-method ] if
     ] tri ;
 
@@ -237,7 +237,7 @@ PRIVATE>
 
 : methods ( word -- seq )
     [
-        dup class? [ dup seeing-implementors % ] when
+        dup #class? [ dup seeing-implementors % ] when
         dup generic? [ dup seeing-methods % ] when
         drop
     ] { } make set-members ;

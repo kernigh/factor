@@ -8,7 +8,7 @@ classes.private slots.private slots math.private accessors
 assocs effects ;
 IN: classes.tuple
 
-PREDICATE: tuple-class < class
+PREDICATE: tuple-class < #class
     "metaclass" word-prop tuple-class eq? ;
 
 ERROR: not-a-tuple object ;
@@ -99,7 +99,7 @@ M: tuple-class final-class? "final" word-prop ;
 
 M: builtin-class final-class? tuple eq? not ;
 
-M: class final-class? drop t ;
+M: #class final-class? drop t ;
 
 <PRIVATE
 

@@ -175,7 +175,7 @@ ERROR: bad-partial-eval quot word ;
 \ new [ inline-new ] 1 define-partial-eval
 
 \ instance? [
-    dup class?
+    dup #class?
     [ "predicate" word-prop ] [ drop f ] if
 ] 1 define-partial-eval
 

@@ -9,7 +9,7 @@ IN: classes
 
 ERROR: bad-inheritance class superclass ;
 
-PREDICATE: class < word "class" word-prop ;
+PREDICATE: #class < word "class" word-prop ;
 
 <PRIVATE
 
@@ -44,7 +44,7 @@ GENERIC: rank-class ( class -- n )
 
 GENERIC: reset-class ( class -- )
 
-M: class reset-class
+M: #class reset-class
     {
         "class"
         "metaclass"
@@ -82,7 +82,7 @@ M: predicate reset-word
 
 : superclass ( class -- super )
     #! Output f for non-classes to work with algebra code
-    dup class? [ "superclass" word-prop ] [ drop f ] if ;
+    dup #class? [ "superclass" word-prop ] [ drop f ] if ;
 
 : superclasses ( class -- supers )
     [ superclass ] follow reverse ;
@@ -95,11 +95,11 @@ M: predicate reset-word
 
 : members ( class -- seq )
     #! Output f for non-classes to work with algebra code
-    dup class? [ "members" word-prop ] [ drop f ] if ;
+    dup #class? [ "members" word-prop ] [ drop f ] if ;
 
 : participants ( class -- seq )
     #! Output f for non-classes to work with algebra code
-    dup class? [ "participants" word-prop ] [ drop f ] if ;
+    dup #class? [ "participants" word-prop ] [ drop f ] if ;
 
 GENERIC: implementors ( class/classes -- seq )
 
@@ -116,7 +116,7 @@ GENERIC: implementors ( class/classes -- seq )
 
 : class-usages ( class -- seq ) [ class-usage ] closure keys ;
 
-M: class implementors implementors-map get at keys ;
+M: #class implementors implementors-map get at keys ;
 
 M: sequence implementors [ implementors ] gather ;
 
@@ -150,7 +150,7 @@ GENERIC: metaclass-changed ( use class -- )
     dup [ [ metaclass-changed ] with each ] [ 2drop ] if ;
 
 : check-metaclass ( class metaclass -- usages/f )
-    over class? [
+    over #class? [
         over "metaclass" word-prop eq?
         [ drop f ] [ class-usage keys ] if
     ] [ 2drop f ] if ;
@@ -163,7 +163,7 @@ GENERIC: metaclass-changed ( use class -- )
     2dup "metaclass" swap at check-metaclass
     {
         [ 2drop update-map- ]
-        [ 2drop dup class? [ reset-class ] [ implementors-map+ ] if ]
+        [ 2drop dup #class? [ reset-class ] [ implementors-map+ ] if ]
         [ 2drop ?define-symbol ]
         [ drop [ assoc-union ] curry change-props drop ]
         [
@@ -180,7 +180,7 @@ GENERIC: metaclass-changed ( use class -- )
 
 GENERIC: update-class ( class -- )
 
-M: class update-class drop ;
+M: #class update-class drop ;
 
 GENERIC: update-methods ( class seq -- )
 
@@ -218,10 +218,10 @@ PRIVATE>
         [ ?metaclass-changed ]
     } 2cleave ;
 
-M: class metaclass-changed
-    swap class? [ drop ] [ forget-class ] if ;
+M: #class metaclass-changed
+    swap #class? [ drop ] [ forget-class ] if ;
 
-M: class forget* ( class -- )
+M: #class forget* ( class -- )
     [ call-next-method ] [ forget-class ] bi ;
 
 GENERIC: class ( object -- class )

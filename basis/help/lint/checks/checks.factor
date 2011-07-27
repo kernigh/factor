@@ -146,7 +146,7 @@ SYMBOL: vocab-articles
     ] when ;
 
 : check-class-description ( word element -- )
-    [ class? not ]
+    [ #class? not ]
     [ { $class-description } swap elements empty? not ] bi* and
     [ "A word that is not a class has a $class-description" simple-lint-error ] when ;
 

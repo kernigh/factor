@@ -87,7 +87,7 @@ ERROR: no-next-method method ;
 TUPLE: #check-method class generic ;
 
 : check-method ( class generic -- class generic )
-    2dup [ class? ] [ generic? ] bi* and [
+    2dup [ #class? ] [ generic? ] bi* and [
         #check-method boa throw
     ] unless ; inline
 
@@ -194,5 +194,5 @@ M: generic subwords
         tri
     ] { } make ;
 
-M: class forget-methods
+M: #class forget-methods
     [ implementors ] [ [ swap method ] curry ] bi map forget-all ;

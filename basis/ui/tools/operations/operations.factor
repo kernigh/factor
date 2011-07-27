@@ -48,14 +48,14 @@ IN: ui.tools.operations
 } define-operation
 
 ! Restart
-[ restart? ] \ restart H{
+[ restart-tuple? ] \ restart H{
     { +primary+ t }
     { +secondary+ t }
     { +listener+ t }
 } define-operation
 
 ! Continuation
-[ continuation? ] \ traceback-window H{
+[ continuation-tuple? ] \ traceback-window H{
     { +primary+ t }
     { +secondary+ t }
 } define-operation
@@ -96,7 +96,7 @@ M: pathname edit-file edit ;
 : com-reload ( error -- )
     file>> run-file ;
 
-[ compiler-error? ] \ com-reload H{
+[ compiler-error-tuple? ] \ com-reload H{
     { +listener+ t }
 } define-operation
 

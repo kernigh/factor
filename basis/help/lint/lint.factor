@@ -12,7 +12,7 @@ SYMBOL: lint-failures
 
 lint-failures [ H{ } clone ] initialize
 
-TUPLE: help-lint-error < source-file-error ;
+TUPLE: help-lint-error-tuple < source-file-error ;
 
 SYMBOL: +help-lint-failure+
 
@@ -25,12 +25,12 @@ T{ error-type
    { forget-quot [ lint-failures get delete-at ] }
 } define-error-type
 
-M: help-lint-error error-type drop +help-lint-failure+ ;
+M: help-lint-error-tuple error-type drop +help-lint-failure+ ;
 
 <PRIVATE
 
 : <help-lint-error> ( error topic -- help-lint-error )
-    \ help-lint-error <definition-error> ;
+    \ help-lint-error-tuple <definition-error> ;
 
 PRIVATE>
 

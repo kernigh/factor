@@ -45,15 +45,15 @@ GENERIC: article-content ( topic -- content )
 GENERIC: article-parent ( topic -- parent )
 GENERIC: set-article-parent ( parent topic -- )
 
-TUPLE: article title content loc ;
+TUPLE: article-tuple title content loc ;
 
 : <article> ( title content -- article )
-    f \ article boa ;
+    f \ article-tuple boa ;
 
-M: article valid-article? drop t ;
-M: article article-name title>> ;
-M: article article-title title>> ;
-M: article article-content content>> ;
+M: article-tuple valid-article? drop t ;
+M: article-tuple article-name title>> ;
+M: article-tuple article-title title>> ;
+M: article-tuple article-content content>> ;
 
 ERROR: no-article name ;
 

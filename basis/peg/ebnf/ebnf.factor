@@ -21,10 +21,10 @@ ERROR: no-rule rule parser ;
 : lookup-rule ( rule parser -- rule' )
     2dup rule [ 2nip ] [ no-rule ] if* ; 
 
-TUPLE: tokenizer any one many ;
+TUPLE: tokenizer-tuple any one many ;
 
 : default-tokenizer ( -- tokenizer )
-  T{ tokenizer f 
+  T{ tokenizer-tuple f 
     [ any-char ]
     [ token ]
     [ [ = ] curry any-char swap semantic ]
@@ -32,13 +32,13 @@ TUPLE: tokenizer any one many ;
 
 : parser-tokenizer ( parser -- tokenizer )
   [ 1quotation ] keep
-  [ swap [ = ] curry semantic ] curry dup \ tokenizer boa ;
+  [ swap [ = ] curry semantic ] curry dup \ tokenizer-tuple boa ;
 
 : rule-tokenizer ( name word -- tokenizer )
   rule parser-tokenizer ;
 
 : tokenizer ( -- word )
-  \ tokenizer get-global [ default-tokenizer ] unless* ;
+  \ tokenizer-tuple get-global [ default-tokenizer ] unless* ;
 
 : reset-tokenizer ( -- )
   default-tokenizer \ tokenizer set-global ;

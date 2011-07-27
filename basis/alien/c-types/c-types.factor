@@ -29,13 +29,13 @@ TUPLE: abstract-c-type
 { align integer }
 { align-first integer } ;
 
-TUPLE: c-type < abstract-c-type
+TUPLE: c-type-tuple < abstract-c-type
 boxer
 unboxer
 { rep initial: int-rep } ;
 
 : <c-type> ( -- c-type )
-    \ c-type new ; inline
+    \ c-type-tuple new ; inline
 
 ERROR: no-c-type word ;
 
@@ -79,19 +79,19 @@ M: abstract-c-type c-type-unboxer-quot unboxer-quot>> ;
 
 GENERIC: c-type-rep ( name -- rep )
 
-M: c-type c-type-rep rep>> ;
+M: c-type-tuple c-type-rep rep>> ;
 
 GENERIC: c-type-getter ( name -- quot )
 
-M: c-type c-type-getter getter>> ;
+M: c-type-tuple c-type-getter getter>> ;
 
 GENERIC: c-type-copier ( name -- quot )
 
-M: c-type c-type-copier drop [ ] ;
+M: c-type-tuple c-type-copier drop [ ] ;
 
 GENERIC: c-type-setter ( name -- quot )
 
-M: c-type c-type-setter setter>> ;
+M: c-type-tuple c-type-setter setter>> ;
 
 GENERIC: c-type-align ( name -- n ) foldable
 
@@ -105,7 +105,7 @@ GENERIC: base-type ( c-type -- c-type )
 
 M: c-type-name base-type c-type ;
 
-M: c-type base-type ;
+M: c-type-tuple base-type ;
 
 GENERIC: heap-size ( name -- size )
 
@@ -159,7 +159,7 @@ PREDICATE: typedef-word < c-type-word
         [ swap "c-type" set-word-prop ]
     } 2cleave ;
 
-TUPLE: long-long-type < c-type ;
+TUPLE: long-long-type < c-type-tuple ;
 
 : <long-long-type> ( -- c-type )
     long-long-type new ;

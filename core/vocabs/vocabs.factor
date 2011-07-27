@@ -6,7 +6,7 @@ IN: vocabs
 
 SYMBOL: dictionary
 
-TUPLE: vocab < identity-tuple
+TUPLE: #vocab < identity-tuple
 name words
 main help
 source-loaded? docs-loaded? ;
@@ -17,7 +17,7 @@ SYMBOL: +running+
 SYMBOL: +done+
 
 : <vocab> ( name -- vocab )
-    \ vocab new
+    #vocab new
         swap >>name
         H{ } clone >>words ;
 
@@ -25,11 +25,11 @@ TUPLE: vocab-link name ;
 
 C: <vocab-link> vocab-link
 
-UNION: vocab-spec vocab vocab-link ;
+UNION: vocab-spec #vocab vocab-link ;
 
 GENERIC: vocab-name ( vocab-spec -- name )
 
-M: vocab vocab-name name>> ;
+M: #vocab vocab-name name>> ;
 
 M: vocab-link vocab-name name>> ;
 
@@ -37,13 +37,13 @@ M: string vocab-name ;
 
 GENERIC: vocab ( vocab-spec -- vocab )
 
-M: vocab vocab ;
+M: #vocab vocab ;
 
 M: object vocab ( name -- vocab ) vocab-name dictionary get at ;
 
 GENERIC: vocab-words ( vocab-spec -- words )
 
-M: vocab vocab-words words>> ;
+M: #vocab vocab-words words>> ;
 
 M: object vocab-words vocab vocab-words ;
 
@@ -51,7 +51,7 @@ M: f vocab-words ;
 
 GENERIC: vocab-help ( vocab-spec -- help )
 
-M: vocab vocab-help help>> ;
+M: #vocab vocab-help help>> ;
 
 M: object vocab-help vocab vocab-help ;
 
@@ -59,7 +59,7 @@ M: f vocab-help ;
 
 GENERIC: vocab-main ( vocab-spec -- main )
 
-M: vocab vocab-main main>> ;
+M: #vocab vocab-main main>> ;
 
 M: object vocab-main vocab vocab-main ;
 

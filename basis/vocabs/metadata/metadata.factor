@@ -47,8 +47,8 @@ MEMO: vocab-file-contents ( vocab name -- seq )
     ] [
         nip first
     ] if-empty ;
-
-M: vocab summary
+    
+M: #vocab summary
     [
         dup vocab-summary %
         " (" %

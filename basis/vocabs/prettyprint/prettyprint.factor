@@ -65,7 +65,7 @@ M: rename pprint-qualified ( rename -- )
     ] with-pprint ;
 
 : filter-interesting ( seq -- seq' )
-    [ [ vocab? ] [ extra-words? ] bi or not ] filter ;
+    [ [ #vocab? ] [ extra-words? ] bi or not ] filter ;
 
 PRIVATE>
 

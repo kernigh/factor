@@ -133,7 +133,7 @@ M: word com-stack-effect 1quotation com-stack-effect ;
 
 : com-enter-in ( vocab -- ) vocab-name set-current-vocab ;
 
-[ vocab? ] \ com-enter-in H{
+[ #vocab? ] \ com-enter-in H{
     { +listener+ t }
 } define-operation
 
@@ -148,7 +148,7 @@ M: word com-stack-effect 1quotation com-stack-effect ;
     { +listener+ t }
 } define-operation
 
-[ vocab? ] \ test H{
+[ #vocab? ] \ test H{
     { +listener+ t }
 } define-operation
 

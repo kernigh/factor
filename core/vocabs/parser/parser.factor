@@ -226,7 +226,7 @@ M: qualified update
         >>words
     ] [ drop f ] if ;
 
-M: vocab update dup name>> vocab eq? ;
+M: #vocab update dup name>> vocab eq? ;
 
 : update-manifest ( manifest -- )
     [ dup [ name>> vocab ] when ] change-current-vocab

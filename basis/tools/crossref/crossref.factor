@@ -59,7 +59,7 @@ M: link uses
 M: pathname uses string>> source-file top-level-form>> [ uses ] [ { } ] if* ;
 
 ! To make UI browser happy
-M: vocab uses drop f ;
+M: #vocab uses drop f ;
 
 : crossref-def ( defspec -- )
     dup uses crossref get add-vertex ;

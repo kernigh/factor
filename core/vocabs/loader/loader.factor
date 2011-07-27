@@ -151,7 +151,7 @@ SYMBOL: blacklist
 
 GENERIC: (load-vocab) ( name -- vocab )
 
-M: vocab (load-vocab)
+M: #vocab (load-vocab)
     [
         dup source-loaded?>> +parsing+ eq? [
             dup source-loaded?>> [ dup load-source ] unless

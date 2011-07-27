@@ -185,7 +185,7 @@ M: word reset-word
 ERROR: bad-create name vocab ;
 
 : check-create ( name vocab -- name vocab )
-    2dup [ string? ] [ [ string? ] [ vocab? ] bi or ] bi* and
+    2dup [ string? ] [ [ string? ] [ #vocab? ] bi or ] bi* and
     [ bad-create ] unless ;
 
 : create ( name vocab -- word )

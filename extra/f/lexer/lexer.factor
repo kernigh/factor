@@ -73,6 +73,11 @@ TUPLE: lexed-token < lexed string ;
 
 TUPLE: line-comment < lexed ;
 TUPLE: nested-comment < lexed ;
+TUPLE: lua-string < lexed start text stop ;
+
+: <lua-string> ( tokens text -- lua-string )
+    lua-string new-lexed
+        swap >>text ; inline
 
 UNION: comment line-comment nested-comment ;
 
@@ -135,6 +140,25 @@ TUPLE: string-word name string delimiter ;
 ERROR: bad-long-string ;
 ERROR: bad-short-string ;
 
+ERROR: stream-read-until-string-error needle string stream ;
+
+:: stream-read-until-string ( needle stream -- string' )
+    [
+        0 :> i!
+        needle length :> len
+        [
+            stream stream-read1 :> ch
+            ch [ needle building get >string stream stream-read-until-string-error ] unless
+            
+            i needle nth ch = [ i 1 + i! ] [ 0 i! ] if
+            ch ,
+            len i = not
+        ] loop
+    ] "" make ;
+    
+: read-until-string ( needle -- string' )
+    input-stream get stream-read-until-string ;
+
 : read-long-string ( -- string end )
     tell-input
     [
@@ -192,6 +216,21 @@ ERROR: bad-short-string ;
     ] [
         drop f
     ] if* ;
+    
+ERROR: lua-string-error string ;
+: lex-lua-string ( -- string )
+    1 read
+    " [\r\n" read-until text>> CHAR: [ = [
+        text>>
+        [ '[ _ "[" 3append ] change-text ]
+        [ length CHAR: = <string> "]" "]" surround ] bi
+        
+        [ input-stream get stream>> stream-read-until-string ] keep length cut*
+        3array [ second ] keep
+        <lua-string>
+     ] [
+        append lua-string-error
+    ] if ;
 
 : lex-token ( -- token/string/comment/f )
     lex-blanks
@@ -200,6 +239,7 @@ ERROR: bad-short-string ;
         { [ dup "!" head? ] [ drop 1 read lex-til-eol 2array <line-comment> ] }
         { [ dup "#!" head? ] [ drop 2 read lex-til-eol 2array <line-comment> ] }
         { [ dup "(*" head? ] [ drop lex-nested-comment ensure-nesting ] }
+        { [ dup "[=" head? ] [ drop lex-lua-string ] }
         { [ dup f = ] [ drop f ] }
         [ drop lex-string/token ]
     } cond ;

@@ -26,17 +26,3 @@ ERROR: symbol-redefined string namespace ;
     ensure-unique
     words>> set-at ;
 
-
-(*
-
-GENERIC: vocabulary-name ( object -- string )
-M: vocabulary vocabulary-name name>> ;
-M: string vocabulary-name ;
-
-GENERIC: vocabulary-words ( object -- sequence )
-M: f vocabulary-words ;
-M: object vocabulary-words lookup-vocabulary vocabulary-words ;
-M: vocabulary vocabulary-words words>> ;
-
-
-*)

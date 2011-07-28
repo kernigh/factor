@@ -72,20 +72,22 @@ TUPLE: lexed-token < lexed string ;
         [ third >>text ] bi ; inline
 
 TUPLE: line-comment < lexed ;
-TUPLE: nested-comment < lexed ;
 TUPLE: lua-string < lexed start text stop ;
 
 : <lua-string> ( tokens text -- lua-string )
     lua-string new-lexed
         swap >>text ; inline
 
-UNION: comment line-comment nested-comment ;
+TUPLE: lua-comment < lexed start text stop ;
+
+: <lua-comment> ( tokens text -- lua-comment )
+    lua-comment new-lexed
+        swap >>text ; inline
+
+UNION: comment line-comment lua-comment ;
 
 : <line-comment> ( sequence -- line-comment )
     line-comment new-lexed ; inline
-
-: <nested-comment> ( sequence -- nested-comment )
-    nested-comment new-lexed ; inline
     
 GENERIC: first-token ( obj -- token/f )
 GENERIC: last-token ( obj -- token/f )
@@ -107,33 +109,6 @@ M: lexed last-token tokens>> [ f ] [ last last-token ] if-empty ;
 : lex-til-eol ( -- comment )
     ! [ peek1 text "\r\n" member? [ f ] [ read1 text ] if ] loop>array >string ;
     "\r\n" read-until drop ;
-
-: inc-comment ( -- )
-    lexer get [ 1 + ] change-comment-nesting-level drop ;
-    
-: dec-comment ( -- )
-    lexer get [ 1 - ] change-comment-nesting-level drop ;
-    
-: lex-nested-comment ( -- comments )
-    inc-comment
-    [
-        2 read ,
-        [
-            2 peek text {
-                { "(*" [ lex-nested-comment , t ] }
-                { "*)" [ dec-comment f ] }
-                [ drop 1 read , t ]
-            } case
-        ] loop
-        2 read ,
-    ] { } make <nested-comment> ;
-
-ERROR: bad-comment-nesting ;
-
-: ensure-nesting ( -- )
-    lexer get comment-nesting-level>> 0 = [
-        bad-comment-nesting
-    ] unless ;
 
 TUPLE: string-word name string delimiter ;
 
@@ -216,12 +191,13 @@ ERROR: stream-read-until-string-error needle string stream ;
     ] [
         drop f
     ] if* ;
-    
+
+ERROR: bad-separator string ;    
 ERROR: lua-string-error string ;
 : lex-lua-string ( -- string )
     1 read
     " [\r\n" read-until text>> CHAR: [ = [
-        text>>
+        text>> dup [ CHAR: = = ] all? [ bad-separator ] unless
         [ '[ _ "[" 3append ] change-text ]
         [ length CHAR: = <string> "]" "]" surround ] bi
         
@@ -229,17 +205,32 @@ ERROR: lua-string-error string ;
         3array [ second ] keep
         <lua-string>
      ] [
-        append lua-string-error
+        [ text>> ] bi@ append lua-string-error
     ] if ;
 
+ERROR: lua-comment-error string ;
+: lex-lua-comment ( -- string )
+    1 read
+    " (\r\n" read-until text>> CHAR: ( = [
+        text>> dup [ CHAR: * = ] all? [ bad-separator ] unless
+        [ '[ _ "(" 3append ] change-text ]
+        [ length CHAR: * <string> ")" ")" surround ] bi
+        
+        [ input-stream get stream>> stream-read-until-string ] keep length cut*
+        3array [ second ] keep
+        <lua-comment>
+     ] [
+        [ text>> ] bi@ append lua-comment-error
+    ] if ;
+    
 : lex-token ( -- token/string/comment/f )
     lex-blanks
     2 peek
     text {
         { [ dup "!" head? ] [ drop 1 read lex-til-eol 2array <line-comment> ] }
         { [ dup "#!" head? ] [ drop 2 read lex-til-eol 2array <line-comment> ] }
-        { [ dup "(*" head? ] [ drop lex-nested-comment ensure-nesting ] }
         { [ dup "[=" head? ] [ drop lex-lua-string ] }
+        { [ dup "(*" head? ] [ drop lex-lua-comment ] }
         { [ dup f = ] [ drop f ] }
         [ drop lex-string/token ]
     } cond ;

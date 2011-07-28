@@ -59,7 +59,7 @@ GENERIC# process 1 ( object processing -- )
 
 M: defer process 2drop ;
 M: line-comment process 2drop ;
-M: nested-comment process 2drop ;
+M: lua-comment process 2drop ;
 M: using process [ vocabularies>> ] [ using>> ] bi* push-all ;
 M: in process [ vocabulary>> ] dip in<< ;
 

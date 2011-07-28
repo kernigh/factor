@@ -7,17 +7,17 @@ IN: ui.clipboards
 
 ! Two text transfer buffers
 
-TUPLE: clipboard contents ;
+TUPLE: #clipboard contents ;
 
 GENERIC: clipboard-contents ( clipboard -- string )
 
 GENERIC: set-clipboard-contents ( string clipboard -- )
 
-M: clipboard clipboard-contents contents>> ;
+M: #clipboard clipboard-contents contents>> ;
 
-M: clipboard set-clipboard-contents contents<< ;
+M: #clipboard set-clipboard-contents contents<< ;
 
-: <clipboard> ( -- clipboard ) "" clipboard boa ;
+: <clipboard> ( -- clipboard ) "" #clipboard boa ;
 
 GENERIC: paste-clipboard ( gadget clipboard -- )
 

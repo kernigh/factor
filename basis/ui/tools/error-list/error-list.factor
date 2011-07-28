@@ -30,7 +30,7 @@ MEMO: error-icon ( type -- image-name )
     [ [ [ error-icon ] dip ] assoc-map <checkboxes> ]
     [ <mapping> ] bi ;
 
-TUPLE: error-list-gadget < tool
+TUPLE: #error-list-gadget < tool
 visible-errors source-file error
 error-toggle source-file-table error-table error-display ;
 
@@ -154,7 +154,7 @@ error-display "toolbar" f {
     [ swap '[ error-type _ at ] filter ] <smart-arrow> ;
 
 :: <error-list-gadget> ( model -- gadget )
-    vertical \ error-list-gadget new-track
+    vertical #error-list-gadget new-track
         <error-toggle> [ >>error-toggle ] [ >>visible-errors ] bi*
         dup visible-errors>> model <error-model> >>model 
         f <model> >>source-file
@@ -171,14 +171,14 @@ error-display "toolbar" f {
         error-list error-display>> "Details" <labeled-gadget> 1/2 track-add
     { 5 5 } <filled-border> 1 track-add ;
 
-M: error-list-gadget focusable-child*
+M: #error-list-gadget focusable-child*
     source-file-table>> ;
 
 : error-list-help ( -- ) "ui.tools.error-list" com-browse ;
 
 \ error-list-help H{ { +nullary+ t } } define-command
 
-\ error-list-gadget "toolbar" f {
+\ #error-list-gadget "toolbar" f {
     { T{ key-down f f "F1" } error-list-help }
 } define-command-map
 

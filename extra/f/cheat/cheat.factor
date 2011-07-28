@@ -180,7 +180,7 @@ TOKEN: flags objects ;
 
 TOKEN: postponed word ;
 
-TOKEN: article objects ;
+TOKEN: article name title objects ;
 
 TOKEN: about name ;
 
@@ -188,10 +188,10 @@ TOKEN: call stack-effect ;
 
 TOKEN: execute stack-effect ;
 
-TOKEN: ebnf text ;
-TOKEN: functor text ;
+TOKEN: ebnf name text ;
+TOKEN: functor name text ;
 TOKEN: peg name stack-effect body ;
-TOKEN: com-interface stuff ;
+TOKEN: com-interface name stuff ;
 
 TOKEN: typed name stack-effect body ;
 TOKEN: local-typed name stack-effect body ;
@@ -277,7 +277,7 @@ DEFER: stack-effect
         "${" [ "}" parse-until <literal-array> ] add-dummy-parsing-word
         "flags{" [ "}" parse-until <flags> ] add-dummy-parsing-word
         "POSTPONE:" [ chunk <postponed> ] add-dummy-parsing-word
-        "ARTICLE:" [ body <article> ] add-dummy-parsing-word
+        "ARTICLE:" [ parse parse body <article> ] add-dummy-parsing-word
         "ABOUT:" [ token <about> ] add-dummy-parsing-word
         "HELP:" [ token optional-stack-effect ";" parse-until <help> ] add-dummy-parsing-word
         
@@ -334,8 +334,8 @@ DEFER: stack-effect
         "ERROR:" [ token body <error> ] add-dummy-parsing-word
 
 
-        "EBNF:" [ ";EBNF" chunks-until <ebnf> ] add-dummy-parsing-word
-        "FUNCTOR:" [ ";FUNCTOR" tokens-until <ebnf> ] add-dummy-parsing-word
+        "EBNF:" [ token ";EBNF" chunks-until <ebnf> ] add-dummy-parsing-word
+        "FUNCTOR:" [ token ";FUNCTOR" tokens-until <functor> ] add-dummy-parsing-word
         "PEG:" [ token stack-effect body <peg> ] add-dummy-parsing-word
         "call(" [ open-stack-effect <call> ] add-dummy-parsing-word
         "execute(" [ open-stack-effect <execute> ] add-dummy-parsing-word
@@ -375,7 +375,7 @@ DEFER: stack-effect
 
         "<<" [ ">>" parse-until <parse-time> ] add-dummy-parsing-word
 
-        "TYPEDEF:" [ token token <typedef> ] add-dummy-parsing-word
+        "TYPEDEF:" [ parse token <typedef> ] add-dummy-parsing-word
         "STRUCT:" [
             token ";" parse-until <struct>
         ] add-dummy-parsing-word
@@ -440,7 +440,7 @@ DEFER: stack-effect
             token stack-effect ";" parse-until <long-constructor>
         ] add-dummy-parsing-word
         
-        "COM-INTERFACE:" [ ";" tokens-until <com-interface> ] add-dummy-parsing-word
+        "COM-INTERFACE:" [ token ";" tokens-until <com-interface> ] add-dummy-parsing-word
     ;
 
 M: object preload-syntax-namespaces ( manifest -- manifest )

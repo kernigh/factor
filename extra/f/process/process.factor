@@ -118,6 +118,7 @@ M: parse-time process top-level ;
 M: fhex process top-level ;
 M: assoc-tuple process top-level ;
 M: fvector process top-level ;
+M: lua-string process top-level ;
 
 M: symbols process [ sequence>> ] dip '[ dup _ define-identifier ] each ;
 M: singletons process [ sequence>> ] dip '[ dup _ define-identifier ] each ;

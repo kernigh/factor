@@ -121,9 +121,6 @@ M: fvector process top-level ;
 
 M: symbols process [ sequence>> ] dip '[ dup _ define-identifier ] each ;
 M: singletons process [ sequence>> ] dip '[ dup _ define-identifier ] each ;
-
-
-
 M: f:instance process define-other ;
 M: fmethod process define-other ;
 

@@ -25,7 +25,7 @@ PERSISTENT: foo-1
     [ { { "1" "omg" } } ] [ "select * from foo_1" sql-query ] unit-test
 
     [ { { "1" "omg" } } ] [ "select * from foo_1" sql-query ] unit-test
-    [ { T{ foo-1 { a 1 } { b "omg" } } } ] [ T{ foo-1 } select-tuples ] unit-test
+    [ { T{ foo-1 { a 1 } { b "omg" } } } ] [ B T{ foo-1 } select-tuples ] unit-test
 
     [ ] [ 1 f foo-1 boa delete-tuples ] unit-test
 

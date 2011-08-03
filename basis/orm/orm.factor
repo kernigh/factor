@@ -6,7 +6,8 @@ namespaces orm.persistent sequences shuffle db.utils
 nested-comments locals ;
 IN: orm
 
-
+USE: vocabs.loader
+"orm.query-objects" require
 
 
 

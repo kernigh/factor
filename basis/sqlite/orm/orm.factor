@@ -5,4 +5,5 @@ IN: sqlite.orm
 
 [
     "sqlite.orm.queries"
+    "sqlite.orm.types"
 ] [ require ] each

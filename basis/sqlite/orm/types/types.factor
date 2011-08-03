@@ -1,6 +1,7 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors kernel orm.binders sqlite.db.types ;
+USING: accessors db.result-sets kernel orm.binders
+sqlite.db.types ;
 IN: sqlite.orm.types
 
 M: column-binder-in sqlite-bind

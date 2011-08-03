@@ -94,6 +94,28 @@ ARTICLE: "peg.ebnf.sequence" "Sequence"
 }
 ;
 
+ARTICLE: "peg.ebnf.grouping" "Group"
+"Any sequence of rules may be grouped using parentheses (" { $snippet "()" } "). "
+"The parenthesized sequence can then be modified as a group. Parentheses also "
+"delimit sets of choices separated by pipe (|) characters."
+$nl
+"A group can also be delimited with curly braces (" { $snippet "{}" } "), in "
+"which case an implicit optional whitespace-matching rule will be inserted between "
+"rules sequenced within the braces."
+{ $examples
+    { $example
+       "USING: prettyprint peg.ebnf ;"
+       "\"abcca\" [EBNF rule=\"a\" (\"b\" | \"c\")* \"a\" EBNF] ."
+       "V{ \"a\" V{ \"b\" \"c\" \"c\" } \"a\" }"
+    }
+    { $example
+       "USING: prettyprint peg.ebnf ;"
+       "\"ab  c\nd \" [EBNF rule={\"a\" \"b\" \"c\" \"d\"} EBNF] ."
+       "V{ \"a\" \"b\" \"c\" \"d\" }"
+    }
+}
+;
+
 ARTICLE: "peg.ebnf.choice" "Choice"
 "Any rule element separated by a pipe character (|) is considered a choice. Choices "
 "are matched against the input stream in order. If a match succeeds then the remaining "
@@ -113,6 +135,18 @@ ARTICLE: "peg.ebnf.choice" "Choice"
        "USING: prettyprint peg.ebnf ;"
        "\"d\" [EBNF rule=\"a\" | \"b\" | \"c\" EBNF] ."
        "Peg parsing error at character position 0.\nExpected token 'c' or token 'b' or token 'a'"
+    }
+}
+;
+
+ARTICLE: "peg.ebnf.ignore" "Ignore"
+"Any rule element followed by a tilde (~) will be matched, and its results "
+"discarded from the AST."
+{ $examples
+    { $example
+       "USING: prettyprint peg.ebnf ;"
+       "\"abc\" [EBNF rule=\"a\" \"b\"~ \"c\" EBNF] ."
+       "V{ \"a\" \"c\" }"
     }
 }
 ;
@@ -274,7 +308,7 @@ ARTICLE: "peg.ebnf.variable" "Variable"
 ;
 
 ARTICLE: "peg.ebnf.foreign-rules" "Foreign Rules"
-"Rules can call outto other peg.ebnf defined parsers. The result of "
+"Rules can call out to other peg.ebnf defined parsers. The result of "
 "the foreign call then becomes the AST of the successful parse. Foreign rules "
 "are invoked using '<foreign word-name>' or '<foreign word-name rule>'. The "
 "latter allows calling a specific rule in a previously designed peg.ebnf parser. "
@@ -319,7 +353,7 @@ ARTICLE: "peg.ebnf.tokenizers" "Tokenizers"
 "This parser when run with the string \"++--\" or the array "
 "{ CHAR: + CHAR: + CHAR: - CHAR: - } will succeed with an AST of { \"++\" \"--\" }. "
 "If you want to add whitespace handling to the grammar you need to put it "
-"between the terminals: "
+"between the terminals:"
 { $examples
     { $code
         "EBNF: foo"
@@ -332,7 +366,7 @@ ARTICLE: "peg.ebnf.tokenizers" "Tokenizers"
 "In a large grammar this gets tedious and makes the grammar hard to read. "
 "Instead you can write a rule to split the input sequence into tokens, and "
 "have the grammar operate on these tokens. This is how the previous example "
-"might look: "
+"might look:"
 { $examples
     { $code
         "EBNF: foo"
@@ -355,7 +389,7 @@ ARTICLE: "peg.ebnf.tokenizers" "Tokenizers"
 $nl
 "In this example I split the tokenizer into a separate parser and use "
 "'foreign' to call it from the main one. This allows testing of the "
-"tokenizer separately: "
+"tokenizer separately:"
 { $examples
     { $example
         "USING: prettyprint peg peg.ebnf kernel math.parser strings"
@@ -397,7 +431,7 @@ $nl
 "working in one pass. There is no tokenization occurring over the whole string "
 "followed by the parse of that result. It tokenizes as it needs to. You can even "
 "switch tokenizers multiple times during a grammar. Rules use the tokenizer that "
-"was defined lexically before the rule. This is usefull in the JavaScript grammar: "
+"was defined lexically before the rule. This is usefull in the JavaScript grammar:"
 { $examples
     { $code
         "EBNF: javascript"
@@ -440,7 +474,7 @@ ARTICLE: "peg.ebnf" "EBNF"
     POSTPONE: [EBNF
     POSTPONE: EBNF:
 }
-"The EBNF syntax is composed of a series of rules of the form: "
+"The EBNF syntax is composed of a series of rules of the form:"
 { $code
   "rule1 = ..."
   "rule2 = ..."
@@ -448,11 +482,13 @@ ARTICLE: "peg.ebnf" "EBNF"
 "The last defined rule is the main rule for the EBNF. It is the first one run "
 "and it is expected that the remaining rules are used by that rule. Rules may be "
 "left recursive. "
-"Each rule can contain the following: "
+"Each rule can contain the following:"
 { $subsections "peg.ebnf.strings"
 "peg.ebnf.any"
 "peg.ebnf.sequence"
+"peg.ebnf.grouping"
 "peg.ebnf.choice"
+"peg.ebnf.ignore"
 "peg.ebnf.option"
 "peg.ebnf.one-or-more"
 "peg.ebnf.zero-or-more"

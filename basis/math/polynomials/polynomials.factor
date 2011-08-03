@@ -91,11 +91,14 @@ PRIVATE>
     dup length iota v* rest ;
 
 : polyval ( x p -- p[x] )
-    [ length swap powers ] [ nip ] 2bi v. ;
+    ! Horner scheme
+    [ nip <reversed> unclip-slice swap ]
+    [ drop ] 2bi
+    '[ [ _ * ] dip + ] each ;
 
 MACRO: polyval* ( p -- )
     reverse
-    [ 1 tail [ \ * swap \ + [ ] 3sequence ] map ]
+    [ rest [ \ * swap \ + [ ] 3sequence ] map ]
     [ first \ drop swap [ ] 2sequence ] bi
     prefix \ cleave [ ] 2sequence ;
 

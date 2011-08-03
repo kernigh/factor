@@ -175,7 +175,7 @@ $nl
 $nl
 "There are two alternatives which are preferred to subclassing in this case. The first is " { $link "mixins" } "."
 $nl
-"The second is to use ad-hoc slot polymorphism. If two classes define a slot with the same name, then code which uses " { $link "accessors" } " can operate on instances of both objects, assuming the values stored in that slot implement a common protocol. This allows code to be shared without creating contrieved relationships between classes."
+"The second is to use ad-hoc slot polymorphism. If two classes define a slot with the same name, then code which uses " { $link "accessors" } " can operate on instances of both objects, assuming the values stored in that slot implement a common protocol. This allows code to be shared without creating contrived relationships between classes."
 { $heading "Anti-pattern #3: subclassing to override a method definition" }
 "While method overriding is a very powerful tool, improper use can cause tight coupling of code and lead to difficulty in testing and refactoring. Subclassing should not be used as a means of “monkey patching” methods to fix bugs and add features. Only subclass from classes which were designed to be inherited from, and when writing classes of your own which are intended to be subclassed, clearly document what subclasses may and may not do. This includes construction policy; document whether subclasses should use " { $link new } ", " { $link boa } ", or a custom parametrized constructor."
 { $see-also "parametrized-constructors" } ;
@@ -444,7 +444,7 @@ HELP: boa
 { $values { "slots..." "slot values" } { "class" tuple-class } { "tuple" tuple } }
 { $description "Creates a new instance of " { $snippet "class" } " and fill in the slots from the stack, with the top-most stack element being stored in the right-most slot." }
 { $notes "The name " { $snippet "boa" } " is shorthand for “by order of arguments”, and “BOA constructor” is a pun on “boa constrictor”." }
-{ $errors "Throws an error if the slot values do not match class declarations on slots (see" { $link "tuple-declarations" } ")." } ;
+{ $errors "Throws an error if the slot values do not match class declarations on slots (see " { $link "tuple-declarations" } ")." } ;
 
 HELP: bad-superclass
 { $error-description "Thrown if an attempt is made to subclass a class that is not a tuple class, or a tuple class declared " { $link POSTPONE: final } "." } ;

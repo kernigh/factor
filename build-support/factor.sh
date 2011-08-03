@@ -24,8 +24,8 @@ test_program_installed() {
 }
 
 exit_script() {
-    if [[ $FIND_MAKE_TARGET -eq true ]] ; then
-		# Must be echo not $ECHO
+    if [[ $FIND_MAKE_TARGET = true ]] ; then
+        # Must be echo not $ECHO
         echo $MAKE_TARGET;
     fi
     exit $1
@@ -39,7 +39,7 @@ ensure_program_installed() {
         test_program_installed $i
         if [[ $? -eq 0 ]]; then
             $ECHO -n "not "
-        else    
+        else
             installed=$(( $installed + 1 ))
         fi
         $ECHO "found!"
@@ -97,7 +97,7 @@ set_make() {
         dragonflybsd) MAKE='gmake';;
         *) MAKE='make';;
     esac
-    if ! [[ $MAKE -eq 'gmake' ]] ; then
+    if [[ $MAKE = 'gmake' ]] ; then
         ensure_program_installed gmake
     fi
 }
@@ -119,18 +119,18 @@ check_library_exists() {
     GCC_OUT=factor-library-test.out
     $ECHO -n "Checking for library $1..."
     $ECHO "int main(){return 0;}" > $GCC_TEST
-    $CC $GCC_TEST -o $GCC_OUT -l $1
+    $CC $GCC_TEST -o $GCC_OUT -l $1 2>&-
     if [[ $? -ne 0 ]] ; then
         $ECHO "not found!"
-        $ECHO "Warning: library $1 not found."
         $ECHO "***Factor will compile NO_UI=1"
         NO_UI=1
+    else
+        $ECHO "found."
     fi
     $DELETE -f $GCC_TEST
     check_ret $DELETE
     $DELETE -f $GCC_OUT
     check_ret $DELETE
-    $ECHO "found."
 }
 
 check_X11_libraries() {
@@ -141,9 +141,26 @@ check_X11_libraries() {
     fi
 }
 
+check_gtk_libraries() {
+    if [ -z "$NO_UI" ]; then
+        check_library_exists gobject-2.0
+        check_library_exists gtk-x11-2.0
+        check_library_exists gdk-x11-2.0
+        check_library_exists gdk_pixbuf-2.0
+        check_library_exists gtkglext-x11-1.0
+        check_library_exists atk-1.0
+        check_library_exists gio-2.0
+        check_library_exists gdkglext-x11-1.0
+        check_library_exists pango-1.0
+    fi
+}
+
+
 check_libraries() {
     case $OS in
-            linux) check_X11_libraries;;
+            linux) check_X11_libraries
+                   check_gtk_libraries;;
+            unix) check_gtk_libraries;;
     esac
 }
 
@@ -289,8 +306,8 @@ set_build_info() {
         MAKE_IMAGE_TARGET=macosx-ppc
         MAKE_TARGET=macosx-ppc
     elif [[ $OS == linux && $ARCH == ppc ]] ; then
-        MAKE_IMAGE_TARGET=linux-ppc
-        MAKE_TARGET=linux-ppc
+        MAKE_IMAGE_TARGET=linux-ppc.32
+        MAKE_TARGET=linux-ppc-32
     elif [[ $OS == winnt && $ARCH == x86 && $WORD == 64 ]] ; then
         MAKE_IMAGE_TARGET=winnt-x86.64
         MAKE_TARGET=winnt-x86-64
@@ -473,7 +490,7 @@ get_boot_image() {
 }
 
 get_url() {
-    if [[ $DOWNLOADER -eq "" ]] ; then
+    if [[ -z $DOWNLOADER ]] ; then
         set_downloader;
     fi
     $ECHO $DOWNLOADER $1 ;
@@ -532,12 +549,12 @@ make_boot_image() {
 
 }
 
-install_build_system_apt() {
-    sudo apt-get --yes install libc6-dev libpango1.0-dev libx11-dev xorg-dev wget git-core git-doc rlwrap gcc make
+install_deps_linux() {
+    sudo apt-get --yes install libc6-dev libpango1.0-dev libx11-dev xorg-dev libgtk2.0-dev libgtkglext1-dev wget git-core git-doc rlwrap gcc make
     check_ret sudo
 }
 
-install_build_system_port() {
+install_deps_macosx() {
     test_program_installed git
     if [[ $? -ne 1 ]] ; then
         ensure_program_installed yes
@@ -551,7 +568,7 @@ install_build_system_port() {
 }
 
 usage() {
-    $ECHO "usage: $0 install|install-x11|install-macosx|self-update|quick-update|update|bootstrap|dlls|net-bootstrap|make-target|report [optional-target]"
+    $ECHO "usage: $0 install|install-x11|install-macosx|self-update|quick-update|update|bootstrap|net-bootstrap|make-target|report [optional-target]"
     $ECHO "If you are behind a firewall, invoke as:"
     $ECHO "env GIT_PROTOCOL=http $0 <command>"
     $ECHO ""
@@ -571,8 +588,8 @@ set_delete
 
 case "$1" in
     install) install ;;
-    install-x11) install_build_system_apt; install ;;
-    install-macosx) install_build_system_port; install ;;
+    deps-linux) install_deps_linux ;;
+    deps-macosx) install_deps_macosx ;;
     self-update) update; make_boot_image; bootstrap;;
     quick-update) update; refresh_image ;;
     update) update; update_bootstrap ;;

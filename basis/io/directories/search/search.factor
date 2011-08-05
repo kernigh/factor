@@ -2,7 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs continuations deques dlists fry
 io.backend io.directories io.files.info io.pathnames kernel
-locals math sequences sorting system unicode.case vocabs.loader ;
+locals math sequences sorting system unicode.case vocabs.loader
+math.order sorting.slots ;
 IN: io.directories.search
 
 : qualified-directory-entries ( path -- seq )
@@ -112,5 +113,10 @@ ERROR: file-not-found path bfs? quot ;
     
 : find-by-extension ( path extension -- seq )
     1array find-by-extensions ;
+
+: sort-all-files ( path -- seq )
+    [ ] find-all-files
+    [ dup link-info ] { } map>assoc
+    { { size>> >=< } } sort-values-by ;
 
 os windows? [ "io.directories.search.windows" require ] when

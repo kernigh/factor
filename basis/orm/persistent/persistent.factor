@@ -87,7 +87,7 @@ slot-name column-name type modifiers getter setter ;
 : column-primary-key? ( column -- ? )
     {
         [ type>> sql-primary-key? ]
-        [ modifiers>> [ +primary-key+? ] any? ]
+        [ modifiers>> [ sql-primary-key? ] any? ]
     } 1|| ;
 
 GENERIC: table-name* ( column -- string )

@@ -57,6 +57,11 @@ M: object drop-table-sql
         <in-binder-low>
     ] { } map-as ;
 
+: filter-tuple-values ( persistent tuple -- assoc )
+    [ columns>> ] dip
+    '[ _ over getter>> call( obj -- slot-value ) ] { } map>assoc
+    [ nip ] assoc-filter ;
+
 ! : where-primary-key ( statement persistent tuple -- statement )
     ! [ find-primary-key ] dip
     ! [ columns>in-binders add-in ]

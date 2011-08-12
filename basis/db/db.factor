@@ -72,3 +72,4 @@ M: query sql-query
     query-object>statement sql-query ;
 
 "db.queries" require
+"db.transactions" require

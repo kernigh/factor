@@ -5,6 +5,7 @@ classes.tuple combinators combinators.short-circuit
 constructors db.types db.utils kernel math namespaces
 parser quotations sequences sets strings words make
 fry lexer db.binders nested-comments ;
+QUALIFIED-WITH: namespaces n
 IN: orm.persistent
 
 ERROR: bad-table-name obj ;
@@ -171,7 +172,11 @@ M: tuple-class >persistent
     dup tuple-class? [ ensure-persistent ] [ ensure-sql-type ] if ;
 
 : ensure-type-modifier ( obj -- obj )
-    dup { sequence } member? [ bad-type-modifier ] unless ;
+    {
+        { [ dup { sequence } member? ] [ ] }
+        { [ dup integer? ] [ ] }
+        [ bad-type-modifier ]
+    } cond ;
 
 : clear-persistent ( -- )
     inherited-persistent-table get clear-assoc ;
@@ -331,6 +336,9 @@ M: db-column select-columns*
 
 
 
+SYMBOL: seq
+SYMBOL: n
+
 GENERIC: select-reconstructor* ( obj -- )
 
 M: persistent select-reconstructor*
@@ -346,11 +354,15 @@ M: db-column select-reconstructor*
             [ relation-class >persistent select-reconstructor* ]
             [ getter>> '[ over _ push ] , ] bi
         ] }
-        [ drop "next value" , setter>> , ]
+        [ drop n get n inc , seq , \ get , \ nth , setter>> % ]
     } case ;
 
 : select-reconstructor ( obj -- seq )
-    [ select-reconstructor* ] [ ] make ;
+    [
+        0 n n:set
+        { 1 2 3 4 5 } seq n:set
+        [ select-reconstructor* ] [ ] make
+    ] with-scope ;
 
 : ((column>create-text)) ( db-column -- )
     {

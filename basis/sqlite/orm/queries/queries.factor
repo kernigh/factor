@@ -148,11 +148,6 @@ M: sqlite-db-connection create-table-sql ( tuple-class -- seq )
     ! [ sqlite-create-table ] [ drop create-db-triggers ] 2bi 2array ;
     sqlite-create-table ;
 
-: filter-tuple-values ( persistent tuple -- assoc )
-    [ columns>> ] dip
-    '[ _ over getter>> call( obj -- slot-value ) ] { } map>assoc
-    [ nip ] assoc-filter ;
-
 M: sqlite-db-connection insert-user-assigned-key-sql ( tuple -- object )
     [ <statement> ] dip
     [ >persistent ] [ ] bi {

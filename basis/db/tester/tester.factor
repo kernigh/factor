@@ -6,36 +6,6 @@ io prettyprint postgresql.db accessors io.files.temp
 namespaces fry system math.parser ;
 IN: db.tester
 
-: postgresql-test-db ( -- postgresql-db )
-    <postgresql-db>
-        "localhost" >>host
-        "postgres" >>username
-        "thepasswordistrust" >>password
-        "factor-test" >>database ;
-
-: sqlite-test-db ( -- sqlite-db )
-    "tuples-test.db" temp-file <sqlite-db> ;
-
-
-! These words leak resources, but are useful for interactivel testing
-! : set-sqlite-db ( -- ) sqlite-db db-open db-connection set ;
-
-! : set-postgresql-db ( -- ) postgresql-db db-open db-connection set ;
-
-
-: test-sqlite ( quot -- )
-    '[
-        [ ] [ sqlite-test-db _ with-db ] unit-test
-    ] call ; inline
-
-: test-postgresql ( quot -- )
-    '[
-        os windows? cpu x86.64? and [
-            [ ] [ postgresql-test-db _ with-db ] unit-test
-        ] unless
-    ] call ; inline
-
-
 (*
 TUPLE: test-1 id a b c ;
 
@@ -44,7 +14,7 @@ test-1 "TEST1" {
    { "a" "A" { VARCHAR 256 } +not-null+ }
    { "b" "B" { VARCHAR 256 } +not-null+ }
    { "c" "C" { VARCHAR 256 } +not-null+ }
-} define-persistent
+} make-persistent
 
 TUPLE: test-2 id x y z ;
 
@@ -53,7 +23,7 @@ test-2 "TEST2" {
    { "x" "X" { VARCHAR 256 } +not-null+ }
    { "y" "Y" { VARCHAR 256 } +not-null+ }
    { "z" "Z" { VARCHAR 256 } +not-null+ }
-} define-persistent
+} make-persistent
 
 : test-1-tuple ( -- tuple )
     f 100 random 100 random 100 random [ number>string ] tri@

@@ -63,10 +63,16 @@ SQL-TYPES:
     BLOB FACTOR-BLOB
     URL ;
 
+! Delete +not-null+
 SQL-MODIFIERS: +primary-key+
 SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL
-+on-update+ +on-delete+ +restrict+ +cascade+ +set-null+ +set-default+ ;
++on-update+ +on-delete+ +restrict+ +cascade+ +set-null+ +set-default+
++not-null+ +system-random-generator+ ;
+
 PRIMARY-KEY-TYPES: +db-assigned-key+ +user-assigned-key+ +random-key+ ;
+
+INSTANCE: +user-assigned-key+ sql-modifier
+INSTANCE: +db-assigned-key+ sql-modifier
 
 SYMBOL: IGNORE
 

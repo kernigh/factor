@@ -4,7 +4,7 @@ USING: accessors arrays assocs combinators combinators.smart db
 db.binders db.statements db.types db.utils kernel locals make
 math.parser math.ranges namespaces nested-comments
 orm.persistent orm.queries postgresql.db.connections.private
-sequences sqlite.orm.queries math ;
+sequences math ;
 IN: postgresql.orm.queries
 
 ! TODOOOOOO

@@ -14,18 +14,26 @@ PERSISTENT: foo-1
 : test-1 ( -- )
     [ "drop table foo_1" sql-command ] try
 
-    [ ] [ "create table foo_1 (a integer primary key, b varchar)" sql-command ] unit-test
+    [ ]
+    [ "create table foo_1 (a integer primary key, b varchar)" sql-command ] unit-test
 
-    [ ] [ 1 "lol" foo-1 boa insert-tuple ] unit-test
+    [ ]
+    [ 1 "lol" foo-1 boa insert-tuple ] unit-test
 
-    [ { { "1" "lol" } } ] [ "select * from foo_1" sql-query ] unit-test
+    [ { { "1" "lol" } } ]
+    [ "select * from foo_1" sql-query ] unit-test
 
-    [ ] [ 1 "omg" foo-1 boa update-tuple ] unit-test
+    [ ]
+    [ 1 "omg" foo-1 boa update-tuple ] unit-test
 
-    [ { { "1" "omg" } } ] [ "select * from foo_1" sql-query ] unit-test
+    [ { { "1" "omg" } } ]
+    [ "select * from foo_1" sql-query ] unit-test
 
-    [ { { "1" "omg" } } ] [ "select * from foo_1" sql-query ] unit-test
-    [ { T{ foo-1 { a 1 } { b "omg" } } } ] [ B T{ foo-1 } select-tuples ] unit-test
+    [ { { "1" "omg" } } ]
+    [ "select * from foo_1" sql-query ] unit-test
+
+    [ { T{ foo-1 { a 1 } { b "omg" } } } ]
+    [ T{ foo-1 } select-tuples ] unit-test
 
     [ ] [ 1 f foo-1 boa delete-tuples ] unit-test
 
@@ -33,9 +41,15 @@ PERSISTENT: foo-1
     [ { } ] [ T{ foo-1 } select-tuples ] unit-test
 
     [ ] [ 1 "lol" foo-1 boa insert-tuple ] unit-test
-    [ { T{ foo-1 { a 1 } { b "lol" } } } ] [ T{ foo-1 f 1 } select-tuples ] unit-test
-    [ { T{ foo-1 { a 1 } { b "lol" } } } ] [ T{ foo-1 f f "lol" } select-tuples ] unit-test
-    [ { T{ foo-1 { a 1 } { b "lol" } } } ] [ T{ foo-1 f 1 "lol" } select-tuples ] unit-test
+
+    [ { T{ foo-1 { a 1 } { b "lol" } } } ]
+    [ T{ foo-1 f 1 } select-tuples ] unit-test
+
+    [ { T{ foo-1 { a 1 } { b "lol" } } } ]
+    [ T{ foo-1 f f "lol" } select-tuples ] unit-test
+
+    [ { T{ foo-1 { a 1 } { b "lol" } } } ]
+    [ T{ foo-1 f 1 "lol" } select-tuples ] unit-test
     ;
 
 [ test-1 ] test-dbs

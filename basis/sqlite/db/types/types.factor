@@ -161,9 +161,13 @@ ERROR: no-sql-modifier modifier ;
     {
         { NULL [ "NULL" ] }
         { NOT-NULL [ "NOT NULL" ] }
+        { +not-null+ [ "NOT NULL" ] }
         { SERIAL [ "SERIAL" ] }
         { AUTOINCREMENT [ "AUTOINCREMENT" ] }
         { +primary-key+ [ "" ] }
+        { +user-assigned-key+ [ "" ] }
+        { +db-assigned-key+ [ "" ] }
+        { +system-random-generator+ [ "" ] }
         [ no-sql-modifier ]
     } case ;
 

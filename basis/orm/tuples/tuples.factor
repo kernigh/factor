@@ -1,9 +1,10 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators combinators.smart db
-db.binders db.query-objects db.types db.utils fry kernel macros
-make math math.parser mirrors namespaces nested-comments orm
-orm.persistent orm.queries sequences sets splitting.monotonic ;
+db.binders db.errors db.query-objects db.types db.utils fry
+kernel macros make math math.parser mirrors namespaces
+nested-comments orm orm.persistent orm.queries sequences sets
+splitting.monotonic destructors ;
 IN: orm.tuples
 
 : create-table ( tuple-class -- )
@@ -13,12 +14,23 @@ IN: orm.tuples
     drop-table-sql sql-command ;
 
 : ensure-table ( tuple-class -- )
-    ensure-table-sql sql-command ;
+    ensure-persistent
+    '[ [ _ create-table ] ignore-table-exists ] ignore-function-exists ;
 
-: ensure-tables ( tuple-classes -- ) [ ensure-table ] each ;
+: ensure-tables ( classes -- ) [ ensure-table ] each ;
 
-! : recreate-table ( tuple-class -- ) [ [ drop-table ] try ] [ create-table ] bi ;
+: recreate-table ( tuple-class -- )
+    ensure-persistent
+    [
+        '[
+            [
+                _ drop-table-sql sql-command
+            ] ignore-table-missing
+        ] ignore-function-missing
+    ] [ create-table ] bi ;
 
+: recreate-tables ( tuple-classes -- )
+    [ recreate-table ] each ;
 
 : insert-tuple ( tuple -- )
     dup db-assigned-key? [

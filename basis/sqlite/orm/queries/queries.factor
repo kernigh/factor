@@ -148,6 +148,9 @@ M: sqlite-db-connection create-table-sql ( tuple-class -- seq )
     ! [ sqlite-create-table ] [ drop create-db-triggers ] 2bi 2array ;
     sqlite-create-table ;
 
+M: sqlite-db-connection ensure-table-sql ( tuple-class -- seq )
+    sqlite-create-table ;
+
 M: sqlite-db-connection insert-user-assigned-key-sql ( tuple -- object )
     [ <statement> ] dip
     [ >persistent ] [ ] bi {

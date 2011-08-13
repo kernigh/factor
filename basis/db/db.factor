@@ -62,7 +62,7 @@ M: statement sql-query ( statement -- sequence )
             prepare-statement
             [ bind-sequence ] [ statement>result-sequence ] bi
         ] [
-            reconstructor>> [ rows>tuples ] when*
+            reconstructor>> [ call( obj -- obj ) ] when*
         ] bi
     ] run-retryable ; inline
 

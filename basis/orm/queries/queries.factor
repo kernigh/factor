@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs combinators db db.binders
 db.connections db.statements db.types db.utils fry kernel
-locals make orm.persistent sequences ;
+locals make orm.persistent sequences reconstructors arrays ;
 IN: orm.queries
 
 HOOK: create-table-sql db-connection ( tuple-class -- object )
@@ -15,6 +15,21 @@ HOOK: insert-tuple-set-key db-connection ( tuple statement -- )
 HOOK: update-tuple-sql db-connection ( tuple -- object )
 HOOK: delete-tuple-sql db-connection ( tuple -- object )
 HOOK: select-tuple-sql db-connection ( tuple -- object )
+
+ERROR: can't-reconstruct query ;
+
+: set-reconstructor ( query -- query )
+    ! { { bag >>id } { bean >>id >>bag-id >>color } } rows>tuples
+    dup from>> length 1 = [ can't-reconstruct ] unless
+    {
+        [ from>> first class>> 1array ]
+        [
+            out>> [ column>> setter>> first ] map append 1array
+            '[ _ rows>tuples concat ]
+        ]
+        [ reconstructor<< ]
+        [ ]
+    } cleave ;
 
 HOOK: n>bind-sequence db-connection ( n -- sequence ) 
 HOOK: continue-bind-sequence db-connection ( previous n -- sequence )
@@ -60,12 +75,16 @@ M: object drop-table-sql
 : call-generators ( columns tuple -- )
     '[
         _
-        over generator>> [
-            dupd call( obj -- obj )
-            rot setter>> call( obj obj -- obj ) drop
-        ] [
+        2dup swap getter>> call( obj -- obj ) [
             2drop
-        ] if*
+        ] [
+            over generator>> [
+                dupd call( obj -- obj )
+                rot setter>> call( obj obj -- obj ) drop
+            ] [
+                2drop
+            ] if*
+        ] if
     ] each ;
 
 : filter-tuple-values ( persistent tuple -- assoc )

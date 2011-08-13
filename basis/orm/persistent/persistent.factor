@@ -209,6 +209,10 @@ SYNTAX: PERSISTENT:
     \ ; parse-until
     [ parse-column ] map make-persistent ;
 
+! SYNTAX: RECONSTRUCTOR:
+    ! scan scan-object
+    ! [ >persistent ] [ >>reconstructor drop ] bi* ;
+
 SYNTAX: DEFER-PERSISTENT:
     \ deferred-persistent scan-object
     raw-persistent-table get ?at [

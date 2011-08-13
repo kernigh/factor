@@ -4,7 +4,7 @@ USING: accessors annotations arrays assocs classes
 classes.tuple combinators combinators.short-circuit
 constructors db.types db.utils kernel math namespaces
 parser quotations sequences sets strings words make
-fry lexer db.binders nested-comments ;
+fry lexer db.binders nested-comments random ;
 QUALIFIED-WITH: namespaces n
 IN: orm.persistent
 
@@ -47,14 +47,25 @@ TUPLE: persistent class table-name columns primary-key incomplete? ;
 CONSTRUCTOR: persistent ( class table-name columns -- obj ) ;
 
 TUPLE: db-column persistent
-slot-name column-name type modifiers getter setter ;
+slot-name column-name type modifiers getter setter generator ;
+
+GENERIC: compute-generator ( tuple type -- quotation/f )
+
+M: object compute-generator 2drop f ;
+
+M: +random-key+ compute-generator
+    2drop [ drop 32 random-bits ] ;
+
+: set-generator ( tuple -- tuple )
+    [ dup type>> compute-generator ] [ generator<< ] [ ] tri ;
 
 : <db-column> ( slot-name column-name type modifiers -- obj )
     db-column new
         swap ??1array >>modifiers
         swap >>type
         swap >>column-name
-        swap >>slot-name ;
+        swap >>slot-name
+        set-generator ; inline
 
 : parse-column ( seq -- db-column )
     ?first3

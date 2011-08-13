@@ -57,8 +57,20 @@ M: object drop-table-sql
         <in-binder-low>
     ] { } map-as ;
 
+: call-generators ( columns tuple -- )
+    '[
+        _
+        over generator>> [
+            dupd call( obj -- obj )
+            rot setter>> call( obj obj -- obj ) drop
+        ] [
+            2drop
+        ] if*
+    ] each ;
+
 : filter-tuple-values ( persistent tuple -- assoc )
     [ columns>> ] dip
+    2dup call-generators
     '[ _ over getter>> call( obj -- slot-value ) ] { } map>assoc
     [ nip ] assoc-filter ;
 

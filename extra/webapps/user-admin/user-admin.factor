@@ -1,20 +1,12 @@
 ! Copyright (C) 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel sequences accessors namespaces combinators words
-assocs db.tuples arrays splitting strings validators urls fry
-html.forms
-html.components
-furnace
-furnace.boilerplate
-furnace.auth.providers
-furnace.auth.providers.db
-furnace.auth.login
-furnace.auth
-furnace.actions
-furnace.redirection
-furnace.utilities
-http.server
-http.server.dispatchers ;
+USING: accessors arrays assocs combinators fry furnace
+furnace.actions furnace.auth furnace.auth.login
+furnace.auth.providers furnace.auth.providers.db
+furnace.boilerplate furnace.redirection furnace.utilities
+html.components html.forms http.server http.server.dispatchers
+kernel namespaces orm orm.tuples sequences splitting strings
+urls validators words ;
 IN: webapps.user-admin
 
 TUPLE: user-admin < dispatcher ;

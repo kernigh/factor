@@ -45,14 +45,14 @@ builder "BUILDERS" {
     ! Can't name it CURRENT_TIMESTAMP because of bug in db library
     { "current-timestamp" "CURR_TIMESTAMP" TIMESTAMP }
     { "status" "STATUS" TEXT }
-} define-persistent
+} make-persistent
 
 TUPLE: counter id value ;
 
 counter "COUNTER" {
     { "id" "ID" INTEGER +db-assigned-id+ }
     { "value" "VALUE" INTEGER }
-} define-persistent
+} make-persistent
 
 : counter-tuple ( -- counter )
     counter new select-tuple

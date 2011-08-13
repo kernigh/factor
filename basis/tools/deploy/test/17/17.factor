@@ -9,7 +9,7 @@ person "PEOPLE" {
     { "birthday" "BIRTHDAY" DATETIME +not-null+ }
     { "homepage" "HOMEPAGE" URL +not-null+ }
     { "occupation" "OCCUPATION" { VARCHAR 256 } +not-null+ }
-} define-persistent
+} make-persistent
 
 : db-deploy-test ( -- )
     "test.db" temp-file <sqlite-db> [

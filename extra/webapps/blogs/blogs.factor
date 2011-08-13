@@ -43,7 +43,7 @@ entity f {
     { "author" "AUTHOR" { VARCHAR 256 } +not-null+ } ! uid
     { "date" "DATE" TIMESTAMP +not-null+ }
     { "content" "CONTENT" TEXT +not-null+ }
-} define-persistent
+} make-persistent
 
 M: entity feed-entry-date date>> ;
 
@@ -57,7 +57,7 @@ M: post entity-url
 
 \ post "BLOG_POSTS" {
     { "title" "TITLE" { VARCHAR 256 } +not-null+ }
-} define-persistent
+} make-persistent
 
 : <post> ( id -- post ) \ post new swap >>id ;
 
@@ -65,7 +65,7 @@ TUPLE: comment < entity parent ;
 
 comment "COMMENTS" {
     { "parent" "PARENT" INTEGER +not-null+ } ! post id
-} define-persistent
+} make-persistent
 
 M: comment feed-entry-title
     author>> "Comment by " prepend ;

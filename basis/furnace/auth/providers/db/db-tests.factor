@@ -3,7 +3,7 @@ furnace.auth
 furnace.auth.login
 furnace.auth.providers
 furnace.auth.providers.db tools.test
-namespaces db db.sqlite db.tuples continuations
+namespaces db db.sqlite orm continuations
 io.files io.files.temp io.directories accessors kernel ;
 IN: furnace.auth.providers.db.tests
 

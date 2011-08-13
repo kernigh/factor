@@ -15,7 +15,7 @@ TUPLE: short-url short url ;
 short-url "SHORT_URLS" {
     { "short" "SHORT" TEXT +user-assigned-id+ }
     { "url" "URL" TEXT +not-null+ }
-} define-persistent
+} make-persistent
 
 : letter-bank ( -- seq )
     CHAR: a CHAR: z [a,b]

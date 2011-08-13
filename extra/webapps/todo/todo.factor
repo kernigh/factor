@@ -27,7 +27,7 @@ todo "TODO"
     { "priority" "PRIORITY" INTEGER +not-null+ }
     { "summary" "SUMMARY" { VARCHAR 256 } +not-null+ }
     { "description" "DESCRIPTION" { VARCHAR 256 } }
-} define-persistent
+} make-persistent
 
 : <todo> ( id -- todo )
     todo new

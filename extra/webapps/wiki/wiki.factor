@@ -44,7 +44,7 @@ TUPLE: article title revision ;
 article "ARTICLES" {
     { "title" "TITLE" { VARCHAR 256 } +not-null+ +user-assigned-id+ }
     { "revision" "REVISION" INTEGER +not-null+ } ! revision id
-} define-persistent
+} make-persistent
 
 : <article> ( title -- article ) article new swap >>title ;
 
@@ -57,7 +57,7 @@ revision "REVISIONS" {
     { "date" "DATE" TIMESTAMP +not-null+ }
     { "content" "CONTENT" TEXT +not-null+ }
     { "description" "DESCRIPTION" TEXT }
-} define-persistent
+} make-persistent
 
 M: revision feed-entry-title
     [ title>> ] [ drop " by " ] [ author>> ] tri 3append ;

@@ -12,7 +12,7 @@ SYNTAX: MDBTUPLE:
     mdb-check-slots
     define-tuple-class ; 
 
-: define-persistent ( class collection slot-options index -- )
+: make-persistent ( class collection slot-options index -- )
     [ [ <mdb-tuple-collection> dupd link-collection ] when* ] 2dip 
     [ dup '[ _ mdb-persistent add-mixin-instance ] with-compilation-unit ] 2dip
     [ drop set-slot-map ] 

@@ -104,7 +104,8 @@ TUPLE: cookie name value version comment path domain expires max-age http-only s
     } case ;
 
 : check-cookie-value ( string -- string )
-    [ "Cookie value must not be f" throw ] unless* ;
+    ;
+    ! [ "Cookie value must not be f" throw ] unless* ;
 
 : (unparse-cookie) ( cookie -- strings )
     [

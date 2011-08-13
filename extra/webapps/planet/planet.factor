@@ -38,7 +38,7 @@ blog "BLOGS"
     { "name" "NAME" { VARCHAR 256 } +not-null+ }
     { "www-url" "WWWURL" URL +not-null+ }
     { "feed-url" "FEEDURL" URL +not-null+ }
-} define-persistent
+} make-persistent
 
 TUPLE: posting < entry id ;
 
@@ -49,7 +49,7 @@ posting "POSTINGS"
     { "url" "LINK" URL +not-null+ }
     { "description" "DESCRIPTION" TEXT +not-null+ }
     { "date" "DATE" TIMESTAMP +not-null+ }
-} define-persistent
+} make-persistent
 
 : <blog> ( id -- todo )
     blog new

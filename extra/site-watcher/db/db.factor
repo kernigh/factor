@@ -17,7 +17,7 @@ account "ACCOUNT" {
     { "email" "EMAIL" VARCHAR }
     { "twitter" "TWITTER" VARCHAR }
     { "sms" "SMS" VARCHAR }
-} define-persistent
+} make-persistent
 
 TUPLE: site site-id url up? changed? last-up error last-error ;
 
@@ -39,7 +39,7 @@ site "SITE" {
     { "last-up" "LAST_UP" TIMESTAMP }
     { "error" "ERROR" VARCHAR }
     { "last-error" "LAST_ERROR" TIMESTAMP }
-} define-persistent
+} make-persistent
 
 TUPLE: watching-site account-name site-id ;
 
@@ -51,7 +51,7 @@ TUPLE: watching-site account-name site-id ;
 watching-site "WATCHING_SITE" {
     { "account-name" "ACCOUNT_NAME" VARCHAR +user-assigned-id+ }
     { "site-id" "SITE_ID" INTEGER +user-assigned-id+ }
-} define-persistent
+} make-persistent
 
 TUPLE: spidering-site < watching-site max-depth max-count ;
 
@@ -70,7 +70,7 @@ M: watching-site account>>
 spidering-site "SPIDERING_SITE" {
     { "max-depth" "MAX_DEPTH" INTEGER }
     { "max-count" "MAX_COUNT" INTEGER }
-} define-persistent
+} make-persistent
 
 : spidering-sites ( username -- sites )
     spidering-site new swap >>account-name select-tuples ;

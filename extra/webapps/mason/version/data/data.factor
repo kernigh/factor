@@ -14,7 +14,7 @@ release "RELEASES" {
     { "cpu" "CPU" TEXT +user-assigned-id+ }
     { "last-release" "LAST_RELEASE" TEXT }
     { "release-git-id" "RELEASE_GIT_ID" TEXT }
-} define-persistent
+} make-persistent
 
 :: <release> ( version builder -- release )
     release new
@@ -40,7 +40,7 @@ version "VERSIONS" {
     { "timestamp" "TIMESTAMP" TIMESTAMP }
     { "source-path" "SOURCE_PATH" TEXT }
     { "announcement-url" "ANNOUNCEMENT_URL" TEXT }
-} define-persistent
+} make-persistent
 
 : update-version ( version git-id announcement-url -- )
     version new

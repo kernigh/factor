@@ -13,7 +13,7 @@ TUPLE: persistent id ;
 : remove-types ( table -- table' ) [ dup array? [ first ] when ] map ;
 
 SYNTAX: STORED-TUPLE: parse-tuple-definition [ drop persistent ] dip [ remove-types define-tuple-class ]
-   [ nip [ dup name>> >upper ] [ add-types ] bi* define-persistent ] 3bi ;
+   [ nip [ dup name>> >upper ] [ add-types ] bi* make-persistent ] 3bi ;
 
 : define-db ( database class -- ) swap [ [ ensure-table ] with-db ] [ "database" set-word-prop ] 2bi ;
 

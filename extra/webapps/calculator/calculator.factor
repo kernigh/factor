@@ -33,7 +33,7 @@ TUPLE: calculator < dispatcher ;
 ! Deployment example
 USING: sqlite.db furnace.alloy namespaces http.server ;
 
-: calculator-db ( -- db ) "calculator.db" home prepend-path <sqlite-db> ;
+: calculator-db ( -- db ) "resource:calculator.db" <sqlite-db> ;
 
 : run-calculator ( -- )
     <calculator>

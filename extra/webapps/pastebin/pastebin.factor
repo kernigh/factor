@@ -220,7 +220,7 @@ M: annotation entity-url
         [ { { "id" [ v-number ] } } validate-params ] >>validate
 
         [
-            f "id" value annotation
+            "id" value annotation
             [ delete-tuples ]
             [ parent>> paste-url <redirect> ]
             bi

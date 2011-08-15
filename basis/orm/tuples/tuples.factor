@@ -48,6 +48,9 @@ IN: orm.tuples
 : select-tuple ( tuple -- elt/f )
     select-tuples ?first ;
 
+: count-tuples ( tuple -- n )
+    select-tuples length ;
+
 : delete-tuples ( tuple -- )
     delete-tuple-sql sql-command ;
 

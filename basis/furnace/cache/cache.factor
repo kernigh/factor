@@ -14,10 +14,8 @@ PERSISTENT: server-state
     { "id" +random-key+ +system-random-generator+ }
     { "expires" BIG-INTEGER +not-null+ } ;
 
-ERROR: no-state-found id class ;
 : get-state ( id class -- state )
-    2dup new-server-state select-tuple
-    [ 2nip ] [ no-state-found ] if* ;
+    new-server-state select-tuple ;
 
 : expire-state ( class -- )
     new

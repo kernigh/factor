@@ -18,6 +18,10 @@ PRIVATE>
 : global ( -- g ) 21 special-object { hashtable } declare ; inline
 : init-namespaces ( -- ) global 1array set-namestack ;
 : get ( variable -- value ) namestack* assoc-stack ; inline
+
+ERROR: variable-not-set variable ;
+: get* ( variable -- value/* ) dup get [ nip ] [ variable-not-set ] if* ; inline
+
 : set ( value variable -- ) namespace set-at ;
 : on ( variable -- ) t swap set ; inline
 : off ( variable -- ) f swap set ; inline

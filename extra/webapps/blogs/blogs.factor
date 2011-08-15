@@ -1,17 +1,10 @@
 ! Copyright (C) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel accessors sequences sorting math.order math.parser
-urls validators db db.types db.tuples calendar present namespaces
-html.forms
-html.components
-http.server.dispatchers
-furnace
-furnace.actions
-furnace.redirection
-furnace.auth
-furnace.auth.login
-furnace.boilerplate
-furnace.syndication ;
+USING: accessors calendar db.transactions db.types
+furnace.actions furnace.auth furnace.boilerplate
+furnace.redirection furnace.syndication html.forms
+http.server.dispatchers kernel orm.persistent orm.tuples
+present sequences sorting urls validators http.server ;
 IN: webapps.blogs
 
 TUPLE: blogs < dispatcher ;
@@ -38,12 +31,11 @@ GENERIC: entity-url ( entity -- url )
 
 M: entity feed-entry-url entity-url ;
 
-entity f {
-    { "id" "ID" INTEGER +db-assigned-id+ }
-    { "author" "AUTHOR" { VARCHAR 256 } +not-null+ } ! uid
-    { "date" "DATE" TIMESTAMP +not-null+ }
-    { "content" "CONTENT" TEXT +not-null+ }
-} make-persistent
+PERSISTENT: entity
+    { "id" INTEGER +db-assigned-key+ }
+    { "author" { VARCHAR 256 } +not-null+ } ! uid
+    { "date" TIMESTAMP +not-null+ }
+    { "content" TEXT +not-null+ } ;
 
 M: entity feed-entry-date date>> ;
 
@@ -55,17 +47,16 @@ M: post feed-entry-title
 M: post entity-url
     id>> view-post-url ;
 
-\ post "BLOG_POSTS" {
-    { "title" "TITLE" { VARCHAR 256 } +not-null+ }
-} make-persistent
+PERSISTENT: { post "BLOG_POSTS" }
+    { "title" { VARCHAR 256 } +not-null+ } ;
 
 : <post> ( id -- post ) \ post new swap >>id ;
 
 TUPLE: comment < entity parent ;
 
-comment "COMMENTS" {
-    { "parent" "PARENT" INTEGER +not-null+ } ! post id
-} make-persistent
+PERSISTENT: { comment "COMMENTS" }
+    { "parent" INTEGER +not-null+ } ;
+! post id
 
 M: comment feed-entry-title
     author>> "Comment by " prepend ;
@@ -185,18 +176,20 @@ M: comment entity-url
     validate-integer-id
     "id" value <post> select-tuple from-object ;
 
+! TODO: id in edit-post template is not set (?)
 : <edit-post-action> ( -- action )
     <page-action>
 
         "id" >>rest
 
-        [ do-post-action ] >>init
+        [ "id" param "id" set-value do-post-action ] >>init
 
         [ do-post-action validate-post ] >>validate
 
         [ "author" value authorize-author ] >>authorize
 
         [
+B
             "id" value <post>
             dup { "title" "author" "date" "content" } to-object
             [ update-tuple ] [ entity-url <redirect> ] bi

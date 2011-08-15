@@ -21,7 +21,7 @@
 		on
 		<t:label t:name="date" />
 		|
-		<t:a t:href="$blogs/post" t:rest="id">View Post</t:a>
+		<!--<t:a t:href="$blogs/post" t:rest="id">View Post</t:a>-->
 		|
 		<t:button t:action="$blogs/delete-post" t:for="id,author" class="link-button link">Delete Post</t:button>
 	</div>

@@ -36,10 +36,10 @@ M: dispatcher init-user-profile
 M: filter-responder init-user-profile
     responder>> init-user-profile ;
 
-: profile ( -- assoc ) logged-in-user get profile>> ;
+: profile ( -- assoc ) logged-in-user get* profile>> ;
 
 : user-changed ( -- )
-    logged-in-user get t >>changed? drop ;
+    logged-in-user get* t >>changed? drop ;
 
 : uget ( key -- value )
     profile at ;
@@ -56,7 +56,7 @@ SYMBOL: capabilities
 
 V{ } clone capabilities set-global
 
-: define-capability ( word -- ) capabilities get adjoin ;
+: define-capability ( word -- ) capabilities get* adjoin ;
 
 TUPLE: realm < dispatcher name users checksum secure ;
 
@@ -71,7 +71,7 @@ GENERIC: init-realm ( realm -- )
 GENERIC: logged-in-username ( realm -- username )
 
 : login-required ( description capabilities -- * )
-    realm get login-required* exit-with ;
+    realm get* login-required* exit-with ;
 
 : new-realm ( responder name class -- realm )
     new-dispatcher
@@ -82,7 +82,7 @@ GENERIC: logged-in-username ( realm -- username )
         ssl-supported? >>secure ; inline
 
 : users ( -- provider )
-    realm get users>> ;
+    realm get* users>> ;
 
 TUPLE: user-saver user ;
 
@@ -111,7 +111,7 @@ M: realm call-responder* ( path responder -- response )
 
 : encode-password ( string salt -- bytes )
     [ utf8 encode ] [ 4 >be ] bi* append
-    realm get checksum>> checksum-bytes ;
+    realm get* checksum>> checksum-bytes ;
 
 : >>encoded-password ( user string -- user )
     32 random-bits [ encode-password ] keep
@@ -124,7 +124,7 @@ M: realm call-responder* ( path responder -- response )
     users get-user dup [ [ valid-login? ] keep and ] [ 2drop f ] if ;
 
 : if-secure-realm ( quot -- )
-    realm get secure>> [ if-secure ] [ call ] if ; inline
+    realm get* secure>> [ if-secure ] [ call ] if ; inline
 
 TUPLE: secure-realm-only < filter-responder ;
 
@@ -140,7 +140,7 @@ TUPLE: protected < filter-responder description capabilities ;
         swap >>responder ;
 
 : have-capabilities? ( capabilities -- ? )
-    realm get secure>> secure-connection? not and [ drop f ] [
+    realm get* secure>> secure-connection? not and [ drop f ] [
         logged-in-user get {
             { [ dup not ] [ 2drop f ] }
             { [ dup deleted>> 1 = ] [ 2drop f ] }
@@ -153,7 +153,7 @@ M: protected call-responder* ( path responder -- response )
     dup capabilities>> have-capabilities?
     [ call-next-method ] [
         [ drop ] [ [ description>> ] [ capabilities>> ] bi ] bi*
-        realm get login-required*
+        realm get* login-required*
     ] if ;
 
 : <auth-boilerplate> ( responder -- responder' )

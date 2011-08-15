@@ -236,14 +236,19 @@ M: local connect-addr ;
 
 PRIVATE>
 
+ERROR: no-server-addr string ;
+
 : server-addrs ( -- addrspecs )
-    threaded-server get servers>> [ addr>> connect-addr ] map ;
+    threaded-server get servers>> [ addr>> connect-addr ] map
+    [ "secure/insecure" no-server-addr ] unless* ;
 
 : secure-addr ( -- addrspec )
-    server-addrs [ secure? ] filter random ;
+    server-addrs [ secure? ] filter random
+    [ "secure" no-server-addr ] unless* ;
 
 : insecure-addr ( -- addrspec )
-    server-addrs [ secure? not ] filter random ;
+    server-addrs [ secure? not ] filter random
+    [ "insecure" no-server-addr ] unless* ;
     
 : server. ( threaded-server -- )
     [ [ "=== " write name>> ] [ ] bi write-object nl ]

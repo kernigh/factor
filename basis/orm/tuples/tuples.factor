@@ -49,8 +49,7 @@ IN: orm.tuples
     select-tuples ?first ;
 
 : delete-tuples ( tuple -- )
-    drop
-    ;
+    delete-tuple-sql sql-command ;
 
 
 

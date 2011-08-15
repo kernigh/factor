@@ -72,6 +72,22 @@ M: object drop-table-sql
         <in-binder-low>
     ] { } map-as ;
 
+M:: object delete-tuple-sql ( tuple -- statement )
+    <statement> :> statement
+    tuple >persistent :> persistent
+
+    statement
+        persistent table-name>> "DELETE FROM " prepend add-sql
+        persistent find-primary-key :> columns:primary-key
+        columns:primary-key length :> #columns
+        columns:primary-key length :> #primary-key
+
+        " WHERE " add-sql
+        columns:primary-key tuple columns>in-binders add-in
+
+        columns:primary-key [ column-name>> ] map
+        #columns #primary-key continue-bind-sequence zip [ " = " glue ] { } assoc>map ", " join add-sql ;
+
 : call-generators ( columns tuple -- )
     '[
         _

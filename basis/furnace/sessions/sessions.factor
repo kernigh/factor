@@ -35,19 +35,19 @@ TUPLE: sessions < server-state-manager domain verify? ;
         t >>verify? ;
 
 : session-changed ( -- )
-    session get scope-changed ;
+    session get* scope-changed ;
 
-: sget ( key -- value ) session get scope-get ;
+: sget ( key -- value ) session get* scope-get ;
 
-: sset ( value key -- ) session get scope-set ;
+: sset ( value key -- ) session get* scope-set ;
 
-: schange ( key quot -- ) session get scope-change ; inline
+: schange ( key quot -- ) session get* scope-change ; inline
 
 : init-session ( session -- )
-    session [ sessions get init-session* ] with-variable ;
+    session [ sessions get* init-session* ] with-variable ;
 
 : touch-session ( session -- )
-    sessions get touch-state ;
+    sessions get* touch-state ;
 
 : remote-host ( -- string )
     {
@@ -65,16 +65,16 @@ TUPLE: sessions < server-state-manager domain verify? ;
     empty-session [ init-session ] [ insert-tuple ] [ ] tri ;
 
 : save-session-after ( session -- )
-    sessions get save-scope-after ;
+    sessions get* save-scope-after ;
 
 : existing-session ( path session -- response )
     [ session set ] [ save-session-after ] bi
-    sessions get responder>> call-responder ;
+    sessions get* responder>> call-responder ;
 
 CONSTANT: session-id-key "__s"
 
 : verify-session ( session -- session )
-    sessions get verify?>> [
+    sessions get* verify?>> [
         dup [
             dup
             [ client>> remote-host = ]
@@ -89,15 +89,15 @@ CONSTANT: session-id-key "__s"
     get-session verify-session ;
 
 : <session-cookie> ( -- cookie )
-    session get id>> session-id-key <cookie>
+    session get* id>> session-id-key <cookie>
         "$sessions" resolve-base-path >>path
-        sessions get domain>> >>domain ;
+        sessions get* domain>> >>domain ;
 
 : put-session-cookie ( response -- response' )
     <session-cookie> put-cookie ;
 
 M: sessions modify-form ( responder -- )
-    drop session get id>> session-id-key hidden-form-field ;
+    drop session get* id>> session-id-key hidden-form-field ;
 
 M: sessions call-responder* ( path responder -- response )
     sessions set
@@ -107,4 +107,4 @@ M: sessions call-responder* ( path responder -- response )
 SLOT: session
 
 : check-session ( state/f -- state/f )
-    dup [ dup session>> session get id>> = [ drop f ] unless ] when ;
+    dup [ dup session>> session get* id>> = [ drop f ] unless ] when ;

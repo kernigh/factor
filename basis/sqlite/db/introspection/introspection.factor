@@ -5,6 +5,7 @@ orm.tuples sqlite.db.connections accessors sequences ;
 IN: sqlite.db.introspection
 
 TUPLE: sqlite-object type name tbl-name rootpage sql ;
+TUPLE: temporary-sqlite-object < sqlite-object ;
 
 PERSISTENT: { sqlite-object "sqlite_master" }
     { "type" TEXT }
@@ -12,6 +13,8 @@ PERSISTENT: { sqlite-object "sqlite_master" }
     { "tbl-name" TEXT }
     { "rootpage" INTEGER }
     { "sql" TEXT } ;
+
+PERSISTENT: { temporary-sqlite-object "sqlite_temp_master" } ;
 
 M: sqlite-db-connection all-db-objects
     sqlite-object new select-tuples ;
@@ -21,4 +24,7 @@ M: sqlite-db-connection all-tables
 
 M: sqlite-db-connection all-indices
     all-db-objects [ type>> "index" = ] filter ;
+
+M: sqlite-db-connection temporary-db-objects
+    temporary-sqlite-object new select-tuples ;
 

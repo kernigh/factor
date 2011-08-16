@@ -6,5 +6,6 @@ IN: db.introspection
 HOOK: all-db-objects db-connection ( -- sequence )
 HOOK: all-tables db-connection ( -- sequence )
 HOOK: all-indices db-connection ( -- sequence )
+HOOK: temporary-db-objects db-connection ( -- sequence )
 
 

@@ -1,8 +1,9 @@
 ! Copyright (C) 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors calendar combinators db.tuples furnace.actions
+USING: accessors calendar combinators furnace.actions
 furnace.redirection html.forms http.server.responses io kernel
-namespaces validators webapps.mason.utils webapps.mason.backend ;
+namespaces orm.tuples validators webapps.mason.backend
+webapps.mason.utils ;
 IN: webapps.mason.status-update
 
 : find-builder ( host-name os cpu -- builder )

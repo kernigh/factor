@@ -20,6 +20,7 @@ M: postgresql-db-connection sql-type>string
         { BOOLEAN [ "BOOLEAN" ] }
         { TEXT [ "TEXT" ] }
         { VARCHAR [ "TEXT" ] }
+        { CHARACTER [ "TEXT" ] }
         { DATE [ "DATE" ] }
         { TIME [ "TIME" ] }
         { DATETIME [ "DATETIME" ] }
@@ -44,6 +45,7 @@ M: postgresql-db-connection sql-create-type>string
         { BOOLEAN [ "BOOLEAN" ] }
         { TEXT [ "TEXT" ] }
         { VARCHAR [ "TEXT" ] }
+        { CHARACTER [ "TEXT" ] }
         { DATE [ "DATE" ] }
         { TIME [ "TIME" ] }
         { DATETIME [ "DATETIME" ] }
@@ -67,6 +69,7 @@ M: postgresql-db-connection sql-create-type>string
         { DOUBLE [ pq-get-number ] }
         { TEXT [ pq-get-string ] }
         { VARCHAR [ pq-get-string ] }
+        { CHARACTER [ pq-get-string ] }
         { DATE [ pq-get-string dup [ ymd>timestamp ] when ] }
         { TIME [ pq-get-string dup [ hms>timestamp ] when ] }
         { TIMESTAMP [ pq-get-string dup [ ymdhms>timestamp ] when ] }

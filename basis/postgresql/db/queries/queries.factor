@@ -28,4 +28,3 @@ TUPLE: postgresql-column < sql-column
 M: postgresql-db-connection sql-object-class postgresql-object ;
 M: postgresql-db-connection sql-column-class postgresql-column ;
 
-

@@ -118,6 +118,7 @@ M: postgresql-result-set column
         { DOUBLE [ pq-get-number ] }
         { TEXT [ pq-get-string ] }
         { VARCHAR [ pq-get-string ] }
+        { CHARACTER [ pq-get-string ] }
         { DATE [ pq-get-string dup [ ymd>timestamp ] when ] }
         { TIME [ pq-get-string dup [ hms>timestamp ] when ] }
         { TIMESTAMP [ pq-get-string dup [ ymdhms>timestamp ] when ] }

@@ -210,7 +210,7 @@ M: tuple-class >persistent
     rebuild-persistent ;
 
 SYNTAX: PERSISTENT:
-    scan-object parse-table-name check-sql-name quote-sql-name
+    scan-object parse-table-name check-sql-name
     \ ; parse-until
     [ parse-column ] map make-persistent ;
 
@@ -229,11 +229,9 @@ SYNTAX: DEFER-PERSISTENT:
 M: integer parse-table-name throw ;
 
 M: sequence parse-table-name
-    dup length {
-        { 1 [ first parse-table-name ] }
-        { 2 [ first2 ] }
-        [ bad-table-name ]
-    } case ;
+    unclip swap
+    unclip swap
+    [ quote-sql-name ] [ "." join ] bi* "." glue ;
 
 M: tuple-class parse-table-name
     dup name>> sql-name-replace ;

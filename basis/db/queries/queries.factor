@@ -18,7 +18,6 @@ HOOK: database-table-columns-statement db-connection ( database table -- sequenc
 HOOK: sql-object-class db-connection ( -- tuple-class )
 HOOK: sql-column-class db-connection ( -- tuple-class )
 
-
 ERROR: unsafe-sql-string string ;
 
 M: object sanitize-string

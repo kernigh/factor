@@ -12,8 +12,10 @@ IN: webapps.mason
 TUPLE: mason-app < dispatcher ;
 
 SYMBOL: build-engineer?
+SYMBOL: can-make-releases?
 
 build-engineer? define-capability
+can-make-releases? define-capability
 
 : <mason-protected> ( responder -- responder' )
     <protected>

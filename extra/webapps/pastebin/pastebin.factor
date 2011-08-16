@@ -41,7 +41,7 @@ M: entity feed-entry-url entity-url ;
 
 TUPLE: paste < entity annotations ;
 
-PERSISTENT: paste ;
+PERSISTENT: { paste "pastes" } ;
 
 : <paste> ( id -- paste )
     \ paste new

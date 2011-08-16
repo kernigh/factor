@@ -2,7 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs combinators db db.binders
 db.connections db.statements db.types db.utils fry kernel
-locals make orm.persistent sequences reconstructors arrays ;
+locals make orm.persistent sequences reconstructors arrays
+orm.binders db.query-objects ;
 IN: orm.queries
 
 HOOK: create-table-sql db-connection ( tuple-class -- object )
@@ -79,14 +80,14 @@ M:: object delete-tuple-sql ( tuple -- statement )
     statement
         persistent table-name>> "DELETE FROM " prepend add-sql
         persistent find-primary-key :> columns:primary-key
-        columns:primary-key length :> #columns
         columns:primary-key length :> #primary-key
 
         " WHERE " add-sql
         columns:primary-key tuple columns>in-binders add-in
 
         columns:primary-key [ column-name>> ] map
-        #columns #primary-key continue-bind-sequence zip [ " = " glue ] { } assoc>map ", " join add-sql ;
+        #primary-key n>bind-sequence zip
+            [ " = " glue ] { } assoc>map ", " join add-sql ;
 
 : call-generators ( columns tuple -- )
     '[
@@ -134,3 +135,13 @@ M:: object update-tuple-sql ( tuple -- statement )
 
         columns:primary-key [ column-name>> ] map
         #columns #primary-key continue-bind-sequence zip [ " = " glue ] { } assoc>map ", " join add-sql ;
+
+
+M: object select-tuple-sql ( tuple -- object )
+    [ <select> ] dip
+    [ >persistent ] [ ] bi {
+        [ filter-tuple-values [ first2 <column-binder-in> ] map >>in ]
+        [ drop columns>> [ <column-binder-out> ] map >>out ]
+        [ drop 1array >>from ]
+    } 2cleave ;
+

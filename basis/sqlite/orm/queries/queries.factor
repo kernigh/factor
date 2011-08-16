@@ -175,10 +175,3 @@ M: sqlite-db-connection insert-db-assigned-key-sql
 M: sqlite-db-connection insert-tuple-set-key ( tuple statement -- )
     sql-command last-insert-id set-primary-key drop ;
 
-M: sqlite-db-connection select-tuple-sql ( tuple -- object )
-    [ <select> ] dip
-    [ >persistent ] [ ] bi {
-        [ filter-tuple-values [ first2 <column-binder-in> ] map >>in ]
-        [ drop columns>> [ <column-binder-out> ] map >>out ]
-        [ drop 1array >>from ]
-    } 2cleave ;

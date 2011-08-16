@@ -64,12 +64,14 @@ SQL-TYPES:
     URL ;
 
 ! Delete +not-null+
-SQL-MODIFIERS: +primary-key+
-SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL
+SQL-MODIFIERS: SERIAL AUTOINCREMENT UNIQUE DEFAULT NOT-NULL NULL
 +on-update+ +on-delete+ +restrict+ +cascade+ +set-null+ +set-default+
 +not-null+ +system-random-generator+ ;
 
-PRIMARY-KEY-TYPES: +db-assigned-key+ +user-assigned-key+ +random-key+ ;
+PRIMARY-KEY-TYPES: +db-assigned-key+
+    +user-assigned-key+
+    +random-key+
+    +primary-key+ ;
 
 INSTANCE: +user-assigned-key+ sql-modifier
 INSTANCE: +db-assigned-key+ sql-modifier

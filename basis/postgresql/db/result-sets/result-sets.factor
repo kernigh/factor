@@ -7,7 +7,7 @@ io.encodings.utf8 kernel libc math namespaces
 postgresql.db.connections postgresql.db.connections.private
 postgresql.db.ffi postgresql.db.lib postgresql.db.statements
 postgresql.db.types present sequences serialize
-specialized-arrays urls strings ;
+specialized-arrays urls strings orm.binders ;
 IN: postgresql.db.result-sets
 SPECIALIZED-ARRAY: uint
 SPECIALIZED-ARRAY: void*
@@ -54,11 +54,14 @@ M: postgresql-result-set more-rows? ( result-set -- ? )
 : default-param-value ( obj -- alien n )
     ?number>string dup [ utf8 malloc-string &free ] when 0 ;
 
+ERROR: postgresql-obj-error obj ;
 : obj>value/type ( obj -- value type )
     {
         { [ dup string? ] [ VARCHAR ] }
         { [ dup array? ] [ first2 ] }
         { [ dup in-binder-low? ] [ [ value>> ] [ type>> ] bi ] }
+        { [ dup column-binder-in? ] [ [ value>> ] [ column>> type>> ] bi ] }
+        [ postgresql-obj-error ]
     } cond ;
 
 : param-values ( statement -- seq seq2 )

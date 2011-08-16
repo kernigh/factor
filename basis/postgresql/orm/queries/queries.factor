@@ -168,4 +168,3 @@ M: postgresql-db-connection create-table-sql ( tuple-class -- seq )
 M: postgresql-db-connection drop-table-sql ( tuple-class -- seq )
     [ postgresql-drop-table ]
     [ dup db-assigned-key? [ postgresql-drop-function 2array ] [ drop ] if ] bi ;
-

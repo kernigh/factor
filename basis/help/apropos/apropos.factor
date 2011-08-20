@@ -52,23 +52,23 @@ M: more-completions article-content
     [ articles-matching "Help articles" (apropos) ]
     tri 3array print-element ;
 
-TUPLE: apropos search ;
+TUPLE: apropos-tuple search ;
 
-C: <apropos> apropos
+C: <apropos> apropos-tuple
 
-M: apropos valid-article? drop t ;
+M: apropos-tuple valid-article? drop t ;
 
-M: apropos article-title
+M: apropos-tuple article-title
     search>> "Search results for “" "”" surround ;
 
-M: apropos article-name article-title ;
+M: apropos-tuple article-name article-title ;
 
-M: apropos article-content
+M: apropos-tuple article-content
     search>> 1array \ $apropos prefix ;
 
-M: apropos >link ;
+M: apropos-tuple >link ;
 
-INSTANCE: apropos topic
+INSTANCE: apropos-tuple topic
 
 : apropos ( str -- )
     [ blank? ] trim <apropos> print-topic ;

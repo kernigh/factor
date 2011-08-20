@@ -93,10 +93,10 @@ PRIVATE>
         [ set-current-vocab ] dip call
     ] with-variable ; inline
 
-TUPLE: no-current-vocab ;
+TUPLE: #no-current-vocab ;
 
 : no-current-vocab ( -- vocab )
-    \ no-current-vocab boa
+    #no-current-vocab boa
     { { "Define words in scratchpad vocabulary" "scratchpad" } }
     throw-restarts dup set-current-vocab ;
 
@@ -226,7 +226,7 @@ M: qualified update
         >>words
     ] [ drop f ] if ;
 
-M: vocab update dup name>> vocab eq? ;
+M: #vocab update dup name>> vocab eq? ;
 
 : update-manifest ( manifest -- )
     [ dup [ name>> vocab ] when ] change-current-vocab

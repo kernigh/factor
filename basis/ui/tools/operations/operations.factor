@@ -10,7 +10,7 @@ ui.tools.browser ui.tools.listener ui.tools.listener.completion
 ui.tools.profiler ui.tools.inspector ui.tools.traceback
 ui.commands ui.gadgets.editors ui.gestures ui.operations
 ui.tools.deploy models help.tips source-files.errors destructors
-libc libc.private ;
+libc libc.private strings ;
 IN: ui.tools.operations
 
 ! Objects
@@ -48,14 +48,14 @@ IN: ui.tools.operations
 } define-operation
 
 ! Restart
-[ restart? ] \ restart H{
+[ restart-tuple? ] \ restart H{
     { +primary+ t }
     { +secondary+ t }
     { +listener+ t }
 } define-operation
 
 ! Continuation
-[ continuation? ] \ traceback-window H{
+[ continuation-tuple? ] \ traceback-window H{
     { +primary+ t }
     { +secondary+ t }
 } define-operation
@@ -70,7 +70,9 @@ IN: ui.tools.operations
 } define-operation
 
 ! Pathnames
-: edit-file ( pathname -- ) edit ;
+GENERIC: edit-file ( obj -- )
+M: string edit-file <pathname> edit-file ;
+M: pathname edit-file edit ;
 
 [ pathname? ] \ edit-file H{
     { +keyboard+ T{ key-down f { C+ } "e" } }
@@ -94,7 +96,7 @@ IN: ui.tools.operations
 : com-reload ( error -- )
     file>> run-file ;
 
-[ compiler-error? ] \ com-reload H{
+[ compiler-error-tuple? ] \ com-reload H{
     { +listener+ t }
 } define-operation
 
@@ -131,7 +133,7 @@ M: word com-stack-effect 1quotation com-stack-effect ;
 
 : com-enter-in ( vocab -- ) vocab-name set-current-vocab ;
 
-[ vocab? ] \ com-enter-in H{
+[ #vocab? ] \ com-enter-in H{
     { +listener+ t }
 } define-operation
 
@@ -146,7 +148,7 @@ M: word com-stack-effect 1quotation com-stack-effect ;
     { +listener+ t }
 } define-operation
 
-[ vocab? ] \ test H{
+[ #vocab? ] \ test H{
     { +listener+ t }
 } define-operation
 

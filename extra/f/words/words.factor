@@ -4,19 +4,19 @@ USING: accessors kernel ;
 IN: f.words
 
 TUPLE: word < identity-tuple
-    vocabulary name stack-effect definition ;
+    namespace name stack-effect definition ;
 
-: new-word ( vocabulary name stack-effect definition class -- word )
+: new-word ( namespace name stack-effect definition class -- word )
     new
         swap >>definition
         swap >>stack-effect
         swap >>name
-        swap >>vocabulary ; inline
+        swap >>namespace ; inline
 
-: <word> ( vocabulary name stack-effect definition -- word )
+: <word> ( namespace name stack-effect definition -- word )
     \ word new-word ; inline
 
 TUPLE: parsing-word < word ;
 
-: <parsing-word> ( vocabulary name definition -- parsing-word )
+: <parsing-word> ( namespace name definition -- parsing-word )
     [ (( -- obj )) ] dip \ parsing-word new-word ; inline

@@ -9,15 +9,21 @@ TUPLE: document-stream < disposable stream line# column# previous-character ;
 TUPLE: document-reader < document-stream ;
 TUPLE: document-writer < document-stream ;
 
-TUPLE: token text line# column# ;
+TUPLE: token text offset line# column# ;
 
 : <token> ( stream string -- token )
     swap
     [ token new ] 2dip
         [ >>text ] dip
         [ line#>> >>line# ]
-        [ column#>> >>column# ] bi ; inline
+        [ column#>> >>column# ] bi
+        tell-input >>offset ; inline
 
+: tell/string>token ( tell string -- token )
+    token new
+        swap >>text
+        swap [ line#>> >>line# ] [ column#>> >>column# ] bi ; inline
+        
 : next-line ( stream -- )
     [ 1 + ] change-line#
     0 >>column# drop ;
@@ -30,7 +36,7 @@ TUPLE: token text line# column# ;
 
 : update-line-read ( stream string -- )
     string-lines
-    [ length 1 - '[ _ + ] change-line# drop ]
+    [ length 1 - dup 0 > [ '[ _ + ] change-line# 0 >>column# drop ] [ 2drop ] if ]
     [ last length '[ _ + ] change-column# drop ] 2bi ;
 
 : update-stream1 ( stream character -- )
@@ -101,18 +107,18 @@ M: document-reader stream-peek
     [ nip ] [ stream>> stream-peek ] 2bi
     [ <token> ] [ drop f ] if* ;
 
-TUPLE: document-stream-marker line# column# n ;
+TUPLE: document-stream-marker offset line# column# ;
 
-: <document-stream-marker> ( line# column# n -- document-stream-marker )
+: <document-stream-marker> ( offset line# column# -- document-stream-marker )
     document-stream-marker new
-        swap >>n
         swap >>column#
-        swap >>line# ; inline
+        swap >>line#
+        swap >>offset ; inline
 
 M: document-reader stream-tell
+    [ stream>> stream-tell ]
     [ line#>> ]
-    [ column#>> ]
-    [ stream>> stream-tell ] tri <document-stream-marker> ;
+    [ column#>> ] tri <document-stream-marker> ;
 
 ERROR: document-stream-seek-absolute-only seek-type stream ;
 
@@ -121,7 +127,7 @@ ERROR: document-stream-seek-absolute-only seek-type stream ;
 
 M: document-reader stream-seek
     check-seek-type
-    [ [ n>> ] 2dip stream>> stream-seek ]
+    [ [ offset>> ] 2dip stream>> stream-seek ]
     [
         nip
         [ [ line#>> ] dip line#<< ]

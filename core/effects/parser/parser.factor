@@ -28,7 +28,7 @@ SYMBOL: effect-var
     ":" ?tail [
         scan-token {
             { [ dup "(" = ] [ drop ")" parse-effect ] }
-            [ parse-word dup class? [ bad-effect ] unless ]
+            [ parse-word dup #class? [ bad-effect ] unless ]
         } cond 2array
     ] when ;
 PRIVATE>

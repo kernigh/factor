@@ -174,7 +174,7 @@ TUPLE: block < section sections ;
     [ short-section? ] bi
     and [ bl ] when ;
 
-: line-break ( type -- ) [ <line-break> add-section ] when* ;
+: add-line-break ( type -- ) [ <line-break> add-section ] when* ;
 
 M: block section-fits? ( section -- ? )
     line-limit? [ drop t ] [ call-next-method ] if ;
@@ -207,16 +207,16 @@ M: block short-section ( block -- )
 : <object ( obj -- ) presented associate <block> (<block) ;
 
 ! Text section
-TUPLE: text < section string ;
+TUPLE: #text < section string ;
 
 : <text> ( string style -- text )
-    over length 1 + \ text new-section
+    over length 1 + \ #text new-section
         swap >>style
         swap >>string ;
 
-M: text short-section string>> write ;
+M: #text short-section string>> write ;
 
-M: text long-section short-section ;
+M: #text long-section short-section ;
 
 : styled-text ( string style -- ) <text> add-section ;
 

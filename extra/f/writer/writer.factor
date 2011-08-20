@@ -1,21 +1,38 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors f.lexer f.parser2 io io.encodings.utf8
-io.files io.streams.document kernel sequences ;
+USING: accessors f.lexer io io.encodings.utf8 io.files
+io.streams.document io.streams.string kernel sequences strings
+f.recalculate ;
 QUALIFIED-WITH: io.streams.document io
 IN: f.writer
 
 GENERIC: write-parsed ( object -- )
 
-M: sequence write-parsed
-    [ write-parsed ] each ;
-
 M: lexed write-parsed
     tokens>> [ write-parsed ] each ;
     
-M: io:token write-parsed write ;
+M: io:token write-parsed
+    write ;
 
-: write-src ( tree path -- )
-    utf8 <file-writer> <document-writer> [
-        [ write-parsed ] each nl
+GENERIC: write-object ( obj -- )
+
+M: sequence write-object
+    [ write-parsed ] each ;
+
+M: lexed write-object
+    write-parsed ;
+    
+M: io:token write-object
+    write-parsed ;
+    
+: write-factor ( object stream -- )
+    <document-writer> [
+        0 over rebase-line
+        write-object nl
     ] with-output-stream ;
+    
+: write-src-file ( tree path -- )
+    utf8 <file-writer> write-factor ;
+
+: write-src-string ( tree -- obj )
+    <string-writer> [ write-factor ] keep >string ;

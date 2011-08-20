@@ -54,7 +54,7 @@ PRIVATE>
 
 GENERIC: classoid? ( obj -- ? )
 
-M: word classoid? class? ;
+M: word classoid? #class? ;
 M: anonymous-union classoid? members>> [ classoid? ] all? ;
 M: anonymous-intersection classoid? participants>> [ classoid? ] all? ;
 M: anonymous-complement classoid? class>> classoid? ;

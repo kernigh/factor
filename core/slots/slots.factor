@@ -152,7 +152,7 @@ ERROR: no-initial-value class ;
 
 GENERIC: initial-value* ( class -- object )
 
-M: class initial-value* no-initial-value ;
+M: #class initial-value* no-initial-value ;
 
 : initial-value ( class -- object )
     {
@@ -179,7 +179,7 @@ M: string make-slot
 
 : peel-off-class ( slot-spec array -- slot-spec array )
     dup empty? [
-        dup first class? [
+        dup first #class? [
             [ first >>class ] [ rest ] bi
         ] when
     ] unless ;

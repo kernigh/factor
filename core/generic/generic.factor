@@ -84,11 +84,11 @@ ERROR: no-next-method method ;
 : (call-next-method) ( method -- )
     dup next-method-quot [ call ] [ no-next-method ] ?if ;
 
-TUPLE: check-method class generic ;
+TUPLE: #check-method class generic ;
 
 : check-method ( class generic -- class generic )
-    2dup [ class? ] [ generic? ] bi* and [
-        \ check-method boa throw
+    2dup [ #class? ] [ generic? ] bi* and [
+        #check-method boa throw
     ] unless ; inline
 
 : remake-generic ( generic -- )
@@ -194,5 +194,5 @@ M: generic subwords
         tri
     ] { } make ;
 
-M: class forget-methods
+M: #class forget-methods
     [ implementors ] [ [ swap method ] curry ] bi map forget-all ;

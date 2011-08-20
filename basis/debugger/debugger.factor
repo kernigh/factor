@@ -191,7 +191,7 @@ M: no-next-method summary
 M: inconsistent-next-method summary
     drop "Executing call-next-method with inconsistent parameters" ;
 
-M: check-method summary
+M: #check-method summary
     drop "Invalid parameters for create-method" ;
 
 M: not-a-tuple summary
@@ -239,8 +239,8 @@ M: redefine-error error.
     "Re-definition of " write
     def>> . ;
 
-M: undefined summary
-    word>> undefined?
+M: #undefined summary
+    word>> #undefined?
     "Cannot execute a deferred word before it has been defined"
     "Cannot execute a word before it has been compiled"
     ? ;
@@ -265,7 +265,7 @@ M: attempt-all-error summary drop "Nothing to attempt" ;
 
 M: already-disposed summary drop "Attempting to operate on disposed object" ;
 
-M: no-current-vocab summary
+M: #no-current-vocab summary
     drop "Not in a vocabulary; IN: form required" ;
 
 M: no-word-error summary
@@ -348,7 +348,7 @@ M: bad-escape error.
 
 M: bad-literal-tuple summary drop "Bad literal tuple" ;
 
-M: check-mixin-class summary drop "Not a mixin class" ;
+M: mixin-class-error summary drop "Not a mixin class" ;
 
 M: not-found-in-roots summary drop "Cannot resolve vocab: path" ;
 

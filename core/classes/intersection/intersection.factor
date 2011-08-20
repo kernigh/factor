@@ -5,7 +5,7 @@ classes classes.private classes.algebra classes.algebra.private
 classes.builtin namespaces arrays math quotations ;
 IN: classes.intersection
 
-PREDICATE: intersection-class < class
+PREDICATE: intersection-class < #class
     "metaclass" word-prop intersection-class eq? ;
 
 <PRIVATE

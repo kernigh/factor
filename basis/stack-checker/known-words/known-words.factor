@@ -78,7 +78,7 @@ IN: stack-checker.known-words
 } [ "shuffle" set-word-prop ] assoc-each
 
 : check-declaration ( declaration -- declaration )
-    dup { [ array? ] [ [ class? ] all? ] } 1&&
+    dup { [ array? ] [ [ #class? ] all? ] } 1&&
     [ bad-declaration-error ] unless ;
 
 : infer-declare ( -- )
@@ -98,7 +98,7 @@ GENERIC: infer-call* ( value known -- )
 
 \ (call) [ infer-call ] "special" set-word-prop
 
-M: literal infer-call*
+M: #literal infer-call*
     [ 1array #drop, ] [ infer-literal-quot ] bi* ;
 
 M: curried infer-call*

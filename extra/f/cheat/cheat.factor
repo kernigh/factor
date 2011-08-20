@@ -1,22 +1,25 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays classes.tuple classes.tuple.parser
-combinators effects f.lexer f.parser2 f.vocabularies f.words fry
-generalizations kernel make math.parser nested-comments
-sequences strings words ;
+combinators effects f.lexer f.manifests f.namespaces f.parser2
+f.vocabularies fry generalizations kernel make sequences words ;
 QUALIFIED: parser
 QUALIFIED: f.words
 IN: f.cheat
 
 <<
-SYNTAX: TOKEN:
-    parse-tuple-definition
+: define-token ( class superclass slots -- )
     [ [ drop \ lexed ] dip define-tuple-class ]
     [
         [ 2drop name>> "<" ">" surround parser:create-in ]
         [ nip length swap '[ [ pop-parsed ] _ ndip _ boa ] ]
         [ 2drop [ all-slots rest [ name>> ] map ] [ name>> 1array ] bi <effect> ] 3tri define-inline
     ] 3bi ;
+>>
+<<
+SYNTAX: TOKEN:
+    parse-tuple-definition
+    define-token ;
 >>
 
 TOKEN: number n ;
@@ -35,13 +38,15 @@ TUPLE: identifier-stack-effect identifier stack-effect ;
 C: <identifier-stack-effect> identifier-stack-effect
 TOKEN: stack-effect in out ;
 
+TOKEN: help name stack-effect body ;
+
 TOKEN: fword name stack-effect body ;
 
 TOKEN: local-fword name stack-effect body ;
 
-TOKEN: fmethod type name stack-effect body ;
+TOKEN: fmethod object name stack-effect body ;
 
-TOKEN: local-fmethod type name stack-effect body ;
+TOKEN: local-fmethod object name stack-effect body ;
 
 TOKEN: macro name stack-effect body ;
 
@@ -69,9 +74,9 @@ TOKEN: unuse vocabulary ;
 
 TOKEN: in vocabulary ;
 
-TOKEN: predicate class superclass stack-effect body ;
+TOKEN: predicate name superclass stack-effect body ;
 
-TOKEN: mixin mixin ;
+TOKEN: mixin name ;
 
 TOKEN: math name stack-effect ;
 
@@ -93,7 +98,7 @@ TOKEN: singletons sequence ;
 
 TOKEN: error name slots ;
 
-TOKEN: union class members ;
+TOKEN: union name members ;
 
 TOKEN: slot name ;
 
@@ -127,7 +132,7 @@ TOKEN: defer name ;
 
 TOKEN: char ch ;
 
-TOKEN: tuple name slots ;
+TOKEN: tuple name superclass slots ;
 
 TOKEN: boa-tuple name slots ;
 
@@ -175,7 +180,7 @@ TOKEN: flags objects ;
 
 TOKEN: postponed word ;
 
-TOKEN: article objects ;
+TOKEN: article name title objects ;
 
 TOKEN: about name ;
 
@@ -183,12 +188,15 @@ TOKEN: call stack-effect ;
 
 TOKEN: execute stack-effect ;
 
-TOKEN: ebnf text ;
-TOKEN: functor text ;
+TOKEN: ebnf name text ;
+TOKEN: functor name text ;
 TOKEN: peg name stack-effect body ;
+TOKEN: com-interface name stuff ;
 
-: add-parsing-word ( manifest vocab name quot -- manifest )
-    <parsing-word> over add-word-to-vocabulary ;
+TOKEN: typed name stack-effect body ;
+TOKEN: local-typed name stack-effect body ;
+
+TOKEN: new-syntax name tuple slots parser ;
 
 : function-parameters ( -- seq )
     peek-token ";" = [
@@ -209,13 +217,20 @@ TOKEN: peg name stack-effect body ;
 
 DEFER: stack-effect
 
+: stack-effect/token ( -- obj )
+    peek-token "(" = [
+        stack-effect
+    ] [
+        token
+    ] if ;
+
 : stack-effect-part ( -- seq )
     new-parse
     [
         peek-token {
             { [ dup "--" = ] [ drop f ] }
             { [ dup ")" = ] [ drop f ] }
-            { [ dup ":" tail? ] [ drop token stack-effect <identifier-stack-effect> drop t ] }
+            { [ dup ":" tail? ] [ drop token stack-effect/token <identifier-stack-effect> drop t ] }
             [ drop token drop t ]
         } cond
     ] loop
@@ -237,137 +252,152 @@ DEFER: stack-effect
 
 : optional-stack-effect ( -- stack-effect/f )
     peek-token "(" = [ stack-effect ] [ f ] if ;
+    
+: add-dummy-parsing-word ( namespace name quotation -- namespace )
+    [ add-parsing-word ] 3keep 2drop ;
 
-: fake-syntax-vocabulary ( -- vocabulary )
-    "syntax" <vocabulary>
-        "syntax" "USING:" [
-            ";" tokens-until dup [ use-vocabulary ] each <using>
-        ] add-parsing-word
-        "syntax" "USE:" [ parse-use 1array <using> ] add-parsing-word
-        "syntax" "UNUSE:" [ parse-unuse <unuse> ] add-parsing-word
-        "syntax" "IN:" [ parse-in <in> ] add-parsing-word
+: fake-syntax-namespace ( -- namespace )
+    "syntax" <namespace>
+        "USING:" [
+            ";" tokens-until dup [ use-namespace ] each <using>
+        ] add-dummy-parsing-word
+        "USE:" [ parse-use 1array <using> ] add-dummy-parsing-word
+        "UNUSE:" [ parse-unuse <unuse> ] add-dummy-parsing-word
+        "IN:" [ token <in> ] add-dummy-parsing-word
 
-        "syntax" "HEX:" [ token <fhex> ] add-parsing-word
-        "syntax" "H{" [ "}" parse-until <fhashtable> ] add-parsing-word
-        "syntax" "B{" [ "}" parse-until <fbyte-array> ] add-parsing-word
-        "syntax" "V{" [ "}" parse-until <fvector> ] add-parsing-word
-        "syntax" "{" [ "}" parse-until <farray> ] add-parsing-word
-        "syntax" "[" [ "]" parse-until <fquotation> ] add-parsing-word
-        "syntax" "(" [ stack-effect ] add-parsing-word
-        "syntax" "$" [ token <literal-syntax> ] add-parsing-word
-        "syntax" "$[" [ "]" parse-until <literal-quotation> ] add-parsing-word
-        "syntax" "${" [ "}" parse-until <literal-array> ] add-parsing-word
-        "syntax" "flags{" [ "}" parse-until <flags> ] add-parsing-word
-        "syntax" "POSTPONE:" [ chunk <postponed> ] add-parsing-word
-        "syntax" "ARTICLE:" [ ";" parse-until <article> ] add-parsing-word
-        "syntax" "ABOUT:" [ token <about> ] add-parsing-word
+        "HEX:" [ token <fhex> ] add-dummy-parsing-word
+        "H{" [ "}" parse-until <fhashtable> ] add-dummy-parsing-word
+        "B{" [ "}" parse-until <fbyte-array> ] add-dummy-parsing-word
+        "V{" [ "}" parse-until <fvector> ] add-dummy-parsing-word
+        "{" [ "}" parse-until <farray> ] add-dummy-parsing-word
+        "[" [ "]" parse-until <fquotation> ] add-dummy-parsing-word
+        ! "(" [ stack-effect ] add-dummy-parsing-word
+        "$" [ token <literal-syntax> ] add-dummy-parsing-word
+        "$[" [ "]" parse-until <literal-quotation> ] add-dummy-parsing-word
+        "${" [ "}" parse-until <literal-array> ] add-dummy-parsing-word
+        "flags{" [ "}" parse-until <flags> ] add-dummy-parsing-word
+        "POSTPONE:" [ chunk <postponed> ] add-dummy-parsing-word
+        "ARTICLE:" [ parse parse body <article> ] add-dummy-parsing-word
+        "ABOUT:" [ token <about> ] add-dummy-parsing-word
+        "HELP:" [ token optional-stack-effect ";" parse-until <help> ] add-dummy-parsing-word
+        
+        "TYPED:" [ token stack-effect body <typed> ] add-dummy-parsing-word
+        "TYPED::" [ token stack-effect body <local-typed> ] add-dummy-parsing-word
+        
+        "[let" [ "]" parse-until <let> ] add-dummy-parsing-word
+        "[|" [ "|" tokens-until "]" parse-until <lambda> ] add-dummy-parsing-word
 
-        "syntax" "[let" [ "]" parse-until <let> ] add-parsing-word
-        "syntax" "[|" [ "|" tokens-until "]" parse-until <lambda> ] add-parsing-word
+        "C:" [ token token optional-stack-effect <constructor> ] add-dummy-parsing-word
 
-        "syntax" "C:" [ token token optional-stack-effect <constructor> ] add-parsing-word
-
-        "syntax" ":>" [
+        ":>" [
             peek-token "(" = [
                 "(" expect ")" tokens-until <locals-assignment>
             ] [
                 peek-token 1array <locals-assignment>
             ] if
-        ] add-parsing-word
+        ] add-dummy-parsing-word
 
-        "syntax" "MIXIN:" [ identifier <mixin> ] add-parsing-word
-        "syntax" "INSTANCE:" [ token token <instance> ] add-parsing-word
+        "MIXIN:" [ token <mixin> ] add-dummy-parsing-word
+        "INSTANCE:" [ token token <instance> ] add-dummy-parsing-word
 
-        "syntax" "MATH:" [ identifier stack-effect <math> ] add-parsing-word
-        "syntax" "MEMO:" [ identifier stack-effect ";" parse-until <memo> ] add-parsing-word
-        "syntax" "MEMO::" [ identifier stack-effect ";" parse-until <local-memo> ] add-parsing-word
+        "MATH:" [ token stack-effect <math> ] add-dummy-parsing-word
+        "MEMO:" [ token stack-effect ";" parse-until <memo> ] add-dummy-parsing-word
+        "MEMO::" [ token stack-effect ";" parse-until <local-memo> ] add-dummy-parsing-word
 
-        "syntax" "GENERIC:" [ identifier stack-effect <generic> ] add-parsing-word
-        "syntax" "GENERIC#" [ identifier token stack-effect <generic#> ] add-parsing-word
-        "syntax" ":" [ identifier stack-effect ";" parse-until <fword> ] add-parsing-word
-        "syntax" "::" [ identifier stack-effect ";" parse-until <local-fword> ] add-parsing-word
-        "syntax" "M:" [
-            token token optional-stack-effect ";" parse-until <fmethod>
-        ] add-parsing-word
-        "syntax" "M::" [
-            token token optional-stack-effect ";" parse-until <local-fmethod>
-        ] add-parsing-word
-        "syntax" "MACRO:" [ identifier stack-effect ";" parse-until <macro> ] add-parsing-word
-        "syntax" "MACRO::" [ identifier stack-effect ";" parse-until <local-macro> ] add-parsing-word
+        "GENERIC:" [ token stack-effect <generic> ] add-dummy-parsing-word
+        "GENERIC#" [ token token stack-effect <generic#> ] add-dummy-parsing-word
+        ":" [ token stack-effect body <fword> ] add-dummy-parsing-word
+        "::" [ token stack-effect body <local-fword> ] add-dummy-parsing-word
+        "M:" [
+            token token optional-stack-effect body <fmethod>
+        ] add-dummy-parsing-word
+        "M::" [
+            token token optional-stack-effect body <local-fmethod>
+        ] add-dummy-parsing-word
+        "MACRO:" [ token stack-effect body <macro> ] add-dummy-parsing-word
+        "MACRO::" [ token stack-effect body <local-macro> ] add-dummy-parsing-word
 
-        "syntax" "MAIN:" [ token <main> ] add-parsing-word
-        "syntax" "PREDICATE:" [ identifier "<" expect token optional-stack-effect ";" parse-until <predicate> ]
-            add-parsing-word
-        "syntax" "FORGET:" [ forget-identifier <forget> ] add-parsing-word
+        "MAIN:" [ token <main> ] add-dummy-parsing-word
+        "PREDICATE:" [ token "<" expect token optional-stack-effect ";" parse-until <predicate> ]
+            add-dummy-parsing-word
+        "FORGET:" [ token <forget> ] add-dummy-parsing-word
 
-        "syntax" "SYMBOLS:" [ ";" identifiers-until <symbols> ] add-parsing-word
-        "syntax" "SYMBOL:" [ identifier 1array <symbols> ] add-parsing-word
+        "SYMBOLS:" [ ";" tokens-until <symbols> ] add-dummy-parsing-word
+        "SYMBOL:" [ token 1array <symbols> ] add-dummy-parsing-word
 
-        "syntax" "SINGLETONS:" [ ";" identifiers-until <singletons> ] add-parsing-word
-        "syntax" "SINGLETON:" [ identifier 1array <singletons> ] add-parsing-word
+        "SINGLETONS:" [ ";" tokens-until <singletons> ] add-dummy-parsing-word
+        "SINGLETON:" [ token 1array <singletons> ] add-dummy-parsing-word
 
-        "syntax" "UNION:" [ identifier ";" tokens-until <union> ] add-parsing-word
-        "syntax" "SLOT:" [ identifier <slot> ] add-parsing-word
+        "UNION:" [ token body <union> ] add-dummy-parsing-word
+        "SLOT:" [ token <slot> ] add-dummy-parsing-word
 
-        "syntax" "ERROR:" [ identifier ";" tokens-until <error> ] add-parsing-word
+        "ERROR:" [ token body <error> ] add-dummy-parsing-word
 
 
-        "syntax" "EBNF:" [ ";EBNF" chunks-until <ebnf> ] add-parsing-word
-        "syntax" "FUNCTOR:" [ ";FUNCTOR" tokens-until <ebnf> ] add-parsing-word
-        "syntax" "PEG:" [ identifier stack-effect ";" parse-until <peg> ] add-parsing-word
-        "syntax" "call(" [ open-stack-effect <call> ] add-parsing-word
-        "syntax" "execute(" [ open-stack-effect <execute> ] add-parsing-word
-        "syntax" "inline" [ <inline> ] add-parsing-word
-        "syntax" "recursive" [ <recursive> ] add-parsing-word
-        "syntax" "flushable" [ <flushable> ] add-parsing-word
-        "syntax" "foldable" [ <foldable> ] add-parsing-word
-        "syntax" "<PRIVATE" [ private-on <begin-private> ] add-parsing-word
-        "syntax" "PRIVATE>" [ private-off <end-private> ] add-parsing-word
+        "EBNF:" [ token ";EBNF" chunks-until <ebnf> ] add-dummy-parsing-word
+        "FUNCTOR:" [ token ";FUNCTOR" tokens-until <functor> ] add-dummy-parsing-word
+        "PEG:" [ token stack-effect body <peg> ] add-dummy-parsing-word
+        "call(" [ open-stack-effect <call> ] add-dummy-parsing-word
+        "execute(" [ open-stack-effect <execute> ] add-dummy-parsing-word
+        "inline" [ <inline> ] add-dummy-parsing-word
+        "recursive" [ <recursive> ] add-dummy-parsing-word
+        "flushable" [ <flushable> ] add-dummy-parsing-word
+        "foldable" [ <foldable> ] add-dummy-parsing-word
+        "<PRIVATE" [ <begin-private> ] add-dummy-parsing-word
+        "PRIVATE>" [ <end-private> ] add-dummy-parsing-word
 
-        "syntax" "\\" [ token <literal> ] add-parsing-word
-        "syntax" "FROM:" [ token "=>" expect ";" tokens-until <from> ] add-parsing-word
-        "syntax" "EXCLUDE:" [ token "=>" expect ";" tokens-until <exclude> ] add-parsing-word
-        "syntax" "RENAME:" [ token token "=>" expect token <rename> ] add-parsing-word
-        "syntax" "QUALIFIED:" [ token <qualified> ] add-parsing-word
-        "syntax" "QUALIFIED-WITH:" [ token token <qualified-with> ] add-parsing-word
+        "\\" [ token <literal> ] add-dummy-parsing-word
+        "FROM:" [ token "=>" expect body <from> ] add-dummy-parsing-word
+        "EXCLUDE:" [ token "=>" expect body <exclude> ] add-dummy-parsing-word
+        "RENAME:" [ token token "=>" expect token <rename> ] add-dummy-parsing-word
+        "QUALIFIED:" [ token <qualified> ] add-dummy-parsing-word
+        "QUALIFIED-WITH:" [ token token <qualified-with> ] add-dummy-parsing-word
 
-        "syntax" "DEFER:" [ token <defer> ] add-parsing-word
-        "syntax" "CHAR:" [ chunk <char> ] add-parsing-word
-        "syntax" "CONSTANT:" [ token parse <constant> ] add-parsing-word
+        "DEFER:" [ token <defer> ] add-dummy-parsing-word
+        "CHAR:" [ chunk <char> ] add-dummy-parsing-word
+        "CONSTANT:" [ token parse <constant> ] add-dummy-parsing-word
 
-        "syntax" "FUNCTION:" [
+        "FUNCTION:" [
             token token function-parameters <function>
-        ] add-parsing-word
+        ] add-dummy-parsing-word
 
-        "syntax" "FUNCTION-ALIAS:" [
+        "FUNCTION-ALIAS:" [
             token token token function-parameters <function-alias>
-        ] add-parsing-word
+        ] add-dummy-parsing-word
 
-        "syntax" "CALLBACK:" [
+        "CALLBACK:" [
             token token function-parameters <callback>
-        ] add-parsing-word
+        ] add-dummy-parsing-word
 
-        "syntax" "GL-FUNCTION:" [
+        "GL-FUNCTION:" [
             token token parse function-parameters <gl-function>
-        ] add-parsing-word
+        ] add-dummy-parsing-word
 
-        "syntax" "<<" [ ">>" parse-until <parse-time> ] add-parsing-word
+        "<<" [ ">>" parse-until <parse-time> ] add-dummy-parsing-word
 
-        "syntax" "TYPEDEF:" [ token token <typedef> ] add-parsing-word
-        "syntax" "STRUCT:" [
+        "TYPEDEF:" [ parse token <typedef> ] add-dummy-parsing-word
+        "STRUCT:" [
             token ";" parse-until <struct>
-        ] add-parsing-word
+        ] add-dummy-parsing-word
 
-        "syntax" "SYNTAX:" [ chunk ";" parse-until <syntax> ] add-parsing-word
-        "syntax" "FUNCTOR-SYNTAX:" [ chunk ";" parse-until <functor-syntax> ] add-parsing-word
+        "SYNTAX:" [ chunk ";" parse-until <syntax> ] add-dummy-parsing-word
+        
+        "NEW-SYNTAX:" [ token token parse parse ";" expect <new-syntax> ] add-dummy-parsing-word
+        
+        "FUNCTOR-SYNTAX:" [ chunk ";" parse-until <functor-syntax> ] add-dummy-parsing-word
 
-        "syntax" "HOOK:" [ token token stack-effect <hook> ] add-parsing-word
+        "HOOK:" [ token token stack-effect <hook> ] add-dummy-parsing-word
 
-        "syntax" "C-TYPE:" [ token <ctype> ] add-parsing-word
-        "syntax" "LIBRARY:" [ token <library> ] add-parsing-word
-        "syntax" "ALIAS:" [ token token <alias> ] add-parsing-word
-        "syntax" "TUPLE:" [
-            token 
+        "C-TYPE:" [ token <ctype> ] add-dummy-parsing-word
+        "LIBRARY:" [ token <library> ] add-dummy-parsing-word
+        "ALIAS:" [ token token <alias> ] add-dummy-parsing-word
+        "TUPLE:" [
+            token
+            peek-token "<" = [
+                token drop token
+            ] [
+                f
+            ] if
             [
                 [
                     token
@@ -382,9 +412,9 @@ DEFER: stack-effect
                     ] if
                 ] loop
             ] { } make <tuple>
-        ] add-parsing-word
+        ] add-dummy-parsing-word
 
-        "syntax" "T{" [
+        "T{" [
             token
             peek-token "f" = [
                 token drop
@@ -404,12 +434,14 @@ DEFER: stack-effect
                     ] loop
                 ] { } make <assoc-tuple>
             ] if
-        ] add-parsing-word
+        ] add-dummy-parsing-word
 
-        "syntax" "CONSTRUCTOR:" [
-            identifier stack-effect ";" parse-until <long-constructor>
-        ] add-parsing-word
+        "CONSTRUCTOR:" [
+            token stack-effect ";" parse-until <long-constructor>
+        ] add-dummy-parsing-word
+        
+        "COM-INTERFACE:" [ token ";" tokens-until <com-interface> ] add-dummy-parsing-word
     ;
 
-M: object preload-manifest ( manifest -- manifest )
-    fake-syntax-vocabulary over add-vocabulary-to-manifest ;
+M: object preload-syntax-namespaces ( manifest -- manifest )
+    fake-syntax-namespace over add-namespace-to-syntax ;

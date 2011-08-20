@@ -33,50 +33,50 @@ M: object handles-gesture? ( gesture gadget -- ? )
 
 GENERIC: send-queued-gesture ( request -- )
 
-TUPLE: send-gesture gesture gadget ;
+TUPLE: #send-gesture gesture gadget ;
 
-M: send-gesture send-queued-gesture
+M: #send-gesture send-queued-gesture
     [ gesture>> ] [ gadget>> ] bi handle-gesture drop ;
 
 : queue-gesture ( ... class -- )
     boa gesture-queue push-front notify-ui-thread ; inline
 
 : send-gesture ( gesture gadget -- )
-    \ send-gesture queue-gesture ;
+    #send-gesture queue-gesture ;
 
 : each-gesture ( gesture seq -- ) [ send-gesture ] with each ;
 
-TUPLE: propagate-gesture gesture gadget ;
+TUPLE: #propagate-gesture gesture gadget ;
 
 : resend-gesture ( gesture gadget -- ? )
     [ handle-gesture ] with each-parent ;
 
-M: propagate-gesture send-queued-gesture
+M: #propagate-gesture send-queued-gesture
     [ gesture>> ] [ gadget>> ] bi resend-gesture drop ;
 
 : propagate-gesture ( gesture gadget -- )
-    \ propagate-gesture queue-gesture ;
+    #propagate-gesture queue-gesture ;
 
-TUPLE: propagate-key-gesture gesture world ;
+TUPLE: #propagate-key-gesture gesture world ;
 
 : world-focus ( world -- gadget )
     dup focus>> [ world-focus ] [ ] ?if ;
 
-M: propagate-key-gesture send-queued-gesture
+M: #propagate-key-gesture send-queued-gesture
     [ gesture>> ] [ world>> world-focus ] bi
     [ handle-gesture ] with each-parent drop ;
 
 : propagate-key-gesture ( gesture world -- )
-    \ propagate-key-gesture queue-gesture ;
+    #propagate-key-gesture queue-gesture ;
 
-TUPLE: user-input string world ;
+TUPLE: #user-input string world ;
 
-M: user-input send-queued-gesture
+M: #user-input send-queued-gesture
     [ string>> ] [ world>> world-focus ] bi
     [ user-input* ] with each-parent drop ;
 
 : user-input ( string world -- )
-    '[ _ \ user-input queue-gesture ] unless-empty ;
+    '[ _ #user-input queue-gesture ] unless-empty ;
 
 ! Gesture objects
 TUPLE: drag # ;             C: <drag> drag

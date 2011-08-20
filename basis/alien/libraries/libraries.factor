@@ -15,21 +15,21 @@ SYMBOL: libraries
 
 libraries [ H{ } clone ] initialize
 
-TUPLE: library { path string } { abi abi initial: cdecl } dll ;
+TUPLE: library-tuple { path string } { abi abi initial: cdecl } dll ;
 
 ERROR: no-library name ;
 
 : library ( name -- library ) libraries get at ;
 
 : <library> ( path abi -- library )
-    over dup [ dlopen ] when \ library boa ;
+    over dup [ dlopen ] when \ library-tuple boa ;
 
 : load-library ( name -- dll )
     library dup [ dll>> ] when ;
 
 M: dll dispose dlclose ;
 
-M: library dispose dll>> [ dispose ] when* ;
+M: library-tuple dispose dll>> [ dispose ] when* ;
 
 : remove-library ( name -- )
     libraries get delete-at* [ dispose ] [ drop ] if ;

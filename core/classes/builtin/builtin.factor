@@ -7,7 +7,7 @@ IN: classes.builtin
 
 SYMBOL: builtins
 
-PREDICATE: builtin-class < class
+PREDICATE: builtin-class < #class
     "metaclass" word-prop builtin-class eq? ;
 
 : class>type ( class -- n ) "type" word-prop ; foldable

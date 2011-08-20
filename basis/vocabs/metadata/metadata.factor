@@ -47,8 +47,8 @@ MEMO: vocab-file-contents ( vocab name -- seq )
     ] [
         nip first
     ] if-empty ;
-
-M: vocab summary
+    
+M: #vocab summary
     [
         dup vocab-summary %
         " (" %
@@ -118,12 +118,12 @@ ERROR: bad-platform name ;
 : filter-don't-test ( vocabs -- vocabs' )
     [ don't-test? not ] filter ;
 
-TUPLE: unsupported-platform vocab requires ;
+TUPLE: #unsupported-platform vocab requires ;
 
 : unsupported-platform ( vocab requires -- )
-    \ unsupported-platform boa throw-continue ;
+    #unsupported-platform boa throw-continue ;
 
-M: unsupported-platform summary
+M: #unsupported-platform summary
     drop "Current operating system not supported by this vocabulary" ;
 
 [

@@ -70,7 +70,7 @@ M: word-completion row-color
     } cond 2nip ;
 
 M: vocab-completion row-color
-    drop vocab? COLOR: black COLOR: dark-gray ? ;
+    drop #vocab? COLOR: black COLOR: dark-gray ? ;
 
 : complete-vocab? ( tokens -- ? )
     1 short head* 2 short tail*

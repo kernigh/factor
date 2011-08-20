@@ -8,9 +8,9 @@ accessors debugger help.topics ;
 FROM: vocabs => vocab-name >vocab-link ;
 IN: editors
 
-TUPLE: no-edit-hook ;
+TUPLE: no-edit-hook-error ;
 
-M: no-edit-hook summary
+M: no-edit-hook-error summary
     drop "You must load one of the below vocabularies before using editor integration:" ;
 
 SYMBOL: edit-hook
@@ -23,7 +23,7 @@ SYMBOL: edit-hook
     [ [ "Load " prepend ] keep ] { } map>assoc ;
 
 : no-edit-hook ( -- )
-    \ no-edit-hook new
+    \ no-edit-hook-error new
     editor-restarts throw-restarts
     require ;
 

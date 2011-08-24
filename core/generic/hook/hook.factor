@@ -12,8 +12,11 @@ C: <hook-combination> hook-combination
 PREDICATE: hook-generic < generic
     "combination" word-prop hook-combination? ;
 
+ERROR: hook-symbol-empty symbol ;
+
 M: hook-combination picker
-    combination get var>> [ get ] curry ;
+    combination get var>>
+    [ dup get [ nip ] [ hook-symbol-empty ] if* ] curry ;
 
 M: hook-combination dispatch# drop 0 ;
 

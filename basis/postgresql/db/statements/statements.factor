@@ -18,7 +18,6 @@ M: postgresql-db-connection dispose-statement
 
 M: postgresql-db-connection bind-sequence drop ;
 
-
 SYMBOL: postgresql-bind-counter
 
 M: postgresql-db-connection init-bind-index ( -- )

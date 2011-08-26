@@ -1,8 +1,8 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db.statements destructors fry
-kernel locals math sequences strings summary vocabs.loader
-db.query-objects reconstructors ;
+USING: accessors continuations db.query-objects db.result-sets
+db.statements destructors fry kernel locals math reconstructors
+sequences strings summary vocabs.loader ;
 IN: db
 
 ERROR: no-in-types statement ;

@@ -46,7 +46,6 @@ M: object add-in in-vector push ;
 M: sequence add-out out-vector push-all ;
 M: object add-out out-vector push ;
 
-HOOK: statement>result-set db-connection ( statement -- result-set )
 HOOK: prepare-statement* db-connection ( statement -- statement' )
 HOOK: dispose-statement db-connection ( statement -- )
 HOOK: bind-sequence db-connection ( statement -- )
@@ -63,18 +62,6 @@ M: object reset-statement ;
 
 : prepare-statement ( statement -- statement )
     [ dup handle>> [ prepare-statement* ] unless ] with-sql-error-handler ;
-
-: result-set-each ( statement quot: ( statement -- ) -- )
-    over more-rows?
-    [ [ call ] 2keep over advance-row result-set-each ]
-    [ 2drop ] if ; inline recursive
-
-: result-set-map ( statement quot -- sequence )
-    collector [ result-set-each ] dip { } like ; inline
-
-: statement>result-sequence ( statement -- sequence )
-    statement>result-set
-    [ [ sql-row ] result-set-map ] with-disposal ;
 
 : (run-after-setters) ( tuple statement -- )
     after>> [

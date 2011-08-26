@@ -11,7 +11,6 @@ IN: mysql.db.statements
     [ stmt ] dip mysql-stmt-check-result stmt ;
 
 : mysql-maybe-prepare ( statement -- statement )
-B
     dup handle>> [
         db-connection get handle>> mysql_stmt_init
         over sql>> mysql-prepare >>handle

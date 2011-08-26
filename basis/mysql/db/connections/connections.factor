@@ -1,7 +1,7 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors combinators db.connections destructors kernel
-mysql mysql.db.ffi mysql.db.lib ;
+mysql.db mysql.db.ffi mysql.db.lib ;
 IN: mysql.db.connections
 
 TUPLE: mysql-db-connection < db-connection ;

@@ -14,6 +14,7 @@ void factor_vm::init_ffi()
 
 void factor_vm::ffi_dlopen(dll *dll)
 {
+  SetErrorMode(SEM_NOOPENFILEERRORBOX | SEM_FAILCRITICALERRORS);
 	dll->handle = LoadLibraryEx((WCHAR *)alien_offset(dll->path), NULL, 0);
 }
 

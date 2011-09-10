@@ -16,6 +16,7 @@ IN: mason.build
     build-dir set-current-directory ;
 
 : clone-source ( -- )
+    "Cloning GIT repository" print-timestamp
     "git" "clone" builds-dir get "factor" append-path 3array
     short-running-process ;
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2008, 2010 Eduardo Cavazos, Slava Pestov.
+! Copyright (C) 2008, 2011 Eduardo Cavazos, Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: bootstrap.image.download http.client init kernel
 math.parser namespaces mason.config mason.common mason.git
@@ -18,7 +18,11 @@ SYMBOLS: latest-sources last-built-sources ;
 
 : latest-boot-image ( -- boot-image )
     boot-image-name
-    [ maybe-download-image drop ] [ file-checksum ] bi ;
+    [
+        "Downloading new boot image" print-timestamp
+        maybe-download-image drop
+    ]
+    [ file-checksum ] bi ;
 
 : latest-counter ( -- counter )
     counter-url get-global http-get nip string>number ;

@@ -12,7 +12,7 @@ ERROR: mysql-error < db-error n string ;
 ERROR: mysql-sql-error < sql-error n string ;
 
 : mysql-check-result ( mysql n -- )
-    dup 0 = [ 2drop ] [
+    dup { 0 f } member? [ 2drop ] [
         swap mysql_error mysql-error
     ] if ;
 
@@ -26,7 +26,7 @@ ERROR: mysql-connect-fail string mysql ;
     ] if ;
 
 : mysql-stmt-check-result ( stmt n -- )
-    dup 0 = [ 2drop ] [
+    dup { 0 f } member? [ 2drop ] [
         swap mysql_stmt_error mysql-error ! FIXME: mysql-sql-error
     ] if ;
 
@@ -43,6 +43,7 @@ ERROR: mysql-connect-fail string mysql ;
 
 : mysql-next ( result -- ? )
     mysql_fetch_row ;
+
 
 : mysql-column ( result n -- value )
     swap [ cell * ] [ current_row>> ] bi* <displaced-alien>
@@ -62,6 +63,9 @@ ERROR: mysql-connect-fail string mysql ;
 
 : mysql-free-statement ( statement -- )
     handle>> dup mysql_stmt_free_result mysql-stmt-check-result ;
+
+: mysql-free-result ( result -- )
+    handle>> mysql_free_result ;
 
 
 : <mysql-time> ( timestamp -- MYSQL_TIME )

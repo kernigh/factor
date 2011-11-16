@@ -313,7 +313,12 @@ void factor_vm::unix_init_signals()
 	signal_callstack.ss_flags = 0;
 
 	if(sigaltstack(&signal_callstack,(stack_t *)NULL) < 0)
+#if defined(__OpenBSD__)
+		/* OpenBSD sigaltstack() and pthread are incompatible. */
+		;
+#else
 		fatal_error("sigaltstack() failed",0);
+#endif
 
 	struct sigaction memory_sigaction;
 	struct sigaction synchronous_sigaction;

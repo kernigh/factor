@@ -102,7 +102,13 @@ set_gcc() {
 }
 
 set_make() {
-    MAKE='make'
+    test_program_installed gmake
+    if [[ $? -eq 1 ]]; then
+        MAKE='gmake'
+    else
+        echo get out of here && exit 1
+        MAKE='make'
+    fi
 }
 
 check_installed_programs() {
@@ -136,34 +142,36 @@ check_library_exists() {
     check_ret $DELETE
 }
 
-check_X11_libraries() {
-    if [ -z "$NO_UI" ]; then
-        check_library_exists GL
-        check_library_exists X11
-        check_library_exists pango-1.0
-    fi
-}
-
 check_gtk_libraries() {
     if [ -z "$NO_UI" ]; then
-        check_library_exists gobject-2.0
-        check_library_exists gtk-x11-2.0
-        check_library_exists gdk-x11-2.0
-        check_library_exists gdk_pixbuf-2.0
-        check_library_exists gtkglext-x11-1.0
-        check_library_exists atk-1.0
-        check_library_exists gio-2.0
-        check_library_exists gdkglext-x11-1.0
-        check_library_exists pango-1.0
+        GCC_TEST=factor-library-test.c
+        GCC_OUT=factor-library-test.out
+        $ECHO -n "Checking for gtk+-2.0 and gtkglext-1.0..."
+        FOUND=false
+        # Get -L, -l flags from pkg-config
+        PC_LIBS=`pkg-config --libs gtk+-2.0 gtkglext-1.0 2>/dev/null`
+        if [[ $? -eq 0 ]]; then
+            # Test libs from pkg-config with compiler
+            $ECHO "int main(){return 0;}" > $GCC_TEST
+            $CC $GCC_TEST -o $GCC_OUT $PC_LIBS 2>/dev/null && FOUND=true
+        fi
+        if $FOUND; then
+            $ECHO "found."
+        else
+            $ECHO "not found!"
+            $ECHO "***Factor will compile NO_UI=1"
+            NO_UI=1
+        fi
+        $DELETE -f $GCC_TEST
+        check_ret $DELETE
+        $DELETE -f $GCC_OUT
+        check_ret $DELETE
     fi
 }
-
 
 check_libraries() {
     case $OS in
-            linux) check_X11_libraries
-                   check_gtk_libraries;;
-            unix) check_gtk_libraries;;
+        linux|openbsd) check_gtk_libraries;;
     esac
 }
 
@@ -189,6 +197,7 @@ find_os() {
         *Darwin*) OS=macosx;;
         *linux*) OS=linux;;
         *Linux*) OS=linux;;
+        OpenBSD) OS=openbsd;;
     esac
 }
 

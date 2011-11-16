@@ -29,7 +29,17 @@
 	#else
 		#include "os-genunix.hpp"
 
-		#if defined(linux)
+		#if defined(__OpenBSD__)
+			#define FACTOR_OS_STRING "openbsd"
+			#include "os-openbsd.hpp"
+
+			#if defined(FACTOR_AMD64)
+				#include "os-openbsd-x86.64.hpp"
+			#else
+				#error "Unsupported OpenBSD flavor"
+			#endif
+
+		#elif defined(linux)
 			#define FACTOR_OS_STRING "linux"
 			#include "os-linux.hpp"
 

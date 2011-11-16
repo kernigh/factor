@@ -47,4 +47,5 @@ C-TYPE: sockaddr
 os {
     { linux   [ "unix.types.linux"   require ] }
     { macosx  [ "unix.types.macosx"  require ] }
+    { openbsd [ "unix.types.openbsd" require ] }
 } case

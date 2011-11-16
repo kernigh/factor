@@ -75,6 +75,7 @@ SYMBOL: +rename-file+
     '[ [ @ t ] loop ] with-monitor ; inline
 
 {
+    { [ os openbsd? ] [ ] }
     { [ os macosx? ] [ "io.monitors.macosx" require ] }
     { [ os linux? ] [ "io.monitors.linux" require ] }
     { [ os windows? ] [ "io.monitors.windows" require ] }

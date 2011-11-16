@@ -132,4 +132,5 @@ M: string set-effective-user ( string -- )
 os {
     { [ dup macosx? ] [ drop "unix.users.macosx" require ] }
     { [ dup linux? ] [ drop ] }
+    { [ dup openbsd? ] [ drop ] }
 } cond

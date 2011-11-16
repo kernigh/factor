@@ -24,6 +24,7 @@ TYPEDEF: fsid fsid_t
 << os {
     { linux   [ "unix.stat.linux"   require ] }
     { macosx  [ "unix.stat.macosx"  require ] }
+    { openbsd [ "unix.stat.openbsd" require ] }
 } case >>
 
 : file-status ( pathname -- stat )

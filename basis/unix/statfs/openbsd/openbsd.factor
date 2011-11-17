@@ -1,4 +1,5 @@
 ! Copyright (C) 2008 Doug Coleman.
+! Copyright (C) 2011 George Koehler.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: alien.c-types alien.syntax unix.types classes.struct
 unix.stat ;
@@ -32,3 +33,12 @@ STRUCT: statfs
     { mount_info char[160] } ;
 
 FUNCTION: int statfs ( c-string path, statfs* buf ) ;
+
+! Flags from <sys/mount.h> for getfsstat(2) and getmntinfo(3).
+! The header also defines MNT_LAZY, but getfsstat(2) manual
+! omits it. (Perhaps MNT_LAZY is internal to kernel?)
+CONSTANT: MNT_WAIT    1   ! synchronously wait for I/O to complete
+CONSTANT: MNT_NOWAIT  2   ! start all I/O, but do not wait for it
+
+FUNCTION: int getfsstat ( statfs* buf, int bufsize, int flags ) ;
+FUNCTION: int getmntinfo ( statfs **mntbufp, int flags ) ;

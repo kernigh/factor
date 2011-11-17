@@ -22,7 +22,7 @@ STRUCT: stat
     { st_flags u_int32_t }
     { st_gen u_int32_t }
     { st_lspare1 int32_t }
-    { st_birthtimespec timespec }
+    { __st_birthtimespec timespec }
     { st_qspare int64_t[2] } ;
 
 FUNCTION: int stat ( c-string pathname, stat* buf ) ;

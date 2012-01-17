@@ -24,7 +24,7 @@ foreach my $name (
 ) {
 	my $glob = $Fcntl::{$name};
 	if ($glob) {
-		printf "CONSTANT: %-10s HEX: %04x\n", $name, $$glob;
+		printf "CONSTANT: %-10s 0x%04x\n", $name, $$glob;
 	}
 }
 print "\nALIAS: O_NDELAY O_NONBLOCK\n\n";
@@ -67,7 +67,7 @@ foreach my $name (
 			if ($$glob < 16 || $name =~ /^(AF|IPPROTO)_/) {
 				print "$$glob\n";
 			}
-			else { printf "HEX: %x\n", $$glob; }
+			else { printf "0x%x\n", $$glob; }
 		}
 	}
 }

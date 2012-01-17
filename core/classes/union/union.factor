@@ -1,9 +1,9 @@
 ! Copyright (C) 2004, 2011 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: words sequences kernel assocs combinators classes
-classes.private classes.algebra classes.algebra.private
-classes.builtin kernel.private math.private namespaces arrays
-math quotations definitions ;
+USING: accessors assocs classes classes.algebra
+classes.algebra.private classes.builtin
+classes.private combinators definitions kernel kernel.private
+math math.private quotations sequences words vocabs ;
 IN: classes.union
 
 PREDICATE: union-class < class
@@ -35,7 +35,7 @@ M: class union-of-builtins?
     surround ;
 
 : slow-union-predicate-quot ( class -- quot )
-    members [ "predicate" word-prop ] map unclip swap
+    members [ predicate-def ] map unclip swap
     [ [ dup ] prepend [ drop t ] ] { } map>assoc alist>quot ;
 
 : union-predicate-quot ( class -- quot )
@@ -65,6 +65,9 @@ M: union-class rank-class drop 7 ;
 
 M: union-class instance?
     "members" word-prop [ instance? ] with any? ;
+
+M: anonymous-union instance?
+    members>> [ instance? ] with any? ;
 
 M: union-class normalize-class
     members <anonymous-union> normalize-class ;

@@ -75,6 +75,7 @@ struct factor_vm
 	bool signal_resumable;
 	cell signal_number;
 	cell signal_fault_addr;
+	cell signal_fault_pc;
 	unsigned int signal_fpu_status;
 
 	/* Pipe used to notify Factor multiplexer of signals */
@@ -177,11 +178,15 @@ struct factor_vm
 	void primitive_check_datastack();
 	void primitive_load_locals();
 
-	template<typename Iterator> void iterate_active_callstacks(Iterator &iter)
+	template<typename Iterator, typename Fixup>
+	void iterate_active_callstacks(Iterator &iter, Fixup &fixup)
 	{
 		std::set<context *>::const_iterator begin = active_contexts.begin();
 		std::set<context *>::const_iterator end = active_contexts.end();
-		while(begin != end) iterate_callstack(*begin++,iter);
+		while(begin != end)
+		{
+			iterate_callstack(*begin++,iter,fixup);
+		}
 	}
 
 	// run
@@ -189,7 +194,6 @@ struct factor_vm
 	void primitive_nano_count();
 	void primitive_sleep();
 	void primitive_set_slot();
-	static void exit(int status);
 
 	// objects
 	void primitive_special_object();
@@ -204,8 +208,8 @@ struct factor_vm
 
 	// sampling_profiler
 	void clear_samples();
-	void record_sample();
-	void record_callstack_sample(cell *begin, cell *end);
+	void record_sample(bool prolog_p);
+	void record_callstack_sample(cell *begin, cell *end, bool prolog_p);
 	void start_sampling_profiler(fixnum rate);
 	void end_sampling_profiler();
 	void set_sampling_profiler(fixnum rate);
@@ -218,7 +222,7 @@ struct factor_vm
 	void type_error(cell type, cell tagged);
 	void not_implemented_error();
 	void verify_memory_protection_error(cell addr);
-	void memory_protection_error(cell addr);
+	void memory_protection_error(cell pc, cell addr);
 	void signal_error(cell signal);
 	void divide_by_zero_error();
 	void fp_trap_error(unsigned int fpu_status);
@@ -379,7 +383,7 @@ struct factor_vm
 	{
 	#ifdef FACTOR_DEBUG
 		if(!(current_gc && current_gc->op == collect_growing_heap_op))
-			assert(data->seg->in_segment_p((cell)pointer));
+			FACTOR_ASSERT(data->seg->in_segment_p((cell)pointer));
 	#endif
 	}
 
@@ -402,6 +406,7 @@ struct factor_vm
 	void print_datastack();
 	void print_retainstack();
 	void print_callstack();
+	void print_callstack_object(callstack *obj);
 	void dump_cell(cell x);
 	void dump_memory(cell from, cell to);
 	template<typename Generation> void dump_generation(const char *name, Generation *gen);
@@ -577,7 +582,9 @@ struct factor_vm
 	void initialize_code_block(code_block *compiled);
 	void fixup_labels(array *labels, code_block *compiled);
 	code_block *allot_code_block(cell size, code_block_type type);
-	code_block *add_code_block(code_block_type type, cell code_, cell labels_, cell owner_, cell relocation_, cell parameters_, cell literals_);
+	code_block *add_code_block(code_block_type type, cell code_, cell labels_,
+		cell owner_, cell relocation_, cell parameters_, cell literals_,
+		cell frame_size_untagged);
 
 	//code heap
 	inline void check_code_pointer(cell ptr) { }
@@ -610,31 +617,33 @@ struct factor_vm
 	void primitive_save_image_and_exit();
 	void fixup_data(cell data_offset, cell code_offset);
 	void fixup_code(cell data_offset, cell code_offset);
+	FILE *open_image(vm_parameters *p);
 	void load_image(vm_parameters *p);
+	bool read_embedded_image_footer(FILE *file, embedded_image_footer *footer);
+	bool embedded_image_p();
 
-	// callstack
-	template<typename Iterator> void iterate_callstack_object(callstack *stack_, Iterator &iterator);
-	void check_frame(stack_frame *frame);
+	template<typename Iterator, typename Fixup>
+	void iterate_callstack_object(callstack *stack_, Iterator &iterator,
+		Fixup &fixup);
+	template<typename Iterator>
+	void iterate_callstack_object(callstack *stack_, Iterator &iterator);
+
 	callstack *allot_callstack(cell size);
-	stack_frame *second_from_top_stack_frame(context *ctx);
+	void *second_from_top_stack_frame(context *ctx);
 	cell capture_callstack(context *ctx);
 	void primitive_callstack();
 	void primitive_callstack_for();
-	code_block *frame_code(stack_frame *frame);
-	code_block_type frame_type(stack_frame *frame);
-	cell frame_executing(stack_frame *frame);
-	cell frame_executing_quot(stack_frame *frame);
-	stack_frame *frame_successor(stack_frame *frame);
-	cell frame_scan(stack_frame *frame);
-	cell frame_offset(stack_frame *frame);
-	void set_frame_offset(stack_frame *frame, cell offset);
+	void *frame_predecessor(void *frame);
 	void primitive_callstack_to_array();
-	stack_frame *innermost_stack_frame(stack_frame *bottom, stack_frame *top);
 	void primitive_innermost_stack_frame_executing();
 	void primitive_innermost_stack_frame_scan();
 	void primitive_set_innermost_stack_frame_quot();
 	void primitive_callstack_bounds();
-	template<typename Iterator> void iterate_callstack(context *ctx, Iterator &iterator);
+
+	template<typename Iterator, typename Fixup>
+	void iterate_callstack(context *ctx, Iterator &iterator, Fixup &fixup);
+	template<typename Iterator>
+	void iterate_callstack(context *ctx, Iterator &iterator);
 
 	// cpu-*
 	void dispatch_signal_handler(cell *sp, cell *pc, cell newpc);
@@ -697,7 +706,7 @@ struct factor_vm
 	// entry points
 	void c_to_factor(cell quot);
 	template<typename Func> Func get_entry_point(cell n);
-	void unwind_native_frames(cell quot, stack_frame *to);
+	void unwind_native_frames(cell quot, void *to);
 	cell get_fpu_state();
 	void set_fpu_state(cell state);
 
@@ -738,8 +747,6 @@ struct factor_vm
 	static void unlock_console();
 	static void ignore_ctrl_c();
 	static void handle_ctrl_c();
-	static void abort();
-	static void exit();
 
 	// os-windows
   #if defined(WINDOWS)

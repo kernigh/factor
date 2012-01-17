@@ -7,7 +7,7 @@ sorting assocs definitions prettyprint io inspector
 classes.tuple classes.union classes.predicate debugger
 threads.private io.streams.string io.timeouts io.thread
 sequences.private destructors combinators eval locals.backend
-system compiler.units shuffle vocabs ;
+system compiler.units shuffle vocabs combinators.smart ;
 IN: stack-checker.tests
 
 [ 1234 infer ] must-fail
@@ -529,3 +529,13 @@ USING: alien.c-types alien ;
 [ [ drop drop ] [ f f f ] poly-input-output ] must-infer
 [ [ drop drop drop ] [ f f ] poly-input-output ] must-infer
 
+! Check that 'inputs' and 'outputs' work at compile-time
+
+: inputs-test0 ( -- n )
+    [ 5 + ] inputs ;
+
+: inputs-test1 ( x -- n )
+    [ + ] curry inputs ;
+
+[ 1 ] [ inputs-test0 ] unit-test
+[ 1 ] [ 10 inputs-test1 ] unit-test

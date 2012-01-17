@@ -7,7 +7,7 @@ namespace factor
 #define FACTOR_CPU_STRING "ppc.32"
 #endif
 
-#define CALLSTACK_BOTTOM(ctx) (stack_frame *)(ctx->callstack_seg->end - 32)
+#define CALLSTACK_BOTTOM(ctx) (void *)(ctx->callstack_seg->end - 32)
 
 /* In the instruction sequence:
 
@@ -22,9 +22,9 @@ inline static void check_call_site(cell return_address)
 {
 	u32 insn = *(u32 *)return_address;
 	/* Check that absolute bit is 0 */
-	assert((insn & 0x2) == 0x0);
+	FACTOR_ASSERT((insn & 0x2) == 0x0);
 	/* Check that instruction is branch */
-	assert((insn >> 26) == 0x12);
+	FACTOR_ASSERT((insn >> 26) == 0x12);
 }
 
 static const u32 b_mask = 0x3fffffc;

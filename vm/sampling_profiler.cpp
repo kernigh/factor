@@ -31,34 +31,50 @@ void profiling_sample_count::clear() volatile
 }
 
 profiling_sample::profiling_sample(factor_vm *vm,
+	bool prolog_p,
 	profiling_sample_count const &counts,
 	cell thread)
 	:
 	counts(counts),
 	thread(thread)
 {
-	vm->record_callstack_sample(&callstack_begin, &callstack_end);
+	vm->record_callstack_sample(&callstack_begin, &callstack_end, prolog_p);
 }
 
-void factor_vm::record_sample()
+void factor_vm::record_sample(bool prolog_p)
 {
 	profiling_sample_count counts = safepoint.sample_counts.record_counts();
 	if (!counts.empty())
-		samples.push_back(profiling_sample(this,
+		samples.push_back(profiling_sample(this, prolog_p,
 			counts, special_objects[OBJ_CURRENT_THREAD]));
 }
 
-void factor_vm::record_callstack_sample(cell *begin, cell *end)
+struct record_callstack_sample_iterator {
+	std::vector<cell> *sample_callstacks;
+	bool skip_p;
+
+	record_callstack_sample_iterator(std::vector<cell> *sample_callstacks, bool prolog_p)
+		: sample_callstacks(sample_callstacks), skip_p(prolog_p) {}
+
+	void operator()(void *frame_top, cell frame_size, code_block *owner, void *addr)
+	{
+		if (skip_p)
+			skip_p = false;
+		else
+			sample_callstacks->push_back(owner->owner);
+	}
+};
+
+void factor_vm::record_callstack_sample(cell *begin, cell *end, bool prolog_p)
 {
 	*begin = sample_callstacks.size();
-	stack_frame *frame = ctx->bottom_frame();
 
-	while (frame >= ctx->callstack_top) {
-		sample_callstacks.push_back(frame_code(frame)->owner);
-		frame = frame_successor(frame);
-	}
+	record_callstack_sample_iterator recorder(&sample_callstacks, prolog_p);
+	iterate_callstack(ctx, recorder);
 
 	*end = sample_callstacks.size();
+
+	std::reverse(sample_callstacks.begin() + *begin, sample_callstacks.end());
 }
 
 void factor_vm::set_sampling_profiler(fixnum rate)
@@ -98,7 +114,7 @@ void factor_vm::end_sampling_profiler()
 {
 	atomic::store(&sampling_profiler_p, false);
 	end_sampling_profiler_timer();
-	record_sample();
+	record_sample(false);
 }
 
 void factor_vm::primitive_sampling_profiler()

@@ -3,6 +3,8 @@
 namespace factor {
 
 struct compaction_fixup {
+	static const bool translated_code_block_map = false;
+
 	mark_bits<object> *data_forwarding_map;
 	mark_bits<code_block> *code_forwarding_map;
 	const object **data_finger;
@@ -192,6 +194,10 @@ void factor_vm::collect_compact_impl(bool trace_contexts_p)
 {
 	gc_event *event = current_gc->event;
 
+#if defined(FACTOR_DEBUG)
+	code->verify_all_blocks_set();
+#endif
+
 	if(event) event->started_compaction();
 
 	tenured_space *tenured = data->tenured;
@@ -234,10 +240,14 @@ void factor_vm::collect_compact_impl(bool trace_contexts_p)
 	update_code_roots_for_compaction();
 	callbacks->update();
 
+	code->initialize_all_blocks_set();
+
 	if(event) event->ended_compaction();
 }
 
 struct code_compaction_fixup {
+	static const bool translated_code_block_map = false;
+
 	mark_bits<code_block> *code_forwarding_map;
 	const code_block **code_finger;
 

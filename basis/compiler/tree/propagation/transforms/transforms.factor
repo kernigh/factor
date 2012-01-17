@@ -177,8 +177,14 @@ ERROR: bad-partial-eval quot word ;
 \ new [ inline-new ] 1 define-partial-eval
 
 \ instance? [
-    dup class?
-    [ "predicate" word-prop ] [ drop f ] if
+    dup classoid?
+    [
+        predicate-def
+        ! union{ and intersection{ have useless expansions, and recurse infinitely
+        dup { [ length 2 >= ] [ second \ instance? = ] } 1&& [
+            drop f
+        ] when
+    ] [ drop f ] if
 ] 1 define-partial-eval
 
 ! Shuffling

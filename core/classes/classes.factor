@@ -1,15 +1,16 @@
 ! Copyright (C) 2004, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays definitions assocs kernel kernel.private
-slots.private namespaces make sequences strings words words.symbol
-vectors math quotations combinators sorting effects graphs
-vocabs sets ;
+USING: accessors assocs combinators definitions graphs kernel
+make namespaces quotations sequences sets words words.symbol ;
 FROM: namespaces => set ;
 IN: classes
 
 ERROR: bad-inheritance class superclass ;
 
 PREDICATE: class < word "class" word-prop ;
+
+MIXIN: classoid
+INSTANCE: class classoid
 
 <PRIVATE
 
@@ -40,6 +41,10 @@ SYMBOL: update-map
 
 SYMBOL: implementors-map
 
+GENERIC: class-name ( class -- string )
+
+M: class class-name name>> ;
+
 GENERIC: rank-class ( class -- n )
 
 GENERIC: reset-class ( class -- )
@@ -66,8 +71,20 @@ PREDICATE: predicate < word "predicating" word-prop >boolean ;
     [ name>> "?" append ] [ vocabulary>> ] bi create
     dup predicate? [ dup reset-generic ] unless ;
 
+GENERIC: class-of ( object -- class )
+
+GENERIC: instance? ( object class -- ? ) flushable
+
+GENERIC: predicate-def ( obj -- quot )
+
+M: word predicate-def
+    "predicate" word-prop ;
+
+M: object predicate-def
+    [ instance? ] curry ;
+
 : predicate-word ( word -- predicate )
-    "predicate" word-prop first ;
+    predicate-def first ;
 
 M: predicate flushable? drop t ;
 
@@ -196,7 +213,7 @@ GENERIC: update-methods ( class seq -- )
     make-class-props [ (define-class) ] [ drop changed-definition ] 2bi ;
 
 : forget-predicate ( class -- )
-    dup "predicate" word-prop
+    dup predicate-def
     dup length 1 = [
         first
         [ nip ] [ "predicating" word-prop = ] 2bi
@@ -223,7 +240,3 @@ M: class metaclass-changed
 
 M: class forget* ( class -- )
     [ call-next-method ] [ forget-class ] bi ;
-
-GENERIC: class-of ( object -- class )
-
-GENERIC: instance? ( object class -- ? ) flushable

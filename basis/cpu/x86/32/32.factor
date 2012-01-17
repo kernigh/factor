@@ -46,13 +46,13 @@ M: x86.32 %vm-field-ptr ( dst field -- )
     [ 0 MOV ] dip rc-absolute-cell rel-vm ;
 
 M: x86.32 %mark-card
-    drop HEX: ffffffff [+] card-mark <byte> MOV
+    drop 0xffffffff [+] card-mark <byte> MOV
     building get pop
     rc-absolute-cell rel-cards-offset
     building get push ;
 
 M: x86.32 %mark-deck
-    drop HEX: ffffffff [+] card-mark <byte> MOV
+    drop 0xffffffff [+] card-mark <byte> MOV
     building get pop
     rc-absolute-cell rel-decks-offset
     building get push ;
@@ -88,11 +88,6 @@ M: x86.32 return-regs
         { int-regs { EAX EDX } }
         { float-regs { ST0 } }
     } ;
-
-M: x86.32 %prologue ( n -- )
-    dup PUSH
-    0 PUSH rc-absolute-cell rel-this
-    3 cells - decr-stack-reg ;
 
 M: x86.32 %prepare-jump
     pic-tail-reg 0 MOV xt-tail-pic-offset rc-absolute-cell rel-here ;
@@ -236,4 +231,4 @@ M: x86.32 flatten-struct-type
 
 M: x86.32 struct-return-on-stack? os linux? not ;
 
-check-sse
+check-cpu-features

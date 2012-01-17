@@ -1,3 +1,4 @@
+! (c)2010 Joe Groff bsd license
 USING: accessors debugger io kernel make math.parser
 prettyprint source-files.errors summary ;
 IN: source-files.errors.debugger
@@ -17,4 +18,3 @@ M: source-file-error error.
     [ asset>> [ "Asset: " write short. nl ] when* ]
     [ error>> error. ]
     tri ;
-

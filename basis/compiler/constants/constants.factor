@@ -7,7 +7,7 @@ IN: compiler.constants
 ! These constants must match vm/memory.h
 CONSTANT: card-bits 8
 CONSTANT: deck-bits 18
-: card-mark ( -- n ) HEX: 40 HEX: 80 bitor ; inline
+: card-mark ( -- n ) 0x40 0x80 bitor ; inline
 
 ! These constants must match vm/layouts.h
 : slot-offset ( slot tag -- n ) [ bootstrap-cells ] dip - ; inline
@@ -22,9 +22,7 @@ CONSTANT: deck-bits 18
 : tuple-class-offset ( -- n ) 1 tuple type-number slot-offset ; inline
 : word-entry-point-offset ( -- n ) 9 \ word type-number slot-offset ; inline
 : quot-entry-point-offset ( -- n ) 4 quotation type-number slot-offset ; inline
-: code-block-entry-point-offset ( -- n ) 4 bootstrap-cells ; inline
 : array-start-offset ( -- n ) 2 array type-number slot-offset ; inline
-: compiled-header-size ( -- n ) 4 bootstrap-cells ; inline
 : callstack-length-offset ( -- n ) 1 \ callstack type-number slot-offset ; inline
 : callstack-top-offset ( -- n ) 2 \ callstack type-number slot-offset ; inline
 : vm-context-offset ( -- n ) 0 bootstrap-cells ; inline

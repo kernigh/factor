@@ -1,9 +1,9 @@
 ! Copyright (C) 2006, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors words kernel sequences namespaces make assocs
-hashtables definitions kernel.private classes classes.private
-classes.algebra quotations arrays vocabs effects combinators
-sets ;
+USING: accessors arrays assocs classes classes.algebra
+classes.algebra.private classes.maybe classes.private
+combinators definitions kernel make namespaces sequences sets
+words ;
 FROM: namespaces => set ;
 IN: generic
 
@@ -91,8 +91,8 @@ ERROR: no-next-method method ;
 
 TUPLE: check-method class generic ;
 
-: check-method ( class generic -- class generic )
-    2dup [ class? ] [ generic? ] bi* and [
+: check-method ( classoid generic -- class generic )
+    2dup [ classoid? ] [ generic? ] bi* and [
         \ check-method boa throw
     ] unless ; inline
 
@@ -107,8 +107,13 @@ GENERIC: update-generic ( class generic -- )
 : with-methods ( class generic quot -- )
     [ "methods" word-prop ] prepose [ update-generic ] 2bi ; inline
 
-: method-word-name ( class generic -- string )
+GENERIC# method-word-name 1 ( class generic -- string )
+
+M: class method-word-name ( class generic -- string )
     [ name>> ] bi@ "=>" glue ;
+
+M: maybe method-word-name
+    [ class>> name>> ] [ name>> ] bi* "=>" glue ;
 
 M: method parent-word
     "method-generic" word-prop ;
@@ -127,11 +132,21 @@ M: method crossref?
     [ method-word-name f <word> ] [ method-word-props ] 2bi
     >>props ;
 
-: with-implementors ( class generic quot -- )
-    [ swap implementors-map get at ] dip call ; inline
+GENERIC: implementor-classes ( obj -- class )
 
-: reveal-method ( method class generic -- )
-    [ [ conjoin ] with-implementors ]
+M: maybe implementor-classes class>> 1array ;
+
+M: class implementor-classes 1array ;
+
+M: anonymous-union implementor-classes members>> ;
+
+M: anonymous-intersection implementor-classes participants>> ;
+
+: with-implementors ( class generic quot -- )
+    [ swap implementor-classes [ implementors-map get at ] map ] dip call ; inline
+
+: reveal-method ( method classes generic -- )
+    [ [ [ conjoin ] with each ] with-implementors ]
     [ [ set-at ] with-methods ]
     2bi ;
 
@@ -167,7 +182,7 @@ M: method forget*
                 ] keep eq?
                 [
                     [ [ delete-at ] with-methods ]
-                    [ [ delete-at ] with-implementors ] 2bi
+                    [ [ [ delete-at ] with each ] with-implementors ] 2bi
                     reset-caches
                 ] [ 2drop ] if
             ] if

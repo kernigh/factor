@@ -1,10 +1,9 @@
 ! Copyright (C) 2009, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs classes classes.algebra
-combinators definitions generic hashtables kernel
-kernel.private layouts math namespaces quotations
-sequences words generic.single.private effects make
-combinators.private ;
+combinators combinators.private definitions effects generic
+hashtables kernel layouts make math namespaces quotations
+sequences words ;
 FROM: assocs => change-at ;
 IN: generic.single
 
@@ -37,7 +36,7 @@ M: single-combination next-method-quot* ( class generic combination -- quot )
     [
         2dup next-method dup [
             [
-                pick "predicate" word-prop %
+                pick predicate-def %
                 1quotation ,
                 [ inconsistent-next-method ] 2curry ,
                 \ if ,
@@ -217,7 +216,7 @@ ERROR: unreachable ;
     } cond ;
 
 : class-predicates ( assoc -- assoc )
-    [ [ "predicate" word-prop [ dup ] prepend ] dip ] assoc-map ;
+    [ [ predicate-def [ dup ] prepend ] dip ] assoc-map ;
 
 : <predicate-engine-word> ( -- word )
     generic-word get name>> "/predicate-engine" append f <word>

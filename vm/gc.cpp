@@ -145,14 +145,14 @@ void factor_vm::set_current_gc_op(gc_op op)
 
 void factor_vm::gc(gc_op op, cell requested_size, bool trace_contexts_p)
 {
-	assert(!gc_off);
-	assert(!current_gc);
+	FACTOR_ASSERT(!gc_off);
+	FACTOR_ASSERT(!current_gc);
 
 	/* Important invariant: tenured space must have enough contiguous free
 	space to fit the entire contents of the aging space and nursery. This is
 	because when doing a full collection, objects from younger generations
 	are promoted before any unreachable tenured objects are freed. */
-	assert(!data->high_fragmentation_p());
+	FACTOR_ASSERT(!data->high_fragmentation_p());
 
 	current_gc = new gc_state(op,this);
 	atomic::store(&current_gc_p, true);
@@ -223,7 +223,7 @@ void factor_vm::gc(gc_op op, cell requested_size, bool trace_contexts_p)
 	current_gc = NULL;
 
 	/* Check the invariant again, just in case. */
-	assert(!data->high_fragmentation_p());
+	FACTOR_ASSERT(!data->high_fragmentation_p());
 }
 
 /* primitive_minor_gc() is invoked by inline GC checks, and it needs to fill in
@@ -237,16 +237,13 @@ struct call_frame_scrubber {
 	explicit call_frame_scrubber(factor_vm *parent_, context *ctx_) :
 		parent(parent_), ctx(ctx_) {}
 
-	void operator()(stack_frame *frame)
+	void operator()(void *frame_top, cell frame_size, code_block *owner, void *addr)
 	{
-		cell return_address = parent->frame_offset(frame);
-		if(return_address == (cell)-1)
-			return;
+		cell return_address = owner->offset(addr);
 
-		code_block *compiled = parent->frame_code(frame);
-		gc_info *info = compiled->block_gc_info();
+		gc_info *info = owner->block_gc_info();
 
-		assert(return_address < compiled->size());
+		FACTOR_ASSERT(return_address < owner->size());
 		cell index = info->return_address_index(return_address);
 		if(index != (cell)-1)
 			ctx->scrub_stacks(info,index);

@@ -7,8 +7,9 @@ words.alias quotations io assocs splitting classes.tuple
 generic.standard generic.hook generic.math generic.parser classes
 io.pathnames vocabs vocabs.parser classes.parser classes.union
 classes.intersection classes.mixin classes.predicate
-classes.singleton classes.tuple.parser compiler.units
-combinators effects.parser slots hash-sets source-files ;
+classes.singleton classes.tuple.parser compiler.units classes.maybe
+combinators effects.parser slots hash-sets source-files
+classes.algebra.private ;
 IN: bootstrap.syntax
 
 ! These words are defined as a top-level form, instead of with
@@ -68,10 +69,6 @@ IN: bootstrap.syntax
     "RENAME:" [
         scan-token scan-token "=>" expect scan-token add-renamed-word
     ] define-core-syntax
-
-    "HEX:" [ 16 parse-base ] define-core-syntax
-    "OCT:" [ 8 parse-base ] define-core-syntax
-    "BIN:" [ 2 parse-base ] define-core-syntax
 
     "NAN:" [ 16 scan-base <fp-nan> suffix! ] define-core-syntax
 
@@ -190,7 +187,7 @@ IN: bootstrap.syntax
     "PREDICATE:" [
         scan-new-class
         "<" expect
-        scan-word
+        scan-class
         parse-definition define-predicate-class
     ] define-core-syntax
 
@@ -248,7 +245,19 @@ IN: bootstrap.syntax
             not-in-a-method-error
         ] if*
     ] define-core-syntax
-    
+
+    "maybe:" [
+        scan-class <maybe> suffix!
+    ] define-core-syntax
+
+    "intersection{" [
+         \ } [ <anonymous-intersection> ] parse-literal
+    ] define-core-syntax
+
+    "union{" [
+        \ } [ <anonymous-union> ] parse-literal
+    ] define-core-syntax
+
     "initial:" "syntax" lookup-word define-symbol
 
     "read-only" "syntax" lookup-word define-symbol

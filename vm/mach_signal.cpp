@@ -40,6 +40,7 @@ void factor_vm::call_fault_handler(
 	if(exception == EXC_BAD_ACCESS)
 	{
 		signal_fault_addr = MACH_EXC_STATE_FAULT(exc_state);
+		signal_fault_pc = (cell)MACH_PROGRAM_COUNTER(thread_state);
 		verify_memory_protection_error(signal_fault_addr);
 		handler = (cell)factor::memory_signal_handler_impl;
 	}
@@ -61,7 +62,7 @@ void factor_vm::call_fault_handler(
 		handler = (cell)factor::synchronous_signal_handler_impl;
 	}
 
-	assert(handler != 0);
+	FACTOR_ASSERT(handler != 0);
 
 	dispatch_signal_handler(
 		(cell*)&MACH_STACK_POINTER(thread_state),
@@ -80,7 +81,7 @@ static void call_fault_handler(
 {
 	/* Look up the VM instance involved */
 	THREADHANDLE thread_id = pthread_from_mach_thread_np(thread);
-	assert(thread_id);
+	FACTOR_ASSERT(thread_id);
 	std::map<THREADHANDLE, factor_vm*>::const_iterator vm = thread_vms.find(thread_id);
 
 	/* Handle the exception */
@@ -210,6 +211,7 @@ mach_exception_thread (void *arg)
 			abort ();
 		}
 	}
+	return NULL; // quiet warning
 }
 
 /* Initialize the Mach exception handler thread. */

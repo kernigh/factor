@@ -1,7 +1,7 @@
 ! (c)2009 Joe Groff bsd license
 USING: accessors byte-arrays combinators kernel kernel.private
-math namespaces sequences sequences.private splitting strings
-make ;
+make math namespaces sequences sequences.private splitting
+strings ;
 IN: math.parser
 
 : digit> ( ch -- n )
@@ -74,8 +74,16 @@ TUPLE: float-parse
     [ nip swap /f ]
     [ drop 2.0 swap exponent>> (pow) * ] 2tri ; inline
 
+: ?default-exponent ( float-parse n/f -- float-parse' n/f' )
+    over exponent>> [
+        over radix>> 10 =
+        [ [ [ radix>> ] [ point>> ] bi 0 float-parse boa ] dip ]
+        [ drop f ] if
+    ] unless ; inline
+
 : ?make-float ( float-parse n/f -- float/f )
     { float-parse object } declare
+    ?default-exponent
     {
         { [ dup not ] [ 2drop f ] }
         { [ over radix>> 10 = ] [ make-float-dec-exponent ] }
@@ -98,7 +106,7 @@ TUPLE: float-parse
     -rot [ str>> ] [ length>> ] bi 10 number-parse boa 0 ; inline
 
 : <float-parse> ( i number-parse n -- float-parse i number-parse n )
-     [ drop nip radix>> 0 0 float-parse boa ] 3keep ; inline
+     [ drop nip radix>> 0 f float-parse boa ] 3keep ; inline
 
 DEFER: @exponent-digit
 DEFER: @mantissa-digit
@@ -208,9 +216,27 @@ DEFER: @neg-digit
     { fixnum number-parse integer fixnum } declare
     digit-in-radix [ [ @pos-digit-or-punc ] add-digit ] [ @abort ] if ;
 
+: (->radix) ( number-parse radix -- number-parse' )
+    [ [ str>> ] [ length>> ] bi ] dip number-parse boa ; inline
+
+: ->radix ( i number-parse n quot radix -- i number-parse n quot )
+    [ (->radix) ] curry 2dip ; inline
+
+: with-radix-char ( i number-parse n radix-quot nonradix-quot -- n/f )
+    [
+        rot {
+            { CHAR: b [ drop  2 ->radix require-next-digit ] }
+            { CHAR: o [ drop  8 ->radix require-next-digit ] }
+            { CHAR: x [ drop 16 ->radix require-next-digit ] }
+            { f       [ 3drop 2drop 0 ] }
+            [ [ drop ] 2dip swap call ]
+        } case
+    ] 2curry next-digit ; inline
+
 : @pos-first-digit ( i number-parse n char -- n/f )
     {
         { CHAR: . [ ->required-mantissa ] }
+        { CHAR: 0 [ [ @pos-digit ] [ @pos-digit-or-punc ] with-radix-char ] }
         [ @pos-digit ]
     } case ; inline
 
@@ -230,6 +256,7 @@ DEFER: @neg-digit
 : @neg-first-digit ( i number-parse n char -- n/f )
     {
         { CHAR: . [ ->required-mantissa ] }
+        { CHAR: 0 [ [ @neg-digit ] [ @neg-digit-or-punc ] with-radix-char ] }
         [ @neg-digit ]
     } case ; inline
 
@@ -240,12 +267,20 @@ DEFER: @neg-digit
         [ @pos-first-digit ]
     } case ; inline
 
+: @first-char-no-radix ( i number-parse n char -- n/f ) 
+    {
+        { CHAR: - [ [ @neg-digit ] require-next-digit ?neg ] }
+        { CHAR: + [ [ @pos-digit ] require-next-digit ] }
+        [ @pos-digit ]
+    } case ; inline
+
 PRIVATE>
 
-: base> ( str radix -- n/f )
-    <number-parse> [ @first-char ] require-next-digit ;
+: string>number ( str -- n/f )
+    10 <number-parse> [ @first-char ] require-next-digit ;
 
-: string>number ( str -- n/f ) 10 base> ; inline
+: base> ( str radix -- n/f )
+    <number-parse> [ @first-char-no-radix ] require-next-digit ;
 
 : bin> ( str -- n/f )  2 base> ; inline
 : oct> ( str -- n/f )  8 base> ; inline

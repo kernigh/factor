@@ -1,10 +1,33 @@
 ! Copyright (C) 2003, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel vectors sequences hashtables
-arrays kernel.private math strings assocs ;
+USING: arrays assocs hashtables kernel kernel.private math
+sequences vectors ;
+SLOT: boxes
+SLOT: value
+FROM: accessors => boxes>> value>> value<< ;
 IN: namespaces
 
 <PRIVATE
+
+TUPLE: global-hashtable
+    { boxes hashtable read-only } ;
+TUPLE: global-box value ;
+
+: (box-at) ( key globals -- box )
+    boxes>> 2dup at
+    [ 2nip ] [ [ f global-box boa ] 2dip [ set-at ] 2curry keep ] if* ; foldable
+
+: box-at ( key globals -- box )
+    (box-at) { global-box } declare ; inline
+
+M: global-hashtable at*
+    box-at value>> dup ; inline
+
+M: global-hashtable set-at
+    box-at value<< ; inline
+
+M: global-hashtable delete-at
+    box-at f swap value<< ; inline
 
 : namestack* ( -- namestack )
     CONTEXT-OBJ-NAMESTACK context-object { vector } declare ; inline
@@ -13,11 +36,12 @@ IN: namespaces
 
 PRIVATE>
 
+: global ( -- g ) OBJ-GLOBAL special-object { global-hashtable } declare ; foldable
+
 : namespace ( -- namespace ) namestack* last ; inline
 : namestack ( -- namestack ) namestack* clone ;
 : set-namestack ( namestack -- )
     >vector CONTEXT-OBJ-NAMESTACK set-context-object ;
-: global ( -- g ) OBJ-GLOBAL special-object { hashtable } declare ; inline
 : init-namespaces ( -- ) global 1array set-namestack ;
 : get ( variable -- value ) namestack* assoc-stack ; inline
 : set ( value variable -- ) namespace set-at ;

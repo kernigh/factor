@@ -73,7 +73,7 @@ big-endian off
     ! need a parameter here.
 
     ! See the comment for M\ x86.32 stack-cleanup in cpu.x86.32
-    HEX: ffff RET f rc-absolute-2 rel-untagged
+    0xffff RET f rc-absolute-2 rel-untagged
 ] callback-stub jit-define
 
 [
@@ -93,40 +93,60 @@ big-endian off
 ! not to trigger generation of a stack frame, so they can
 ! peform their own prolog/epilog preserving registers.
 
+: jit-signal-handler-prolog ( -- )
+    ! minus a cell each for flags, return address
+    ! use LEA so we don't dirty flags
+    stack-reg stack-reg signal-handler-stack-frame-size
+    2 bootstrap-cells - neg [+] LEA
+
+    signal-handler-save-regs
+    [| r i | stack-reg i bootstrap-cells [+] r MOV ] each-index
+
+    PUSHF
+
+    jit-load-vm ;
+
+: jit-signal-handler-epilog ( -- )
+    POPF
+
+    signal-handler-save-regs
+    [| r i | r stack-reg i bootstrap-cells [+] MOV ] each-index
+
+    stack-reg stack-reg signal-handler-stack-frame-size
+    2 bootstrap-cells - [+] LEA ;
+
 [| |
-    jit-signal-handler-prolog :> frame-size
+    jit-signal-handler-prolog
     jit-save-context
     temp0 vm-reg vm-signal-handler-addr-offset [+] MOV
     temp0 CALL
-    frame-size jit-signal-handler-epilog
+    jit-signal-handler-epilog
     0 RET
 ] \ signal-handler define-sub-primitive
 
-: leaf-frame-size ( -- n ) 4 bootstrap-cells ;
-
 [| |
-    jit-signal-handler-prolog :> frame-size
+    jit-signal-handler-prolog
     jit-save-context
     temp0 vm-reg vm-signal-handler-addr-offset [+] MOV
     temp0 CALL
-    frame-size jit-signal-handler-epilog
+    jit-signal-handler-epilog
     ! Pop the fake leaf frame along with our return address
-    leaf-frame-size bootstrap-cell - RET
+    leaf-stack-frame-size bootstrap-cell - RET
 ] \ leaf-signal-handler define-sub-primitive
 
 [| |
-    jit-signal-handler-prolog :> frame-size
+    jit-signal-handler-prolog
     temp0 vm-reg vm-signal-handler-addr-offset [+] MOV
     temp0 CALL
-    frame-size jit-signal-handler-epilog
+    jit-signal-handler-epilog
     red-zone-size RET
 ] \ ffi-signal-handler define-sub-primitive
 
 [| |
-    jit-signal-handler-prolog :> frame-size
+    jit-signal-handler-prolog
     temp0 vm-reg vm-signal-handler-addr-offset [+] MOV
     temp0 CALL
-    frame-size jit-signal-handler-epilog
+    jit-signal-handler-epilog
     red-zone-size 16 bootstrap-cell - + RET
 ] \ ffi-leaf-signal-handler define-sub-primitive
 
@@ -226,6 +246,10 @@ big-endian off
 ] jit-execute jit-define
 
 [
+    stack-reg stack-frame-size bootstrap-cell - SUB
+] jit-prolog jit-define
+
+[
     stack-reg stack-frame-size bootstrap-cell - ADD
 ] jit-epilog jit-define
 
@@ -237,7 +261,7 @@ big-endian off
 
 ! Load a value from a stack position
 [
-    temp1 ds-reg HEX: 7f [+] MOV f rc-absolute-1 rel-untagged
+    temp1 ds-reg 0x7f [+] MOV f rc-absolute-1 rel-untagged
 ] pic-load jit-define
 
 [ temp1 tag-mask get AND ] pic-tag jit-define
@@ -252,7 +276,7 @@ big-endian off
 ] pic-tuple jit-define
 
 [
-    temp1 HEX: 7f CMP f rc-absolute-1 rel-untagged
+    temp1 0x7f CMP f rc-absolute-1 rel-untagged
 ] pic-check-tag jit-define
 
 [ 0 JE f rc-relative rel-word ] pic-hit jit-define

@@ -3,6 +3,38 @@
 namespace factor
 {
 
+cell code_block::owner_quot() const
+{
+	tagged<object> executing(owner);
+	if (!optimized_p() && executing->type() == WORD_TYPE)
+		executing = executing.as<word>()->def;
+	return executing.value();
+}
+
+cell code_block::scan(factor_vm *vm, void *addr) const
+{
+	switch(type())
+	{
+	case code_block_unoptimized:
+		{
+			tagged<object> obj(owner);
+			if(obj.type_p(WORD_TYPE))
+				obj = obj.as<word>()->def;
+
+			if(obj.type_p(QUOTATION_TYPE))
+				return tag_fixnum(vm->quot_code_offset_to_scan(obj.value(),offset(addr)));
+			else
+				return false_object;
+		}
+	case code_block_optimized:
+	case code_block_pic:
+		return false_object;
+	default:
+		critical_error("Bad frame type",type());
+		return false_object;
+	}
+}
+
 cell factor_vm::compute_entry_point_address(cell obj)
 {
 	switch(tagged<object>(obj).type())
@@ -54,8 +86,8 @@ cell factor_vm::code_block_owner(code_block *compiled)
 		tagged<quotation> quot(owner.as<quotation>());
 		tagged<array> elements(quot->array);
 #ifdef FACTOR_DEBUG
-		assert(array_capacity(elements.untagged()) == 5);
-		assert(array_nth(elements.untagged(),4) == special_objects[PIC_MISS_WORD]
+		FACTOR_ASSERT(array_capacity(elements.untagged()) == 5);
+		FACTOR_ASSERT(array_nth(elements.untagged(),4) == special_objects[PIC_MISS_WORD]
 			|| array_nth(elements.untagged(),4) == special_objects[PIC_MISS_TAIL_WORD]);
 #endif
 		tagged<wrapper> word_wrapper(array_nth(elements.untagged(),0));
@@ -399,7 +431,9 @@ code_block *factor_vm::allot_code_block(cell size, code_block_type type)
 }
 
 /* Might GC */
-code_block *factor_vm::add_code_block(code_block_type type, cell code_, cell labels_, cell owner_, cell relocation_, cell parameters_, cell literals_)
+code_block *factor_vm::add_code_block(code_block_type type, cell code_, cell labels_,
+	cell owner_, cell relocation_, cell parameters_, cell literals_,
+	cell frame_size_untagged)
 {
 	data_root<byte_array> code(code_,this);
 	data_root<object> labels(labels_,this);
@@ -431,11 +465,14 @@ code_block *factor_vm::add_code_block(code_block_type type, cell code_, cell lab
 	if(to_boolean(labels.value()))
 		fixup_labels(labels.as<array>().untagged(),compiled);
 
+	compiled->set_stack_frame_size(frame_size_untagged);
+
 	/* Once we are ready, fill in literal and word references in this code
 	block's instruction operands. In most cases this is done right after this
 	method returns, except when compiling words with the non-optimizing
 	compiler at the beginning of bootstrap */
 	this->code->uninitialized_blocks.insert(std::make_pair(compiled,literals.value()));
+	this->code->all_blocks.insert((cell)compiled);
 
 	/* next time we do a minor GC, we have to trace this code block, since
 	the fields of the code_block struct might point into nursery or aging */
@@ -472,14 +509,13 @@ struct find_symbol_at_address_visitor {
 image load. It finds the symbol and library, and throws an error. */
 void factor_vm::undefined_symbol()
 {
-	stack_frame *frame = innermost_stack_frame(ctx->callstack_bottom,
-		ctx->callstack_top);
-	code_block *compiled = frame_code(frame);
-	cell return_address = (cell)FRAME_RETURN_ADDRESS(frame, this);
-	find_symbol_at_address_visitor visitor(this, return_address);
+	void *frame = ctx->callstack_top;
+	void *return_address = frame_return_address(frame);
+	code_block *compiled = code->code_block_for_address((cell)return_address);
+	find_symbol_at_address_visitor visitor(this, (cell)return_address);
 	compiled->each_instruction_operand(visitor);
 	if (!to_boolean(visitor.symbol))
-		critical_error("Can't find RT_DLSYM at return address", return_address);
+		critical_error("Can't find RT_DLSYM at return address", (cell)return_address);
 	else
 		general_error(ERROR_UNDEFINED_SYMBOL,visitor.symbol,visitor.library);
 }

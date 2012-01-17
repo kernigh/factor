@@ -22,13 +22,15 @@ jit::jit(code_block_type type_, cell owner_, factor_vm *vm)
 	  parent(vm)
 {
 	fixnum old_count = atomic::fetch_add(&parent->current_jit_count, 1);
-	assert(old_count >= 0);
+	FACTOR_ASSERT(old_count >= 0);
+	(void)old_count;
 }
 
 jit::~jit()
 {
 	fixnum old_count = atomic::fetch_subtract(&parent->current_jit_count, 1);
-	assert(old_count >= 1);
+	FACTOR_ASSERT(old_count >= 1);
+	(void)old_count;
 }
 
 void jit::emit_relocation(cell relocation_template_)
@@ -122,7 +124,7 @@ void jit::compute_position(cell offset_)
 }
 
 /* Allocates memory */
-code_block *jit::to_code_block()
+code_block *jit::to_code_block(cell frame_size)
 {
 	/* Emit dummy GC info */
 	code.grow_bytes(alignment_for(code.count + 4,data_alignment));
@@ -141,7 +143,8 @@ code_block *jit::to_code_block()
 		owner.value(),
 		relocation.elements.value(),
 		parameters.elements.value(),
-		literals.elements.value());
+		literals.elements.value(),
+		frame_size);
 }
 
 }

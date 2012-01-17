@@ -59,12 +59,6 @@ M: x86.64 %set-vm-field ( src offset -- )
 M: x86.64 %vm-field-ptr ( dst offset -- )
     [ vm-reg ] dip [+] LEA ;
 
-M: x86.64 %prologue ( n -- )
-    R11 -7 [RIP+] LEA
-    dup PUSH
-    R11 PUSH
-    stack-reg swap 3 cells - SUB ;
-
 M: x86.64 %prepare-jump
     pic-tail-reg xt-tail-pic-offset [RIP+] LEA ;
 
@@ -150,4 +144,4 @@ USE: vocabs
     { [ os windows? ] [ "cpu.x86.64.windows" require ] }
 } cond
 
-check-sse
+check-cpu-features

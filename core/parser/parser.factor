@@ -5,7 +5,7 @@ sequences strings vectors words words.symbol quotations io
 combinators sorting splitting math.parser effects continuations
 io.files vocabs io.encodings.utf8 source-files classes
 hashtables compiler.units accessors sets lexer vocabs.parser
-slots parser.notes ;
+slots parser.notes classes.algebra ;
 IN: parser
 
 : location ( -- loc )
@@ -100,7 +100,10 @@ ERROR: staging-violation word ;
         V{ } clone swap execute-parsing first
     ] when ;
 
-: parse-step ( accum end -- accum ? )
+: scan-class ( -- class )
+    scan-object \ f or ;
+
+: parse-until-step ( accum end -- accum ? )
     (scan-datum) {
         { [ 2dup eq? ] [ 2drop f ] }
         { [ dup not ] [ drop unexpected-eof t ] }
@@ -110,7 +113,7 @@ ERROR: staging-violation word ;
     } cond ;
 
 : (parse-until) ( accum end -- accum )
-    [ parse-step ] keep swap [ (parse-until) ] [ drop ] if ;
+    [ parse-until-step ] keep swap [ (parse-until) ] [ drop ] if ;
 
 : parse-until ( end -- vec )
     100 <vector> swap (parse-until) ;
@@ -137,9 +140,6 @@ ERROR: bad-number ;
 
 : scan-base ( base -- n )
     scan-token swap base> [ bad-number ] unless* ;
-
-: parse-base ( parsed base -- parsed )
-    scan-base suffix! ;
 
 SYMBOL: bootstrap-syntax
 

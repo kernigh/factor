@@ -89,7 +89,7 @@ static inline const char *type_name(cell type)
 	case DLL_TYPE:
 		return "dll";
 	default:
-		assert(false);
+		FACTOR_ASSERT(false);
 		return "";
 	}
 }
@@ -123,7 +123,7 @@ inline static bool immediate_p(cell obj)
 inline static fixnum untag_fixnum(cell tagged)
 {
 #ifdef FACTOR_DEBUG
-	assert(TAG(tagged) == FIXNUM_TYPE);
+	FACTOR_ASSERT(TAG(tagged) == FIXNUM_TYPE);
 #endif
 	return ((fixnum)tagged) >> TAG_BITS;
 }
@@ -349,25 +349,18 @@ struct dll : public object {
 	void *handle;
 };
 
-struct stack_frame {
-	/* Updated by procedure prologue with procedure start address */
-	void *entry_point;
-	/* Frame size in bytes */
-	cell size;
-};
-
 struct callstack : public object {
 	static const cell type_number = CALLSTACK_TYPE;
 	/* tagged */
 	cell length;
 	
-	stack_frame *frame_at(cell offset) const
+	void *frame_top_at(cell offset) const
 	{
-		return (stack_frame *)((char *)(this + 1) + offset);
+		return (void *)((char *)(this + 1) + offset);
 	}
 
-	stack_frame *top() const { return (stack_frame *)(this + 1); }
-	stack_frame *bottom() const { return (stack_frame *)((cell)(this + 1) + untag_fixnum(length)); }
+	void *top() const { return (void *)(this + 1); }
+	void *bottom() const { return (void *)((cell)(this + 1) + untag_fixnum(length)); }
 };
 
 struct tuple : public object {

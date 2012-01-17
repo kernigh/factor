@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: kernel math math.parser math.order namespaces make
 sequences strings words assocs combinators accessors arrays
-quotations ;
+quotations classes.algebra classes ;
 IN: effects
 
 TUPLE: effect
@@ -79,6 +79,7 @@ GENERIC: effect>type ( obj -- type )
 M: object effect>type drop object ;
 M: word effect>type ;
 M: pair effect>type second effect>type ;
+M: classoid effect>type ;
 
 : effect-in-types ( effect -- input-types )
     in>> [ effect>type ] map ;
@@ -119,3 +120,8 @@ M: effect clone
         [ [ "x" <array> ] bi@ ] dip
         <terminated-effect>
     ] if ; inline
+
+: curry-effect ( effect -- effect' )
+    [ in>> length ] [ out>> length ] [ terminated?>> ] tri
+    pick 0 = [ [ 1 + ] dip ] [ [ 1 - ] 2dip ] if
+    [ [ "x" <array> ] bi@ ] dip <terminated-effect> ;

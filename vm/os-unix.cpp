@@ -167,6 +167,7 @@ void memory_signal_handler(int signal, siginfo_t *siginfo, void *uap)
 	factor_vm *vm = current_vm();
 	vm->verify_memory_protection_error((cell)siginfo->si_addr);
 	vm->signal_fault_addr = (cell)siginfo->si_addr;
+	vm->signal_fault_pc = (cell)UAP_PROGRAM_COUNTER(uap);
 	vm->dispatch_signal(uap,factor::memory_signal_handler_impl);
 }
 
@@ -201,8 +202,6 @@ void enqueue_signal_handler(int signal, siginfo_t *siginfo, void *uap)
 	factor_vm *vm = current_vm_p();
 	if (vm)
 		enqueue_signal(vm, signal);
-	else
-		fatal_error("Foreign thread received signal", signal);
 }
 
 void fep_signal_handler(int signal, siginfo_t *siginfo, void *uap)
@@ -497,7 +496,7 @@ void *stdin_loop(void *arg)
 
 void factor_vm::open_console()
 {
-	assert(!stdin_thread_initialized_p);
+	FACTOR_ASSERT(!stdin_thread_initialized_p);
 	safe_pipe(&control_read,&control_write);
 	safe_pipe(&size_read,&size_write);
 	safe_pipe(&stdin_read,&stdin_write);
@@ -517,7 +516,7 @@ void factor_vm::close_console()
 
 void factor_vm::lock_console()
 {
-	assert(stdin_thread_initialized_p);
+	FACTOR_ASSERT(stdin_thread_initialized_p);
 	/* Lock the stdin_mutex and send the stdin_loop thread a signal to interrupt
 	any read() it has in progress. When the stdin loop iterates again, it will
 	try to lock the same mutex and wait until unlock_console() is called. */
@@ -527,7 +526,7 @@ void factor_vm::lock_console()
 
 void factor_vm::unlock_console()
 {
-	assert(stdin_thread_initialized_p);
+	FACTOR_ASSERT(stdin_thread_initialized_p);
 	pthread_mutex_unlock(&stdin_mutex);
 }
 
@@ -548,7 +547,7 @@ void factor_vm::handle_ctrl_c()
 	sigaction_safe(SIGINT,&fep_sigaction,NULL);
 }
 
-void factor_vm::abort()
+void abort()
 {
 	sig_t ret;
 	do
@@ -557,7 +556,7 @@ void factor_vm::abort()
 	}
 	while(ret == SIG_ERR && errno == EINTR);
 	
-	close_console();
+	factor_vm::close_console();
 	::abort();
 }
 

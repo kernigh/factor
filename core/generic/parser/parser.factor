@@ -1,7 +1,7 @@
 ! Copyright (C) 2008, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays combinators effects effects.parser
-generic kernel namespaces parser quotations sequences words ;
+USING: accessors arrays combinators effects.parser generic
+kernel namespaces parser quotations sequences words ;
 IN: generic.parser
 
 ERROR: not-in-a-method-error ;
@@ -18,7 +18,7 @@ ERROR: not-in-a-method-error ;
     [ create-method-in ] dip [ define ] [ drop make-inline ] 2bi ;
 
 : scan-new-method ( -- method )
-    scan-word bootstrap-word scan-word create-method-in ;
+    scan-class bootstrap-word scan-word create-method-in ;
 
 SYMBOL: current-method
 
@@ -55,4 +55,3 @@ PRIVATE>
 
 : (M:) ( -- method def )
     scan-new-method [ parse-method-definition ] with-method-definition ;
-

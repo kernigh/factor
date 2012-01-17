@@ -8,7 +8,7 @@ grouping init io.backend io.binary io.encodings
 io.encodings.ascii io.encodings.binary io.pathnames io.ports
 io.streams.duplex kernel libc locals math math.parser memoize
 namespaces parser present sequences splitting strings summary
-system values vocabs.loader vocabs.parser vocabs
+system vocabs.loader vocabs.parser vocabs
 sequences.private ;
 IN: io.sockets
 
@@ -21,8 +21,6 @@ GENERIC# with-port 1 ( addrspec port -- addrspec )
 
 ! Addressing
 <PRIVATE
-
-UNION: ?string string POSTPONE: f ;
 
 GENERIC: protocol ( addrspec -- n )
 
@@ -67,7 +65,7 @@ M: local protocol drop 0 ;
 
 SLOT: port
 
-TUPLE: ipv4 { host ?string read-only } ;
+TUPLE: ipv4 { host maybe: string read-only } ;
 
 <PRIVATE
 
@@ -133,7 +131,7 @@ M: inet4 present
 M: inet4 protocol drop 0 ;
 
 TUPLE: ipv6
-{ host ?string read-only }
+{ host maybe: string read-only }
 { scope-id integer read-only } ;
 
 <PRIVATE
@@ -395,7 +393,7 @@ GENERIC: resolve-host ( addrspec -- seq )
 
 HOOK: resolve-localhost os ( -- obj )
 
-TUPLE: hostname { host ?string read-only } ;
+TUPLE: hostname { host maybe: string read-only } ;
 
 TUPLE: inet < hostname port ;
 

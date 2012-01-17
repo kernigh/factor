@@ -2,9 +2,10 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: byte-arrays namespaces make math math.order math.parser
 sequences accessors kernel layouts assocs words summary arrays
-combinators combinators.smart sets continuations.private fry
+combinators sets continuations.private fry
 cpu.architecture classes classes.struct locals slots parser
 generic.parser strings quotations hashtables
+sequences.generalizations
 compiler.constants
 compiler.cfg
 compiler.cfg.linearization
@@ -106,7 +107,8 @@ M: ##dispatch generate-insn
             label-table get
         ] B{ } make
         dup check-fixup
-    ] output>array ; inline
+        cfg get [ stack-frame>> [ total-size>> ] [ 0 ] if* ] [ 0 ] if*
+    ] call 6 narray ; inline
 
 : generate ( cfg -- code )
     [

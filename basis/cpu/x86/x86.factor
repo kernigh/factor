@@ -48,7 +48,7 @@ HOOK: reserved-stack-space cpu ( -- n )
 M: x86 stack-frame-size ( stack-frame -- i )
     (stack-frame-size)
     reserved-stack-space +
-    3 cells +
+    cell +
     align-stack ;
 
 HOOK: pic-tail-reg cpu ( -- reg )
@@ -87,7 +87,7 @@ M: x86 %replace-imm
     {
         { [ dup not ] [ drop \ f type-number MOV ] }
         { [ dup fixnum? ] [ tag-fixnum MOV ] }
-        [ [ HEX: ffffffff MOV ] dip rc-absolute rel-literal ]
+        [ [ 0xffffffff MOV ] dip rc-absolute rel-literal ]
     } cond ;
 
 : (%inc) ( n reg -- ) swap cells dup 0 > [ ADD ] [ neg SUB ] if ; inline
@@ -515,6 +515,8 @@ M: x86 %call-gc ( gc-map -- )
 M: x86 %alien-global ( dst symbol library -- )
     [ 0 MOV ] 2dip rc-absolute-cell rel-dlsym ;
 
+M: x86 %prologue ( n -- ) cell - decr-stack-reg ;
+
 M: x86 %epilogue ( n -- ) cell - incr-stack-reg ;
 
 :: (%boolean) ( dst temp insn -- )
@@ -541,7 +543,7 @@ M:: x86 %test ( dst src1 src2 cc temp -- )
     dst cc temp %boolean ;
 
 : (%compare-tagged) ( src1 src2 -- )
-    [ HEX: ffffffff CMP ] dip rc-absolute rel-literal ;
+    [ 0xffffffff CMP ] dip rc-absolute rel-literal ;
 
 M:: x86 %compare-integer-imm ( dst src1 src2 cc temp -- )
     src1 src2 CMP
@@ -594,11 +596,11 @@ M:: x86 %compare-imm-branch ( label src1 src2 cc -- )
 
 M:: x86 %dispatch ( src temp -- )
     ! Load jump table base.
-    temp HEX: ffffffff MOV
+    temp 0xffffffff MOV
     building get length :> start
     0 rc-absolute-cell rel-here
     ! Add jump table base
-    temp src HEX: 7f [++] JMP
+    temp src 0x7f [++] JMP
     building get length :> end
     ! Fix up the displacement above
     cell alignment
@@ -698,10 +700,10 @@ M: x86 long-long-odd-register? f ;
 M: x86 float-right-align-on-stack? f ;
 
 M: x86 immediate-arithmetic? ( n -- ? )
-    HEX: -80000000 HEX: 7fffffff between? ;
+    -0x80000000 0x7fffffff between? ;
 
 M: x86 immediate-bitwise? ( n -- ? )
-    HEX: -80000000 HEX: 7fffffff between? ;
+    -0x80000000 0x7fffffff between? ;
 
 : %cmov-float= ( dst src -- )
     [
@@ -776,7 +778,17 @@ enable-log2
 
 : check-sse ( -- )
     "Checking for multimedia extensions... " write flush
-    [ { (sse-version) } compile ] with-optimizer
     sse-version
     [ sse-string " detected" append print ]
     [ 20 < "cpu.x86.x87" "cpu.x86.sse" ? require ] bi ;
+
+: check-popcnt ( -- )
+    enable-popcnt? [
+        "Building with POPCNT support" print
+        enable-bit-count
+    ] when ;
+
+: check-cpu-features ( -- )
+    [ { (sse-version) popcnt? } compile ] with-optimizer
+    check-sse
+    check-popcnt ;

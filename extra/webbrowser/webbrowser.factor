@@ -9,7 +9,7 @@ HOOK: open-file os ( path -- )
 
 {
     { [ os macosx?  ] [ "webbrowser.macosx"  ] }
-    { [ os linux?   ] [ "webbrowser.linux"   ] }
+    { [ os unix?    ] [ "webbrowser.linux"   ] }
     { [ os windows? ] [ "webbrowser.windows" ] }
 } cond require
 

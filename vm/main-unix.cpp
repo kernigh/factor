@@ -1,10 +1,5 @@
 #include "master.hpp"
 
-#if defined(__OpenBSD__)
-	/* FIXME - master.hpp should already include this file! */
-	#include "os-openbsd.hpp"
-#endif
-
 int main(int argc, char **argv)
 {
 #if defined(__OpenBSD__)

@@ -3,16 +3,18 @@
 namespace factor
 {
 
+char *vm_saved_path;
+
+void pass_argv0(char *argv0)
+{
+	vm_saved_path = realpath(argv0, NULL);
+}
+
+/* Use argv[0] to find the executable path. */
 const char *vm_executable_path()
 {
-	/*
-	 * kvm_getprocs(3) can determine the executable filename, but
-	 * not the directory that it was in.
-	 *
-	 * SBCL bsd-os.c checks if /proc/curproc/file exists, but most
-	 * OpenBSD systems never mount /proc.
-	 */
-	return NULL;
+	/* Caller will free(), so we must allocate. */
+	return safe_strdup(vm_saved_path);
 }
 
 }

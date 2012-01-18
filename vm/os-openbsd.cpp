@@ -14,7 +14,10 @@ void pass_argv0(char *argv0)
 const char *vm_executable_path()
 {
 	/* Caller will free(), so we must allocate. */
-	return safe_strdup(vm_saved_path);
+	if (vm_saved_path)
+		return safe_strdup(vm_saved_path);
+	else
+		return NULL;
 }
 
 }

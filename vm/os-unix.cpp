@@ -44,7 +44,14 @@ void factor_vm::init_ffi()
 
 void factor_vm::ffi_dlopen(dll *dll)
 {
+#if defined(__OpenBSD__)
+	/* OpenBSD does not link some shared libraries to their
+	dependencies. For example, we must open libcrypto.so with
+	RTLD_GLOBAL before we open libssl.so. */
+	dll->handle = dlopen(alien_offset(dll->path), RTLD_LAZY | RTLD_GLOBAL);
+#else
 	dll->handle = dlopen(alien_offset(dll->path), RTLD_LAZY);
+#endif
 }
 
 void *factor_vm::ffi_dlsym_raw(dll *dll, symbol_char *symbol)

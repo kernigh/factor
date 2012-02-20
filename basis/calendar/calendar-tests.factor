@@ -188,3 +188,28 @@ IN: calendar.tests
 
 [ 0 ]
 [ gmt gmt-offset>> duration>seconds ] unit-test
+
+
+[ t ] [
+T{ timestamp
+    { year 2012 }
+    { month 2 }
+    { day 20 }
+    { hour 23 }
+    { minute 49 }
+    { second 46+991769/1000000 }
+    { gmt-offset T{ duration { hour -8 } } }
+}
+T{ timestamp
+    { year 2012 }
+    { month 2 }
+    { day 20 }
+    { hour 19 }
+    { minute 49 }
+    { second 46+991769/1000000 }
+    { gmt-offset T{ duration { hour 8 } } }
+}
+same-day?
+] unit-test
+
+

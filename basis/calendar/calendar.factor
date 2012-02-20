@@ -2,7 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays classes.tuple combinators
 combinators.short-circuit kernel locals math math.functions
-math.order sequences summary system vocabs vocabs.loader ;
+math.order sequences summary system vocabs vocabs.loader
+sequences.private ;
 IN: calendar
 
 HOOK: gmt-offset os ( -- hours minutes seconds )
@@ -300,6 +301,17 @@ M: duration <=> [ duration>years ] compare ;
 
 GENERIC: time- ( time1 time2 -- time3 )
 
+TUPLE: date-range timestamp-from timestamp-to ;
+
+C: <date-range> date-range
+
+M: date-range length
+    [ timestamp-to>> ] [ timestamp-from>> ] bi
+    time- duration>days >integer ;
+
+M: date-range nth-unsafe
+    [ days ] [ timestamp-from>> ] bi* time+ ;
+
 : convert-timezone ( timestamp duration -- timestamp' )
     over gmt-offset>> over = [ drop ] [
         [ over gmt-offset>> time- time+ ] keep >>gmt-offset
@@ -313,9 +325,6 @@ GENERIC: time- ( time1 time2 -- time3 )
 
 M: timestamp <=> ( ts1 ts2 -- n )
     [ >gmt tuple-slots ] compare ;
-
-: same-day? ( ts1 ts2 -- ? )
-    [ >gmt >date< <date> ] bi@ = ;
 
 : (time-) ( timestamp timestamp -- n )
     [ >gmt ] bi@
@@ -370,6 +379,8 @@ M: duration time-
 : now ( -- timestamp ) gmt >local-time ;
 : hence ( duration -- timestamp ) now swap time+ ;
 : ago ( duration -- timestamp ) now swap time- ;
+: yesterday ( -- timestamp ) 1 days ago ; inline
+: tomorrow ( -- timestamp ) 1 days hence ; inline
 
 : zeller-congruence ( year month day -- n )
     #! Zeller Congruence
@@ -413,11 +424,23 @@ M: timestamp day-name day-of-week day-names nth ;
 : midnight ( timestamp -- new-timestamp )
     clone 0 >>hour 0 >>minute 0 >>second ; inline
 
+: midnight-gmt ( timestamp -- new-timestamp )
+    clone 0 >>hour 0 >>minute 0 >>second instant >>gmt-offset ; inline
+
+: same-day? ( ts1 ts2 -- ? )
+    [ midnight-gmt ] bi@ = ;
+
 : noon ( timestamp -- new-timestamp )
     midnight 12 >>hour ; inline
 
+: noon-gmt ( timestamp -- new-timestamp )
+    midnight-gmt 12 >>hour ; inline
+
 : today ( -- timestamp )
     now midnight ; inline
+
+: today-gmt ( -- timestamp )
+    now midnight-gmt ; inline
 
 : beginning-of-month ( timestamp -- new-timestamp )
     midnight 1 >>day ; inline

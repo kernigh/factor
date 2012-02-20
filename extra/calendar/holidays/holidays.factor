@@ -19,38 +19,36 @@ SYNTAX: HOLIDAY-NAME:
     value name holidays set-at ] ;
 >>
 
-GENERIC: holidays ( n singleton -- seq )
+GENERIC: holidays ( timestamp singleton -- seq )
 
 <PRIVATE
 
-: (holidays) ( singleton -- seq )
+: region-holidays ( singleton -- seq )
     all-words swap '[ "holiday" word-prop _ swap key? ] filter ;
 
+: all-holidays ( -- seq )
+    all-words [ "holiday" word-prop ] filter ;
+
+: matching-holidays ( timestamp seq -- seq' )
+    [ [ execute( timestamp -- timestamp' ) ] [ drop ] 2bi same-day? ] with filter ;
+
 M: object holidays
-    (holidays) [ execute( timestamp -- timestamp' ) ] with map ;
+    region-holidays matching-holidays ;
 
 PRIVATE>
 
 M: all holidays
     drop
-    all-words [ "holiday" word-prop key? ] with filter ;
+    all-holidays matching-holidays [ "holiday" word-prop >alist ] map concat ;
 
 : holiday? ( timestamp/n singleton -- ? )
     [ holidays ] [ drop ] 2bi '[ _ same-day? ] any? ;
 
-: holiday-assoc ( timestamp singleton -- assoc )
-    (holidays) swap
-    '[ [ _ swap execute( ts -- ts' ) >gmt midnight ] keep ] { } map>assoc ;
-
-: holiday-name ( singleton word -- string/f )
-    "holiday" word-prop at ;
+: holiday-name ( word singleton -- string/f )
+    [ "holiday" word-prop ] dip swap at ;
 
 : holiday-names ( timestamp/n singleton -- seq )
-    [
-        [ >gmt midnight ] dip
-        [ drop ] [ holiday-assoc ] 2bi swap
-        '[ drop _ same-day? ] assoc-filter values
-    ] keep '[ _ swap "holiday" word-prop at ] map ;
+    [ holidays ] keep '[ _ holiday-name ] map ;
 
 HOLIDAY: armistice-day november 11 >>day ;
 HOLIDAY-NAME: armistice-day world "Armistice Day"
